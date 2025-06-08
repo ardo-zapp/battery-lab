@@ -38,8 +38,6 @@ class UpdateApplicationReceiver : BroadcastReceiver() {
 
                 ServiceHelper.cancelAllJobs(context)
 
-                ServiceHelper.checkPremiumJobSchedule(context)
-
                 if (BatteryLabService.instance == null && !ServiceHelper.isStartedBatteryLabService()) ServiceHelper.startService(
                     context, BatteryLabService::class.java
                 )

@@ -17,7 +17,6 @@ import com.jacktor.batterylab.fragments.PowerConnectionSettingsFragment
 import com.jacktor.batterylab.fragments.SettingsFragment
 import com.jacktor.batterylab.fragments.ToolsFragment
 import com.jacktor.batterylab.helpers.BatteryLevelHelper
-import com.jacktor.batterylab.interfaces.PremiumInterface.Companion.isPremium
 import java.lang.ref.WeakReference
 
 interface NavigationInterface : BatteryInfoInterface {
@@ -70,8 +69,6 @@ interface NavigationInterface : BatteryInfoInterface {
                         inflateMenu(-1)
 
                         loadFragment(fragment ?: ChargeDischargeFragment())
-
-                        if (!isPremium) mainActivityRef?.get()?.showAds()
                     }
                 }
 
@@ -100,8 +97,6 @@ interface NavigationInterface : BatteryInfoInterface {
                         inflateMenu(-1)
 
                         loadFragment(fragment ?: ToolsFragment())
-
-                        if (!isPremium) mainActivityRef?.get()?.showAds()
                     }
                 }
 
@@ -130,8 +125,6 @@ interface NavigationInterface : BatteryInfoInterface {
                         inflateMenu(-1)
 
                         loadFragment(fragment ?: HistoryFragment())
-
-                        if (!isPremium) mainActivityRef?.get()?.showAds()
                     }
                 }
 
@@ -158,8 +151,6 @@ interface NavigationInterface : BatteryInfoInterface {
                             clearMenu()
 
                             loadFragment(fragment ?: SettingsFragment())
-
-                            if (!isPremium) mainActivityRef?.get()?.showAds()
                         }
                     }
                 }

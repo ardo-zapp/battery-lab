@@ -16,12 +16,9 @@ import com.jacktor.batterylab.interfaces.BatteryInfoInterface.Companion.tempBatt
 import com.jacktor.batterylab.interfaces.BatteryInfoInterface.Companion.tempCurrentCapacity
 import com.jacktor.batterylab.interfaces.NavigationInterface.Companion.mainActivityRef
 import com.jacktor.batterylab.interfaces.NotificationInterface
-import com.jacktor.batterylab.interfaces.PremiumInterface
 import com.jacktor.batterylab.services.BatteryLabService
 
-class PluggedReceiver() : BroadcastReceiver(), BatteryInfoInterface, PremiumInterface {
-
-    override var premiumContext: Context? = null
+class PluggedReceiver() : BroadcastReceiver(), BatteryInfoInterface {
 
     override fun onReceive(context: Context, intent: Intent) {
 

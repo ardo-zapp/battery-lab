@@ -15,8 +15,6 @@ import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.NOTIFY_FULL_
 
 class FullChargeReminderJobService() : JobService(), NotificationInterface {
 
-    override var premiumContext: Context? = null
-
     override fun onStartJob(params: JobParameters?): Boolean {
 
         val pref = PreferenceManager.getDefaultSharedPreferences(this)

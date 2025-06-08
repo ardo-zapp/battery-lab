@@ -22,7 +22,6 @@ import com.jacktor.batterylab.helpers.HistoryHelper
 import com.jacktor.batterylab.interfaces.KernelInterface.Companion.executeShellFile
 import com.jacktor.batterylab.interfaces.KernelInterface.Companion.getKernelFromFile
 import com.jacktor.batterylab.interfaces.KernelInterface.Companion.resetScript
-import com.jacktor.batterylab.interfaces.PremiumInterface
 import com.jacktor.batterylab.utilities.Constants.SCRIPT_FILE_NAME
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.EXECUTE_SCRIPT_ON_BOOT
 import com.jacktor.batterylab.utilities.preferences.Prefs
@@ -43,7 +42,7 @@ interface MenuInterface {
 
                 topAppBar.menu.findItem(R.id.clear_history).apply {
 
-                    isVisible = PremiumInterface.isPremium && HistoryHelper.isHistoryNotEmpty(
+                    isVisible = HistoryHelper.isHistoryNotEmpty(
                         this@inflateMenu
                     )
 
@@ -56,7 +55,7 @@ interface MenuInterface {
                 }
 
                 topAppBar.menu.findItem(R.id.history_premium).apply {
-                    isVisible = !PremiumInterface.isPremium
+                    isVisible = false
 
                     setOnMenuItemClickListener {
                         val intent = Intent(applicationContext, PremiumActivity::class.java)

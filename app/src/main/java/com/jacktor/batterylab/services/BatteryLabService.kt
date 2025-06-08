@@ -40,7 +40,6 @@ import com.jacktor.batterylab.interfaces.NotificationInterface.Companion.isBatte
 import com.jacktor.batterylab.interfaces.NotificationInterface.Companion.isOverheatOvercool
 import com.jacktor.batterylab.interfaces.NotificationInterface.Companion.notificationBuilder
 import com.jacktor.batterylab.interfaces.NotificationInterface.Companion.notificationManager
-import com.jacktor.batterylab.interfaces.PremiumInterface
 import com.jacktor.batterylab.receivers.PluggedReceiver
 import com.jacktor.batterylab.receivers.PowerConnectionReceiver
 import com.jacktor.batterylab.receivers.UnpluggedReceiver
@@ -86,9 +85,7 @@ import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Duration.Companion.seconds
 
 class BatteryLabService() : Service(), NotificationInterface,
-    BatteryInfoInterface, PremiumInterface {
-
-    override var premiumContext: Context? = null
+    BatteryInfoInterface {
 
     private lateinit var pref: Prefs
     private lateinit var powerConnectionReceiver: PowerConnectionReceiver
@@ -620,75 +617,73 @@ class BatteryLabService() : Service(), NotificationInterface,
         }
 
         withContext(Dispatchers.Main) {
-            if (PremiumInterface.isPremium) {
-                if (residualCapacity > 0 && seconds >= 10) {
-                    withContext(Dispatchers.IO) {
-                        HistoryHelper.addHistory(
-                            applicationContext, currentDate, residualCapacity
-                        )
-                    }
-                    if (HistoryHelper.isHistoryNotEmpty(applicationContext)) {
-                        val historyFragment = HistoryFragment.instance
-                        historyFragment?.binding?.refreshEmptyHistory?.visibility = View.GONE
-                        historyFragment?.binding?.emptyHistoryLayout?.visibility = View.GONE
-                        historyFragment?.binding?.historyRecyclerView?.visibility = View.VISIBLE
-                        historyFragment?.binding?.refreshHistory?.visibility = View.VISIBLE
+            if (residualCapacity > 0 && seconds >= 10) {
+                withContext(Dispatchers.IO) {
+                    HistoryHelper.addHistory(
+                        applicationContext, currentDate, residualCapacity
+                    )
+                }
+                if (HistoryHelper.isHistoryNotEmpty(applicationContext)) {
+                    val historyFragment = HistoryFragment.instance
+                    historyFragment?.binding?.refreshEmptyHistory?.visibility = View.GONE
+                    historyFragment?.binding?.emptyHistoryLayout?.visibility = View.GONE
+                    historyFragment?.binding?.historyRecyclerView?.visibility = View.VISIBLE
+                    historyFragment?.binding?.refreshHistory?.visibility = View.VISIBLE
 
-                        mainActivityRef?.get()?.topAppBar?.menu?.findItem(R.id.history_premium)?.isVisible =
-                            false
-                        mainActivityRef?.get()?.topAppBar?.menu?.findItem(R.id.clear_history)?.isVisible =
-                            true
+                    mainActivityRef?.get()?.topAppBar?.menu?.findItem(R.id.history_premium)?.isVisible =
+                        false
+                    mainActivityRef?.get()?.topAppBar?.menu?.findItem(R.id.clear_history)?.isVisible =
+                        true
 
-                        if (HistoryHelper.getHistoryCount(applicationContext) == 1L) {
-                            val historyDB = withContext(Dispatchers.IO) {
-                                HistoryDB(applicationContext)
-                            }
-                            historyFragment?.historyAdapter =
-                                HistoryAdapter(
-                                    withContext(Dispatchers.IO) {
-                                        historyDB.readDB()
-                                    }
-                                )
-                            historyFragment?.historyAdapter?.itemCount?.let {
-                                historyFragment.binding?.historyRecyclerView?.setItemViewCacheSize(
-                                    it
-                                )
-                            }
-                            historyFragment?.binding?.historyRecyclerView?.adapter =
-                                historyFragment.historyAdapter
-                        } else HistoryAdapter.instance?.update(applicationContext)
+                    if (HistoryHelper.getHistoryCount(applicationContext) == 1L) {
+                        val historyDB = withContext(Dispatchers.IO) {
+                            HistoryDB(applicationContext)
+                        }
+                        historyFragment?.historyAdapter =
+                            HistoryAdapter(
+                                withContext(Dispatchers.IO) {
+                                    historyDB.readDB()
+                                }
+                            )
+                        historyFragment?.historyAdapter?.itemCount?.let {
+                            historyFragment.binding?.historyRecyclerView?.setItemViewCacheSize(
+                                it
+                            )
+                        }
+                        historyFragment?.binding?.historyRecyclerView?.adapter =
+                            historyFragment.historyAdapter
+                    } else HistoryAdapter.instance?.update(applicationContext)
 
-                    } else {
-                        HistoryFragment.instance?.binding?.historyRecyclerView?.visibility =
-                            View.GONE
-                        HistoryFragment.instance?.binding?.refreshHistory?.visibility =
-                            View.GONE
-                        HistoryFragment.instance?.binding?.emptyHistoryLayout?.visibility =
-                            View.VISIBLE
-                        HistoryFragment.instance?.binding?.refreshEmptyHistory?.visibility =
-                            View.VISIBLE
-                        HistoryFragment.instance?.binding?.emptyHistoryText?.text =
-                            resources.getText(R.string.empty_history_text)
-                        mainActivityRef?.get()?.topAppBar?.menu?.findItem(R.id.history_premium)?.isVisible =
-                            false
-                        mainActivityRef?.get()?.topAppBar?.menu?.findItem(R.id.clear_history)?.isVisible =
-                            false
-                    }
                 } else {
                     HistoryFragment.instance?.binding?.historyRecyclerView?.visibility =
                         View.GONE
-                    HistoryFragment.instance?.binding?.refreshHistory?.visibility = View.GONE
+                    HistoryFragment.instance?.binding?.refreshHistory?.visibility =
+                        View.GONE
                     HistoryFragment.instance?.binding?.emptyHistoryLayout?.visibility =
                         View.VISIBLE
                     HistoryFragment.instance?.binding?.refreshEmptyHistory?.visibility =
                         View.VISIBLE
                     HistoryFragment.instance?.binding?.emptyHistoryText?.text =
-                        resources.getText(R.string.history_premium_feature)
+                        resources.getText(R.string.empty_history_text)
                     mainActivityRef?.get()?.topAppBar?.menu?.findItem(R.id.history_premium)?.isVisible =
-                        true
+                        false
                     mainActivityRef?.get()?.topAppBar?.menu?.findItem(R.id.clear_history)?.isVisible =
                         false
                 }
+            } else {
+                HistoryFragment.instance?.binding?.historyRecyclerView?.visibility =
+                    View.GONE
+                HistoryFragment.instance?.binding?.refreshHistory?.visibility = View.GONE
+                HistoryFragment.instance?.binding?.emptyHistoryLayout?.visibility =
+                    View.VISIBLE
+                HistoryFragment.instance?.binding?.refreshEmptyHistory?.visibility =
+                    View.VISIBLE
+                HistoryFragment.instance?.binding?.emptyHistoryText?.text =
+                    resources.getText(R.string.history_premium_feature)
+                mainActivityRef?.get()?.topAppBar?.menu?.findItem(R.id.history_premium)?.isVisible =
+                    true
+                mainActivityRef?.get()?.topAppBar?.menu?.findItem(R.id.clear_history)?.isVisible =
+                    false
             }
         }
 

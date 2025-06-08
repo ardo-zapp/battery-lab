@@ -14,7 +14,6 @@ import android.widget.Toast
 import androidx.preference.Preference
 import com.jacktor.batterylab.MainApp
 import com.jacktor.batterylab.services.BatteryLabService
-import com.jacktor.batterylab.services.CheckPremiumJob
 import com.jacktor.batterylab.services.OverlayService
 import com.jacktor.batterylab.utilities.Constants
 import kotlinx.coroutines.CoroutineScope
@@ -115,15 +114,6 @@ object ServiceHelper {
 
         if (!isJobSchedule(context, jobId)) jobScheduler?.schedule(jobInfo)
     }
-
-    fun checkPremiumJobSchedule(context: Context) =
-        jobSchedule(
-            context,
-            CheckPremiumJob::class.java,
-            Constants.CHECK_PREMIUM_JOB_ID,
-            Constants.CHECK_PREMIUM_JOB_SERVICE_PERIODIC,
-            true
-        )
 
     private fun isJobSchedule(context: Context, jobId: Int): Boolean {
 

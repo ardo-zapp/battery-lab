@@ -15,13 +15,11 @@ import androidx.core.net.toUri
 import androidx.preference.*
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.jacktor.batterylab.R
-import com.jacktor.batterylab.interfaces.PremiumInterface
 import com.jacktor.batterylab.utilities.FileUtils
 import com.jacktor.batterylab.utilities.preferences.Prefs
 
-class PowerConnectionSettingsFragment() : PreferenceFragmentCompat(), PremiumInterface {
+class PowerConnectionSettingsFragment() : PreferenceFragmentCompat() {
 
-    override var premiumContext: Context? = null
     private lateinit var pref: Prefs
 
     // Preferences

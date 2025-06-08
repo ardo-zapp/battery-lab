@@ -17,7 +17,6 @@ import com.jacktor.batterylab.services.OverlayService
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.UPDATE_TEMP_SCREEN_TIME
 import com.jacktor.batterylab.utilities.preferences.Prefs
-import com.jacktor.batterylab.utilities.Premium.TOKEN_PREF
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -39,8 +38,6 @@ interface BackupSettingsInterface {
 
         val pref = Prefs(requireContext())
 
-        val tokenPref = pref.getString(TOKEN_PREF, null)
-
         CoroutineScope(Dispatchers.IO).launch {
 
             try {
@@ -50,7 +47,6 @@ interface BackupSettingsInterface {
                 with(pref) {
                     apply {
                         if (contains(UPDATE_TEMP_SCREEN_TIME)) remove(UPDATE_TEMP_SCREEN_TIME)
-                        if (contains(TOKEN_PREF)) remove(TOKEN_PREF)
                     }
                 }
 
@@ -93,8 +89,6 @@ interface BackupSettingsInterface {
                         getString(R.string.successful_export_of_settings, prefName),
                         Toast.LENGTH_LONG
                     ).show()
-
-                    pref.setString(TOKEN_PREF, tokenPref)
                 }
             } catch (e: Exception) {
 

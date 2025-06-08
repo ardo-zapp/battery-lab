@@ -65,7 +65,6 @@ import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.UNIT_OF_CHAR
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.UNIT_OF_MEASUREMENT_OF_CURRENT_CAPACITY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.UPDATE_TEMP_SCREEN_TIME
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.VOLTAGE_UNIT
-import com.jacktor.batterylab.utilities.Premium.TOKEN_PREF
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -464,8 +463,6 @@ interface DebugOptionsInterface {
                                 "float", changePrefValue, pref,
                                 prefValueInputTypeDef, prefValueKeyListenerDef
                             )
-
-                        TOKEN_PREF -> return
 
                         else -> setValueType(
                             "boolean", changePrefValue, pref,

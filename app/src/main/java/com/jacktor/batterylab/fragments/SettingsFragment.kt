@@ -21,8 +21,6 @@ import com.jacktor.batterylab.helpers.ThemeHelper.setTheme
 import com.jacktor.batterylab.interfaces.BatteryInfoInterface
 import com.jacktor.batterylab.interfaces.DebugOptionsInterface
 import com.jacktor.batterylab.interfaces.NavigationInterface
-import com.jacktor.batterylab.interfaces.PremiumInterface
-import com.jacktor.batterylab.interfaces.PremiumInterface.Companion.isPremium
 import com.jacktor.batterylab.interfaces.SettingsInterface
 import com.jacktor.batterylab.services.BatteryLabService
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys
@@ -57,9 +55,7 @@ import kotlin.time.Duration.Companion.seconds
 
 class SettingsFragment() : PreferenceFragmentCompat(),
     SettingsInterface, DebugOptionsInterface,
-    BatteryInfoInterface, PremiumInterface, NavigationInterface {
-
-    override var premiumContext: Context? = null
+    BatteryInfoInterface, NavigationInterface {
 
     private lateinit var pref: SharedPreferences
 
@@ -116,7 +112,7 @@ class SettingsFragment() : PreferenceFragmentCompat(),
         premium = findPreference("premium")
 
         premium?.apply {
-            isVisible = !isPremium
+            isVisible = false
 
             if (isVisible)
                 setOnPreferenceClickListener {
@@ -183,8 +179,7 @@ class SettingsFragment() : PreferenceFragmentCompat(),
 
         isShowExtendedNotification?.apply {
 
-            isEnabled = if (!isPremium) true
-            else pref.getBoolean(
+            isEnabled = pref.getBoolean(
                 SHOW_BATTERY_INFORMATION, requireContext().resources.getBoolean(
                     R.bool.show_battery_information
                 )
@@ -832,10 +827,10 @@ class SettingsFragment() : PreferenceFragmentCompat(),
 
         super.onResume()
 
-        if (premium?.isVisible == true) premium?.isVisible = !isPremium
+        if (premium?.isVisible == true) premium?.isVisible = false
 
         stopService?.apply {
-            isEnabled = isPremium
+            isEnabled = true
             summary = if (!isEnabled) getString(R.string.premium_feature) else null
         }
 

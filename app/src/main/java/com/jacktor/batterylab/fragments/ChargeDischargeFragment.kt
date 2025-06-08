@@ -418,9 +418,6 @@ class ChargeDischargeFragment : Fragment(R.layout.charge_discharge_fragment), Se
                     binding.residualCapacity.text = getResidualCapacity(requireContext())
 
                     binding.batteryWear.text = getBatteryWear(requireContext())
-
-
-                    //binding.premiumButton.isVisible = !PremiumInterface.isPremium
                 }
 
                 withContext(Dispatchers.Main) {
@@ -430,14 +427,10 @@ class ChargeDischargeFragment : Fragment(R.layout.charge_discharge_fragment), Se
 
                     if (getSourceOfPower(requireContext(), sourceOfPower) != "N/A") {
 
-                        //if(this@ChargeDischargeFragment.binding.sourceOfPower.visibility == View.GONE)
-                        //  this@ChargeDischargeFragment.binding.sourceOfPower.visibility = View.VISIBLE
-
                         this@ChargeDischargeFragment.binding.sourceOfPower.text =
                             getSourceOfPower(requireContext(), sourceOfPower)
                     } else this@ChargeDischargeFragment.binding.sourceOfPower.text =
                         getString(R.string.not_plugged)
-                    //else this@ChargeDischargeFragment.binding.sourceOfPower.visibility = View.GONE
                 }
 
                 withContext(Dispatchers.Main) {

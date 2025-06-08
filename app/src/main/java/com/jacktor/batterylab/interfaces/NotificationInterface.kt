@@ -28,7 +28,6 @@ import com.jacktor.batterylab.MainApp.Companion.batteryIntent
 import com.jacktor.batterylab.R
 import com.jacktor.batterylab.helpers.StatusBarHelper
 import com.jacktor.batterylab.helpers.ThemeHelper.isSystemDarkMode
-import com.jacktor.batterylab.interfaces.PremiumInterface.Companion.isPremium
 import com.jacktor.batterylab.services.BatteryLabService
 import com.jacktor.batterylab.services.CloseNotificationBatteryStatusInformationService
 import com.jacktor.batterylab.services.DisableNotificationBatteryStatusInformationService
@@ -57,7 +56,7 @@ import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.SHOW_STOP_SE
 import java.text.DecimalFormat
 
 @SuppressLint("StaticFieldLeak")
-interface NotificationInterface : BatteryInfoInterface, PremiumInterface {
+interface NotificationInterface : BatteryInfoInterface {
 
     companion object {
 
@@ -128,21 +127,19 @@ interface NotificationInterface : BatteryInfoInterface, PremiumInterface {
 
             setContentIntent(openApp)
 
-            if (isPremium) {
-                if (pref.getBoolean(
-                        SHOW_STOP_SERVICE, context.resources.getBoolean(
-                            R.bool.show_stop_service
-                        )
-                    ) && mActions.isEmpty()
-                )
-                    addAction(0, context.getString(R.string.stop_service), stopService)
-                else if (!pref.getBoolean(
-                        SHOW_STOP_SERVICE, context.resources.getBoolean(
-                            R.bool.show_stop_service
-                        )
-                    ) && mActions.isNotEmpty()
-                ) mActions.clear()
-            }
+            if (pref.getBoolean(
+                    SHOW_STOP_SERVICE, context.resources.getBoolean(
+                        R.bool.show_stop_service
+                    )
+                ) && mActions.isEmpty()
+            )
+                addAction(0, context.getString(R.string.stop_service), stopService)
+            else if (!pref.getBoolean(
+                    SHOW_STOP_SERVICE, context.resources.getBoolean(
+                        R.bool.show_stop_service
+                    )
+                ) && mActions.isNotEmpty()
+            ) mActions.clear()
             val remoteViewsServiceContent = RemoteViews(
                 context.packageName,
                 R.layout.notification_content
@@ -285,21 +282,19 @@ interface NotificationInterface : BatteryInfoInterface, PremiumInterface {
                     else R.color.blue
                 )
 
-            if (isPremium) {
-                if (pref.getBoolean(
-                        SHOW_STOP_SERVICE, context.resources.getBoolean(
-                            R.bool.show_stop_service
-                        )
-                    ) && mActions.isEmpty()
-                )
-                    addAction(0, context.getString(R.string.stop_service), stopService)
-                else if (!pref.getBoolean(
-                        SHOW_STOP_SERVICE, context.resources.getBoolean(
-                            R.bool.show_stop_service
-                        )
-                    ) && mActions.isNotEmpty()
-                ) mActions.clear()
-            }
+            if (pref.getBoolean(
+                    SHOW_STOP_SERVICE, context.resources.getBoolean(
+                        R.bool.show_stop_service
+                    )
+                ) && mActions.isEmpty()
+            )
+                addAction(0, context.getString(R.string.stop_service), stopService)
+            else if (!pref.getBoolean(
+                    SHOW_STOP_SERVICE, context.resources.getBoolean(
+                        R.bool.show_stop_service
+                    )
+                ) && mActions.isNotEmpty()
+            ) mActions.clear()
 
             val remoteViewsServiceContent = RemoteViews(
                 context.packageName,

@@ -19,14 +19,9 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import com.google.android.gms.ads.AdRequest
-import com.google.android.gms.ads.LoadAdError
-import com.google.android.gms.ads.interstitial.InterstitialAd
-import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
-import com.google.firebase.analytics.FirebaseAnalytics
 import com.jacktor.batterylab.MainApp.Companion.batteryIntent
 import com.jacktor.batterylab.MainApp.Companion.isGooglePlay
 import com.jacktor.batterylab.MainApp.Companion.isInstalledGooglePlay
@@ -51,13 +46,10 @@ import com.jacktor.batterylab.interfaces.CheckUpdateInterface
 import com.jacktor.batterylab.interfaces.ManufacturerInterface
 import com.jacktor.batterylab.interfaces.NavigationInterface
 import com.jacktor.batterylab.interfaces.NavigationInterface.Companion.mainActivityRef
-import com.jacktor.batterylab.interfaces.PremiumInterface
-import com.jacktor.batterylab.interfaces.PremiumInterface.Companion.isPremium
 import com.jacktor.batterylab.interfaces.SettingsInterface
 import com.jacktor.batterylab.interfaces.views.MenuInterface
 import com.jacktor.batterylab.services.BatteryLabService
 import com.jacktor.batterylab.services.OverlayService
-import com.jacktor.batterylab.utilities.AdMob
 import com.jacktor.batterylab.utilities.Constants
 import com.jacktor.batterylab.utilities.Constants.IMPORT_RESTORE_SETTINGS_EXTRA
 import com.jacktor.batterylab.utilities.Constants.POST_NOTIFICATIONS_PERMISSION_REQUEST_CODE
@@ -84,10 +76,8 @@ import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.seconds
 
 class MainActivity() : AppCompatActivity(), BatteryInfoInterface, SettingsInterface,
-    PremiumInterface, MenuInterface, ManufacturerInterface, NavigationInterface,
+    MenuInterface, ManufacturerInterface, NavigationInterface,
     CheckUpdateInterface, BatteryOptimizationsInterface {
-
-    override var premiumContext: Context? = null
 
     var pref: Prefs? = null
     private var isDoubleBackToExitPressedOnce = false
@@ -98,7 +88,6 @@ class MainActivity() : AppCompatActivity(), BatteryInfoInterface, SettingsInterf
     var showXiaomiAutostartDialog: MaterialAlertDialogBuilder? = null
     var showHuaweiInformation: MaterialAlertDialogBuilder? = null
     var showRequestIgnoringBatteryOptimizationsDialog: MaterialAlertDialogBuilder? = null
-    private var firebaseAnalytics: FirebaseAnalytics? = null
 
 
     val updateFlowResultLauncher = registerForActivityResult(
@@ -116,7 +105,6 @@ class MainActivity() : AppCompatActivity(), BatteryInfoInterface, SettingsInterf
 
     var fragment: Fragment? = null
 
-    private var mInterstitialAd: InterstitialAd? = null
     private var adsCounter = 0
 
     companion object {
@@ -139,17 +127,9 @@ class MainActivity() : AppCompatActivity(), BatteryInfoInterface, SettingsInterf
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        //Firebase Analytics
-        firebaseAnalytics = FirebaseAnalytics.getInstance(this)
-
         pref = Prefs(this)
 
         ThemeHelper.setTheme(this)
-
-        if (premiumContext == null) premiumContext = this
-
-        //ADS
-        if (!isPremium) loadAds()
 
         MainApp.Companion.currentTheme = ThemeHelper.currentTheme(resources.configuration)
 
@@ -252,13 +232,6 @@ class MainActivity() : AppCompatActivity(), BatteryInfoInterface, SettingsInterf
     override fun onResume() {
 
         super.onResume()
-
-        //Firebase Analytics
-        val bundle = Bundle().apply {
-            putString(FirebaseAnalytics.Param.SCREEN_CLASS, localClassName)
-            putString(FirebaseAnalytics.Param.SCREEN_NAME, TAG)
-        }
-        firebaseAnalytics!!.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW, bundle)
 
         tempFragment = null
 
@@ -611,43 +584,6 @@ class MainActivity() : AppCompatActivity(), BatteryInfoInterface, SettingsInterf
                 }
             }
             show()
-        }
-    }
-
-    private fun loadAds() {
-        val adRequest = AdRequest.Builder().build()
-
-        InterstitialAd.load(
-            this,
-            AdMob.AD_UNIT_ID,
-            adRequest,
-            object : InterstitialAdLoadCallback() {
-                override fun onAdFailedToLoad(adError: LoadAdError) {
-                    Log.d(TAG, adError.toString())
-                    mInterstitialAd = null
-                }
-
-                override fun onAdLoaded(interstitialAd: InterstitialAd) {
-                    Log.d(TAG, "Ad was loaded.")
-                    mInterstitialAd = interstitialAd
-                }
-            })
-    }
-
-    fun showAds() {
-        adsCounter++
-        Log.d("ADS COUNTER: ", adsCounter.toString())
-
-        if (adsCounter >= 3) {
-            adsCounter = 0
-
-            if (mInterstitialAd != null) {
-                mInterstitialAd?.show(this)
-                loadAds()
-            } else {
-                Log.d(TAG, "The interstitial ad wasn't ready yet.")
-            }
-
         }
     }
 }

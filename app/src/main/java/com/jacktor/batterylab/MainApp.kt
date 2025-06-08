@@ -10,7 +10,6 @@ import android.os.Build
 import com.jacktor.batterylab.helpers.ServiceHelper
 import com.jacktor.batterylab.helpers.ThemeHelper
 import com.jacktor.batterylab.interfaces.NavigationInterface.Companion.mainActivityRef
-import com.jacktor.batterylab.interfaces.PremiumInterface
 import com.jacktor.batterylab.utilities.Constants
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -20,7 +19,7 @@ import java.io.File
 import java.io.Serializable
 import kotlin.system.exitProcess
 
-class MainApp : Application(), PremiumInterface {
+class MainApp : Application() {
 
     companion object {
 
@@ -76,8 +75,6 @@ class MainApp : Application(), PremiumInterface {
         }
     }
 
-    override var premiumContext: Context? = null
-
     override fun onCreate() {
 
         super.onCreate()
@@ -88,22 +85,11 @@ class MainApp : Application(), PremiumInterface {
             file.writeText("#!/bin/bash")
         }
 
-        premiumContext = this
-
         isInstalledGooglePlay = isInstalledGooglePlay()
 
         ThemeHelper.setTheme(this)
 
-        if (isInstalledGooglePlay) checkPremium()
-
-        CoroutineScope(Dispatchers.IO).launch {
-            delay(2500L)
-            if (isInstalledGooglePlay) checkPremium()
-        }
-
         currentTheme = ThemeHelper.currentTheme(resources.configuration)
-
-        if (isInstalledGooglePlay) ServiceHelper.checkPremiumJobSchedule(this)
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {

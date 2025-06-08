@@ -5,8 +5,6 @@ import java.util.Locale
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
-    id("com.google.gms.google-services")
-    id("com.google.firebase.crashlytics")
 }
 
 android {
@@ -17,7 +15,6 @@ android {
 
     compileSdk = 35
     buildToolsVersion = "35.0.0 rc1"
-    ndkVersion = "28.0.12433566 rc1"
 
     defaultConfig {
         applicationId = "com.jacktor.batterylab"
@@ -32,16 +29,6 @@ android {
         buildConfigField("String", "BUILD_DATE", "\"${getBuildDate()}\"")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         resourceConfigurations += listOf("en", "in")
-
-        ndk {
-            abiFilters.addAll(listOf("x86", "x86_64", "armeabi-v7a", "arm64-v8a"))
-        }
-    }
-
-    externalNativeBuild {
-        cmake {
-            path = file("src/main/cpp/CMakeLists.txt")
-        }
     }
 
     buildTypes {
@@ -90,10 +77,6 @@ fun getBuildDate(): String {
 
 dependencies {
     // Firebase and Google Services
-    implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
-    implementation("com.google.firebase:firebase-crashlytics-ktx")
-    implementation("com.google.firebase:firebase-analytics-ktx")
-    implementation("com.google.android.gms:play-services-ads:23.6.0")
     implementation("com.google.android.material:material:1.12.0")
     implementation("com.google.android.play:app-update-ktx:2.1.0")
 
@@ -119,7 +102,6 @@ dependencies {
     implementation("com.jaredrummler:colorpicker:1.1.0")
     implementation("com.github.XomaDev:MIUI-autostart:v1.3")
     implementation("com.github.topjohnwu.libsu:core:5.0.1")
-    implementation("com.android.billingclient:billing-ktx:7.1.1")
 
     // Testing Libraries
     testImplementation("junit:junit:4.13.2")

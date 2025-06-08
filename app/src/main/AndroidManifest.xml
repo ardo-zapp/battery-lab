@@ -16,7 +16,7 @@
     <uses-permission android:name="android.permission.ACCESS_SUPERUSER" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.WAKE_LOCK"/>
-    <uses-permission android:name="com.android.vending.BILLING" />
+    <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:name=".MainApp"
@@ -34,11 +34,6 @@
         android:enableOnBackInvokedCallback="true"
         android:localeConfig="@xml/locales_config"
         tools:targetApi="tiramisu">
-
-        <property
-            android:name="android.adservices.AD_SERVICES_CONFIG"
-            android:resource="@xml/gma_ad_services_config"
-            tools:replace="android:resource" />
 
         <activity
             android:name=".MainActivity"
@@ -90,11 +85,6 @@
             android:permission="android.permission.BIND_JOB_SERVICE"
             android:exported="true" />
 
-        <service
-            android:name=".services.CheckPremiumJob"
-            android:permission="android.permission.BIND_JOB_SERVICE"
-            android:exported="true" />
-
         <receiver
             android:name=".receivers.BootReceiver"
             android:exported="true">
@@ -134,11 +124,6 @@
                 <data android:host="2432434722023" />
             </intent-filter>
         </receiver>
-
-        <meta-data
-            android:name="com.google.android.gms.ads.APPLICATION_ID"
-            android:value="ca-app-pub-9327089289176881~7383727074" />
-
 
     </application>
 

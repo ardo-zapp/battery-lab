@@ -7,19 +7,17 @@ import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.TypefaceCompat
 import com.jacktor.batterylab.R
-import com.jacktor.batterylab.interfaces.PremiumInterface
 
-object TextAppearanceHelper : PremiumInterface {
+object TextAppearanceHelper {
 
     fun setTextAppearance(
         context: Context, textViewArrayList: ArrayList<AppCompatTextView>,
         textStylePref: String?,
         textFontPref: String?, textSizePref: String?
     ) {
-        val isPremium = PremiumInterface.isPremium
         textViewArrayList.forEach {
             setTextSize(context, it, textSizePref, false)
-            val fontFamily = setTextFont(it.context, if (isPremium) textFontPref else "6")
+            val fontFamily = setTextFont(it.context, textFontPref)
             it.typeface = setTextStyle(it, textStylePref, fontFamily)
         }
     }
@@ -31,9 +29,7 @@ object TextAppearanceHelper : PremiumInterface {
 
         if (textSizePref != null) setTextSize(context, textView, textSizePref, subTitle)
 
-        val isPremium = PremiumInterface.isPremium
-
-        val fontFamily = setTextFont(textView.context, if (isPremium) textFontPref else "6")
+        val fontFamily = setTextFont(textView.context, textFontPref)
 
         textView.typeface = setTextStyle(textView, textStylePref, fontFamily)
     }
@@ -208,8 +204,4 @@ object TextAppearanceHelper : PremiumInterface {
             }
         }
     }
-
-    override var premiumContext: Context?
-        get() = null
-        set(_) {}
 }

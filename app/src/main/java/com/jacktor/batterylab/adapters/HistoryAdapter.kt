@@ -15,15 +15,11 @@ import com.jacktor.batterylab.fragments.HistoryFragment
 import com.jacktor.batterylab.helpers.HistoryHelper
 import com.jacktor.batterylab.helpers.TextAppearanceHelper
 import com.jacktor.batterylab.interfaces.BatteryInfoInterface
-import com.jacktor.batterylab.interfaces.PremiumInterface
-import com.jacktor.batterylab.interfaces.PremiumInterface.Companion.isPremium
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys
 import java.text.DecimalFormat
 
 class HistoryAdapter(private var historyList: MutableList<History>) :
-    RecyclerView.Adapter<HistoryViewHolder>(), PremiumInterface, BatteryInfoInterface {
-
-    override var premiumContext: Context? = null
+    RecyclerView.Adapter<HistoryViewHolder>(), BatteryInfoInterface {
 
     private lateinit var binding: HistoryRecyclerListItemBinding
 
@@ -54,18 +50,16 @@ class HistoryAdapter(private var historyList: MutableList<History>) :
     override fun onBindViewHolder(holderHistory: HistoryViewHolder, position: Int) {
         updateTextAppearance(holderHistory)
 
-        if (isPremium) {
-            binding.apply {
-                historyDate.text = historyList[itemCount - 1 - position].date
-                historyResidualCapacity.text = getResidualCapacity(
-                    holderHistory.itemView.context,
-                    historyList[itemCount - 1 - position].residualCapacity
-                )
-                historyBatteryWear.text = getBatteryWear(
-                    holderHistory.itemView.context,
-                    historyList[itemCount - 1 - position].residualCapacity
-                )
-            }
+        binding.apply {
+            historyDate.text = historyList[itemCount - 1 - position].date
+            historyResidualCapacity.text = getResidualCapacity(
+                holderHistory.itemView.context,
+                historyList[itemCount - 1 - position].residualCapacity
+            )
+            historyBatteryWear.text = getBatteryWear(
+                holderHistory.itemView.context,
+                historyList[itemCount - 1 - position].residualCapacity
+            )
         }
     }
 

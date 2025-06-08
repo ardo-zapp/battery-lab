@@ -14,7 +14,6 @@ import com.jacktor.batterylab.interfaces.BatteryInfoInterface.Companion.capacity
 import com.jacktor.batterylab.interfaces.BatteryInfoInterface.Companion.percentAdded
 import com.jacktor.batterylab.interfaces.NavigationInterface.Companion.mainActivityRef
 import com.jacktor.batterylab.interfaces.NotificationInterface
-import com.jacktor.batterylab.interfaces.PremiumInterface
 import com.jacktor.batterylab.services.BatteryLabService
 import com.jacktor.batterylab.utilities.Constants
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.BATTERY_LEVEL_TO
@@ -27,9 +26,7 @@ import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.PERCENT_ADDE
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.RESET_SCREEN_TIME_AT_ANY_CHARGE_LEVEL
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.STOP_THE_SERVICE_WHEN_THE_CD
 
-class UnpluggedReceiver() : BroadcastReceiver(), PremiumInterface {
-
-    override var premiumContext: Context? = null
+class UnpluggedReceiver() : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
 
@@ -49,10 +46,6 @@ class UnpluggedReceiver() : BroadcastReceiver(), PremiumInterface {
 
                     mainActivityRef?.get()?.isCheckUpdateFromGooglePlay =
                         !isCheckedUpdateFromGooglePlay
-
-
-                    val isPremium = PremiumInterface.isPremium
-
 
                     val batteryLevel = BatteryLabService.instance!!.getBatteryLevel(context) ?: 0
 
@@ -106,7 +99,7 @@ class UnpluggedReceiver() : BroadcastReceiver(), PremiumInterface {
 
                     BatteryLabService.instance!!.seconds = 0
 
-                    if (isPremium && (batteryLevel >= 90 || pref.getBoolean(
+                    if ((batteryLevel >= 90 || pref.getBoolean(
                             RESET_SCREEN_TIME_AT_ANY_CHARGE_LEVEL, context.resources.getBoolean(
                                 R.bool.reset_screen_time_at_any_charge_level
                             )
@@ -129,7 +122,7 @@ class UnpluggedReceiver() : BroadcastReceiver(), PremiumInterface {
                     BatteryLabService.instance!!.secondsFullCharge = 0
                     BatteryLabService.instance!!.isFull = false
 
-                    if (isPremium && pref.getBoolean(
+                    if (pref.getBoolean(
                             STOP_THE_SERVICE_WHEN_THE_CD,
                             context.resources.getBoolean(R.bool.stop_the_service_when_the_cd)
                         )
