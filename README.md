@@ -29,9 +29,9 @@ You are <b>FORBIDDEN</b> from distributing your compiled apk <b>without permissi
 | Status | Feature                                  |
 |--------|------------------------------------------|
 |&nbsp;&nbsp;&nbsp;✅| Power Connection Settings                |
-|&nbsp;&nbsp;&nbsp;➡️| Battery Calibration                      |
+|&nbsp;&nbsp;&nbsp;❎| Battery Calibration                      |
 |&nbsp;&nbsp;&nbsp;💡| OTG Connection Sound                     |
-|&nbsp;&nbsp;&nbsp;✅| Kernel Experiment                        |
+|&nbsp;&nbsp;&nbsp;❎| Kernel Experiment                        |
 |&nbsp;&nbsp;&nbsp;✅| BNotifier Integration                    |
 |&nbsp;&nbsp;&nbsp;✅| Capacity Info Integration                |
 </div>
