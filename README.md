@@ -1,11 +1,11 @@
-# Battery Lab
+# Battery Lab    
 
 [![GitHub release](https://img.shields.io/github/v/release/ardo-zapp/battery-lab?label=Latest%20Release)](https://github.com/ardo-zapp/battery-lab/releases)  
 [![GitHub issues](https://img.shields.io/github/issues/ardo-zapp/battery-lab)](https://github.com/ardo-zapp/battery-lab/issues)  
 [![GitHub stars](https://img.shields.io/github/stars/ardo-zapp/battery-lab)](https://github.com/ardo-zapp/battery-lab/stargazers)  
-[![License](https://img.shields.io/github/license/ardo-zapp/battery-lab)](https://github.com/ardo-zapp/battery-lab/blob/main/LICENSE)
+[![License](https://img.shields.io/github/license/ardo-zapp/battery-lab)](https://github.com/ardo-zapp/battery-lab/blob/main/LICENSE)  
 
-Battery Lab is a battery monitoring application for Android devices, combining a charger‑connected sound notifier from BNotifier and in‑depth battery statistics from Capacity Info, all refined into one modern, root‑free experience.
+Battery Lab is a modern battery monitoring app for Android that combines charger-connected sound alerts from BNotifier and detailed battery statistics from Capacity Info.
 
 ---
 
@@ -19,9 +19,10 @@ Battery Lab is a battery monitoring application for Android devices, combining a
 
 ## ℹ️ About
 
-Battery Lab is built upon two notable open-source Android tools:
+Battery Lab is built upon two open-source Android tools:
 
 - **BNotifier** — provides custom charger‑connected notification sound  
+  - [BNotifier on GitHub](https://github.com/ardo-zapp/BNotifier)
 - **Capacity Info** — detailed battery health metrics: capacity, wear, temperature, voltage, current, cycle count, history, and premium overlay & notifications  
   - [Capacity Info on GitHub](https://github.com/Ph03niX-X/CapacityInfo)
 
@@ -29,7 +30,7 @@ Battery Lab is built upon two notable open-source Android tools:
 > You are **strictly prohibited** from redistributing any compiled APKs (including renamed or modified versions) to any app store (e.g., Google Play Store, F‑Droid, Amazon Appstore) **without prior permission**.
 
 > 📝 **Note**  
-> Battery Lab does **not require root access**, and previous plans for "Battery Calibration" and "Kernel Experiment" have been **discontinued** to preserve app stability and compatibility.
+> Battery Lab does **not require root access**. Previous plans for "Battery Calibration" and "Kernel Experiment" have been **discontinued** to ensure stability and broader compatibility.
 
 ---
 
@@ -37,10 +38,8 @@ Battery Lab is built upon two notable open-source Android tools:
 
 - 🔊 **Custom Charger‑Connected Sound** — plays sound when power is connected (inspired by BNotifier)  
 - 📈 **Battery Health Metrics** — includes real capacity, wear, voltage, temperature, charge/discharge current, cycle count, and battery history  
-- 📬 **Custom Notifications & Overlay (Premium)** — notifications for charge level, temperature, and more, with optional floating overlay  
-- 🔕 **Rootless Operation** — no root permissions or kernel modules required  
+- 📬 **Custom Notifications & Overlay (Premium)** — notifications for charge level, temperature, and more, with optional floating overlay    
 - ⚙️ **Lightweight & Efficient** — minimal battery and memory impact  
-- 🧪 **No Calibration or Kernel Features** — removed for safety and broader device support
 
 ---
 
@@ -50,11 +49,10 @@ Battery Lab is built upon two notable open-source Android tools:
 
 | Status | Feature                                      |
 |--------|----------------------------------------------|
-| ✅     | Custom Charger‑Connected Sound               |
-| ✅     | Battery Health Metrics (Capacity Info)        |
-| ✅     | Custom Notifications & Overlay (Premium)      |
-| ❌     | Battery Calibration (Discontinued)            |
-| ❌     | Kernel Experiment (Discontinued)              |
+| ✅     | Custom Charger‑Connected Sound                      |
+| ✅     | Battery Health Metrics (Capacity Info)            |
+| ❌     | Battery Calibration (Discontinued)             |
+| ❌     | Kernel Experiment (Discontinued)             |
 
 </div>
 
@@ -81,23 +79,20 @@ These steps vary by device and OS version.
 
 ---
 
-## 📥 Download
+## 📲 Download from Google Play:
 
 <p align="center">
-  **Get it on Google Play:**  
-</p>
-<p align="center">
   <a href="https://play.google.com/store/apps/details?id=com.jacktor.batterylab">
-    <img src="https://play.google.com/intl/en_us/badges/images/generic/en_badge_web_generic.png" 
-         alt="Get it on Google Play" width="323" height="125"/>
+    <img src="https://play.google.com/intl/en_us/badges/images/generic/en_badge_web_generic.png"     
+         alt="Get it on Google Play" width="323" height="125"/>    
   </a>
 </p>
 
 ---
 
-## 🛠 Getting Started (For Developers)
+## 💤 Maintenance Status
 
-```bash
-git clone https://github.com/ardo-zapp/BatteryLab.git
-cd BatteryLab
-# Open project in Android Studio
+> ⚠️ This repository is updated **infrequently** due to limited time and real-life priorities.  
+> Feature requests, issues, and suggestions are still welcome — please note that responses and updates may take longer than usual.
+
+Thanks for your understanding and continued support!
