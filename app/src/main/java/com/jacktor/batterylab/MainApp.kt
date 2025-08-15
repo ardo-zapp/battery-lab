@@ -25,9 +25,7 @@ class MainApp : Application() {
         // Jacktor Premium - Billing Manager
         PremiumConfig.premiumProductId = "premium"
         billingManager = BillingManager(applicationContext)
-        billingManager.startBillingClient {
-            billingManager.reValidate(this)
-        }
+        billingManager.startBillingClient()
 
         initializeTheme()
         isInstalledGooglePlay = checkIfGooglePlayInstalled()
