@@ -9,7 +9,7 @@ import android.widget.TextView
 import androidx.recyclerview.widget.RecyclerView
 import com.jacktor.batterylab.R
 import com.jacktor.batterylab.interfaces.ContributorsInterface
-import com.jacktor.batterylab.views.ContributorsModel
+import com.jacktor.batterylab.models.ContributorsModel
 import com.squareup.picasso.Picasso
 
 class ContributorsAdapter(

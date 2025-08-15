@@ -1,5 +1,6 @@
-import java.util.Date
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.text.SimpleDateFormat
+import java.util.Date
 import java.util.Locale
 
 plugins {
@@ -7,42 +8,53 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("com.google.gms.google-services")
     id("com.google.firebase.crashlytics")
+    id("androidx.baselineprofile") version "1.4.0"
+}
+
+fun getBuildDate(): String {
+    val dateFormat = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault())
+    return dateFormat.format(Date())
 }
 
 android {
-    // Versioning
-    val versionMajor = 1
-    val versionMinor = 1
-    val versionPatch = 4
+    val versionMajor = 2
+    val versionMinor = 0
+    val versionPatch = 0
 
-    compileSdk = 35
-    buildToolsVersion = "35.0.0 rc1"
-    ndkVersion = "28.0.12433566 rc1"
+    compileSdk = 36
+    //buildToolsVersion = "35.0.0 rc1"
+    //ndkVersion = "28.0.12433566 rc1"
 
     defaultConfig {
-        applicationId = "com.jacktor.batterylab"
-        namespace = applicationId
-        minSdk = 23
-        targetSdk = 35
+        val appId = "com.jacktor.batterylab"
+        applicationId = appId
+        namespace = appId
+
+        minSdk = 26
+        targetSdk = 36
         versionCode = versionMajor * 10000 + versionMinor * 100 + versionPatch
         versionName = "$versionMajor.$versionMinor.$versionPatch"
-        vectorDrawables {
-            useSupportLibrary = true
-        }
+
+        vectorDrawables { useSupportLibrary = true }
+
         buildConfigField("String", "BUILD_DATE", "\"${getBuildDate()}\"")
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
-        resourceConfigurations += listOf("en", "in")
 
-        ndk {
-            abiFilters.addAll(listOf("x86", "x86_64", "armeabi-v7a", "arm64-v8a"))
+        androidResources {
+            @Suppress("UnstableApiUsage")
+            localeFilters.addAll(listOf("en", "in"))
         }
+
+        /*ndk {
+            abiFilters.addAll(listOf("x86", "x86_64", "armeabi-v7a", "arm64-v8a"))
+        }*/
     }
 
-    externalNativeBuild {
+    /*externalNativeBuild {
         cmake {
             path = file("src/main/cpp/CMakeLists.txt")
         }
-    }
+    }*/
 
     buildTypes {
         release {
@@ -69,8 +81,11 @@ android {
         targetCompatibility = JavaVersion.VERSION_21
     }
 
-    kotlinOptions {
-        jvmTarget = "21"
+    kotlin {
+        jvmToolchain(21)
+        compilerOptions {
+            jvmTarget.set(JvmTarget.JVM_21)
+        }
     }
 
     buildFeatures {
@@ -81,55 +96,63 @@ android {
     androidResources {
         ignoreAssetsPattern = "*.md"
     }
-}
 
-fun getBuildDate(): String {
-    val dateFormat = SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault())
-    return dateFormat.format(Date())
+    packaging {
+        jniLibs {
+            keepDebugSymbols += setOf(
+                "**/libconscrypt_jni.so",
+                "**/libdatastore_shared_counter.so"
+            )
+        }
+    }
 }
 
 dependencies {
-    // Firebase and Google Services
-    implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
-    implementation("com.google.firebase:firebase-crashlytics-ktx")
-    implementation("com.google.firebase:firebase-analytics-ktx")
-    implementation("com.google.android.gms:play-services-ads:23.6.0")
-    implementation("com.google.android.material:material:1.12.0")
+    implementation(project(":premium"))
+    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
+
+    // Firebase / Google
+    implementation(platform("com.google.firebase:firebase-bom:34.1.0"))
+    implementation("com.google.firebase:firebase-crashlytics-ktx:19.4.4")
+    implementation("com.google.firebase:firebase-analytics-ktx:22.5.0")
+    implementation("com.google.android.gms:play-services-ads:24.5.0")
     implementation("com.google.android.play:app-update-ktx:2.1.0")
 
-    // AndroidX Libraries
-    implementation("androidx.core:core-ktx:1.15.0")
-    implementation("androidx.appcompat:appcompat:1.7.0")
+    // Material
+    implementation("com.google.android.material:material:1.12.0")
+
+    // AndroidX
+    implementation("androidx.core:core-ktx:1.17.0")
+    implementation("androidx.appcompat:appcompat:1.7.1")
     implementation("androidx.cardview:cardview:1.0.0")
-    implementation("androidx.recyclerview:recyclerview:1.3.2")
-    implementation("androidx.gridlayout:gridlayout:1.0.0")
+    implementation("androidx.recyclerview:recyclerview:1.4.0")
+    implementation("androidx.gridlayout:gridlayout:1.1.0")
     implementation("androidx.preference:preference-ktx:1.2.1")
-    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.8.7")
-    implementation("androidx.work:work-runtime-ktx:2.10.0")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.9.2")
+    implementation("androidx.work:work-runtime-ktx:2.10.3")
     implementation("androidx.viewpager2:viewpager2:1.1.0")
+    implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
 
-    // Kotlin Libraries
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.0.21")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.9.0")
+    // Kotlin
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.1.20")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.2")
 
-    // Miscellaneous Libraries
+    // Another Lib
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
+    implementation("com.android.billingclient:billing-ktx:8.0.0")
+    //noinspection NewerVersionAvailable
     implementation("com.squareup.picasso:picasso:2.8")
+    implementation("androidx.security:security-crypto:1.1.0")
     implementation("com.jaredrummler:colorpicker:1.1.0")
     implementation("com.github.XomaDev:MIUI-autostart:v1.3")
-    implementation("com.github.topjohnwu.libsu:core:5.0.1")
-    implementation("com.android.billingclient:billing-ktx:7.1.1")
+    implementation("org.conscrypt:conscrypt-android:2.5.3")
 
-    // Testing Libraries
+    // Testing
     testImplementation("junit:junit:4.13.2")
-    androidTestImplementation("androidx.test.ext:junit:1.2.1")
-    androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
+    androidTestImplementation("androidx.test.ext:junit:1.3.0")
+    androidTestImplementation("androidx.test.espresso:espresso-core:3.7.0")
 
-    // Modules
-    modules {
-        module("com.google.guava:listenablefuture") {
-            replacedBy("com.google.guava:guava", "listenablefuture is part of guava")
-        }
-    }
+    // Runtime
+    runtimeOnly("org.conscrypt:conscrypt-android:2.5.3")
 }

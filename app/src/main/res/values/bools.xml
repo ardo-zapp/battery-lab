@@ -15,7 +15,6 @@
     <bool name="charging_discharge_current_in_watt">false</bool>
     <bool name="reset_screen_time_at_any_charge_level">false</bool>
     <bool name="auto_start_boot">true</bool>
-    <bool name="execute_script_on_boot">false</bool>
     <bool name="fast_charge_setting">false</bool>
 
     <!--Battery Status Information-->

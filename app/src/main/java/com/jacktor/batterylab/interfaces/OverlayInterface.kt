@@ -9,66 +9,69 @@ import android.content.SharedPreferences
 import android.graphics.Color
 import android.graphics.PixelFormat
 import android.os.BatteryManager
-import android.os.Build
 import android.provider.Settings
-import android.view.*
+import android.view.Gravity
+import android.view.LayoutInflater
+import android.view.MotionEvent
+import android.view.View
+import android.view.ViewGroup
+import android.view.WindowManager
 import android.widget.Toast
 import androidx.appcompat.widget.LinearLayoutCompat
+import androidx.core.view.isVisible
 import androidx.preference.PreferenceManager
+import com.jacktor.batterylab.MainApp.Companion.batteryIntent
 import com.jacktor.batterylab.R
+import com.jacktor.batterylab.databinding.OverlayLayoutBinding
 import com.jacktor.batterylab.helpers.ServiceHelper
 import com.jacktor.batterylab.helpers.TextAppearanceHelper
+import com.jacktor.batterylab.helpers.TimeHelper
 import com.jacktor.batterylab.services.BatteryLabService
 import com.jacktor.batterylab.services.OverlayService
-import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.BATTERY_LEVEL_TO
-import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.BATTERY_LEVEL_WITH
+import com.jacktor.batterylab.utilities.Constants.NUMBER_OF_CYCLES_PATH
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.AVERAGE_CHARGE_DISCHARGE_CURRENT_OVERLAY
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.AVERAGE_TEMPERATURE_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.BATTERY_HEALTH_ANDROID_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.BATTERY_LEVEL_OVERLAY
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.BATTERY_LEVEL_TO
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.BATTERY_LEVEL_WITH
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.BATTERY_WEAR_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CAPACITY_ADDED_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGE_DISCHARGE_CURRENT_OVERLAY
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGING_CURRENT_LIMIT_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGING_TIME_OVERLAY
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGING_TIME_REMAINING_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CURRENT_CAPACITY_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.ENABLED_OVERLAY
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.FAST_CHARGE_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.LAST_CHARGE_TIME_OVERLAY
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.MAXIMUM_TEMPERATURE_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.MAX_CHARGE_DISCHARGE_CURRENT_OVERLAY
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.MINIMUM_TEMPERATURE_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.MIN_CHARGE_DISCHARGE_CURRENT_OVERLAY
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.NUMBER_OF_CHARGES
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.NUMBER_OF_CHARGES_OVERLAY
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.NUMBER_OF_CYCLES
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.NUMBER_OF_CYCLES_ANDROID_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.NUMBER_OF_CYCLES_OVERLAY
-import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.SOURCE_OF_POWER
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.NUMBER_OF_FULL_CHARGES
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.NUMBER_OF_FULL_CHARGES_OVERLAY
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.ONLY_VALUES_OVERLAY
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.OVERLAY_FONT
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.OVERLAY_LOCATION
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.OVERLAY_OPACITY
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.OVERLAY_SIZE
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.OVERLAY_TEXT_COLOR
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.OVERLAY_TEXT_STYLE
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.REMAINING_BATTERY_TIME_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.RESIDUAL_CAPACITY_OVERLAY
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.SCREEN_TIME_OVERLAY
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.SOURCE_OF_POWER
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.STATUS_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.TEMPERATURE_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.VOLTAGE_OVERLAY
-import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.NUMBER_OF_CHARGES
-import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.NUMBER_OF_CYCLES
-import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.OVERLAY_OPACITY
-import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.OVERLAY_SIZE
-import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.OVERLAY_TEXT_STYLE
-import com.jacktor.batterylab.MainApp.Companion.batteryIntent
-import com.jacktor.batterylab.databinding.OverlayLayoutBinding
-import com.jacktor.batterylab.helpers.TimeHelper
-import com.jacktor.batterylab.utilities.Constants.NUMBER_OF_CYCLES_PATH
-import com.jacktor.batterylab.utilities.preferences.PreferencesKeys
-import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.AVERAGE_TEMPERATURE_OVERLAY
-import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGING_CURRENT_LIMIT_OVERLAY
-import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGING_TIME_REMAINING_OVERLAY
-import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.FAST_CHARGE_OVERLAY
-import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.MAXIMUM_TEMPERATURE_OVERLAY
-import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.MINIMUM_TEMPERATURE_OVERLAY
-import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.NUMBER_OF_CYCLES_ANDROID_OVERLAY
-import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.NUMBER_OF_FULL_CHARGES_OVERLAY
-import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.ONLY_VALUES_OVERLAY
-import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.REMAINING_BATTERY_TIME_OVERLAY
-import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.SCREEN_TIME_OVERLAY
-import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.NUMBER_OF_FULL_CHARGES
-import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.OVERLAY_FONT
-import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.OVERLAY_LOCATION
-import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.OVERLAY_TEXT_COLOR
-import com.topjohnwu.superuser.Shell
-import java.io.*
-import java.lang.Exception
+import java.io.File
 import java.text.DecimalFormat
 
 interface OverlayInterface : BatteryInfoInterface {
@@ -229,27 +232,23 @@ interface OverlayInterface : BatteryInfoInterface {
 
             windowManager = context.getSystemService(WINDOW_SERVICE) as? WindowManager
 
-            val parameters = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val parameters =
                 WindowManager.LayoutParams(
                     WindowManager.LayoutParams.WRAP_CONTENT,
                     WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams
                         .TYPE_APPLICATION_OVERLAY, WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
                     PixelFormat.TRANSLUCENT
                 )
-            } else {
-                @Suppress("DEPRECATION")
-                WindowManager.LayoutParams(
-                    WindowManager.LayoutParams.WRAP_CONTENT,
-                    WindowManager.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams
-                        .TYPE_SYSTEM_ALERT, WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE,
-                    PixelFormat.TRANSLUCENT
-                )
-            }
 
-            val overlayLocation = pref.getString(OVERLAY_LOCATION, "${context.resources.getInteger(
-                R.integer.overlay_location_default)}")
+            val overlayLocation = pref.getString(
+                OVERLAY_LOCATION, "${
+                    context.resources.getInteger(
+                        R.integer.overlay_location_default
+                    )
+                }"
+            )
 
-            parameters.gravity = when(overlayLocation?.toInt()) {
+            parameters.gravity = when (overlayLocation?.toInt()) {
                 0 -> Gravity.TOP
                 1 -> Gravity.TOP or Gravity.START
                 2 -> Gravity.TOP or Gravity.END
@@ -390,12 +389,13 @@ interface OverlayInterface : BatteryInfoInterface {
                 BATTERY_LEVEL_OVERLAY, binding.batteryLevelOverlay.resources
                     .getBoolean(R.bool.battery_level_overlay)
             ) ||
-            binding.batteryLevelOverlay.visibility == View.VISIBLE
+            binding.batteryLevelOverlay.isVisible
         )
             binding.batteryLevelOverlay.apply {
 
                 TextAppearanceHelper.setTextAppearance(
-                    context, this,
+                    context,
+                    this,
                     pref.getString(OVERLAY_TEXT_STYLE, "0"),
                     pref.getString(OVERLAY_FONT, "6"),
                     pref.getString(OVERLAY_SIZE, "2"),
@@ -428,7 +428,7 @@ interface OverlayInterface : BatteryInfoInterface {
                 NUMBER_OF_CHARGES_OVERLAY, binding.numberOfChargesOverlay.context
                     .resources.getBoolean(R.bool.number_of_charges_overlay)
             ) ||
-            binding.numberOfChargesOverlay.visibility == View.VISIBLE
+            binding.numberOfChargesOverlay.isVisible
         )
             binding.numberOfChargesOverlay.apply {
 
@@ -468,7 +468,7 @@ interface OverlayInterface : BatteryInfoInterface {
                 NUMBER_OF_FULL_CHARGES_OVERLAY, binding.numberOfFullChargesOverlay
                     .context.resources.getBoolean(R.bool.number_of_charges_overlay)
             )
-            || binding.numberOfFullChargesOverlay.visibility == View.VISIBLE
+            || binding.numberOfFullChargesOverlay.isVisible
         )
             binding.numberOfFullChargesOverlay.apply {
 
@@ -509,7 +509,7 @@ interface OverlayInterface : BatteryInfoInterface {
                 NUMBER_OF_CYCLES_OVERLAY, binding.numberOfCyclesOverlay.context
                     .resources.getBoolean(R.bool.number_of_cycles_overlay)
             ) ||
-            binding.numberOfCyclesOverlay.visibility == View.VISIBLE
+            binding.numberOfCyclesOverlay.isVisible
         )
             binding.numberOfCyclesOverlay.apply {
 
@@ -552,9 +552,8 @@ interface OverlayInterface : BatteryInfoInterface {
                     )
             ) && File(
                 NUMBER_OF_CYCLES_PATH
-            ).exists() || Shell.cmd("test -e $NUMBER_OF_CYCLES_PATH")
-                .exec().isSuccess) ||
-            binding.numberOfCyclesAndroidOverlay.visibility == View.VISIBLE
+            ).exists()) ||
+            binding.numberOfCyclesAndroidOverlay.isVisible
         )
             binding.numberOfCyclesAndroidOverlay.apply {
 
@@ -594,7 +593,7 @@ interface OverlayInterface : BatteryInfoInterface {
                     .getBoolean(R.bool.charging_time_overlay)
             )
                     && (BatteryLabService.instance?.seconds ?: 0) > 1) ||
-            binding.chargingTimeOverlay.visibility == View.VISIBLE
+            binding.chargingTimeOverlay.isVisible
         )
             binding.chargingTimeOverlay.apply {
 
@@ -633,7 +632,7 @@ interface OverlayInterface : BatteryInfoInterface {
                     .context.resources.getBoolean(R.bool.charging_time_remaining_overlay)
             )
                     && status == BatteryManager.BATTERY_STATUS_CHARGING) ||
-            binding.chargingTimeRemainingOverlay.visibility == View.VISIBLE
+            binding.chargingTimeRemainingOverlay.isVisible
         )
             binding.chargingTimeRemainingOverlay.apply {
 
@@ -674,7 +673,7 @@ interface OverlayInterface : BatteryInfoInterface {
                     .context.resources.getBoolean(R.bool.remaining_battery_time_overlay)
             )
                     && status != BatteryManager.BATTERY_STATUS_CHARGING) ||
-            binding.remainingBatteryTimeOverlay.visibility == View.VISIBLE
+            binding.remainingBatteryTimeOverlay.isVisible
         )
             binding.remainingBatteryTimeOverlay.apply {
 
@@ -715,7 +714,7 @@ interface OverlayInterface : BatteryInfoInterface {
                 SCREEN_TIME_OVERLAY, binding.screenTimeOverlay.context.resources
                     .getBoolean(R.bool.screen_time_overlay)
             ) ||
-            binding.screenTimeOverlay.visibility == View.VISIBLE
+            binding.screenTimeOverlay.isVisible
         )
 
             binding.screenTimeOverlay.apply {
@@ -754,7 +753,7 @@ interface OverlayInterface : BatteryInfoInterface {
                 CURRENT_CAPACITY_OVERLAY, binding.currentCapacityOverlay.context
                     .resources.getBoolean(R.bool.current_capacity_overlay)
             )) ||
-            binding.currentCapacityOverlay.visibility == View.VISIBLE
+            binding.currentCapacityOverlay.isVisible
         )
             binding.currentCapacityOverlay.apply {
 
@@ -810,7 +809,7 @@ interface OverlayInterface : BatteryInfoInterface {
                 CAPACITY_ADDED_OVERLAY, binding.capacityAddedOverlay.context
                     .resources.getBoolean(R.bool.capacity_added_overlay)
             )) ||
-            binding.capacityAddedOverlay.visibility == View.VISIBLE
+            binding.capacityAddedOverlay.isVisible
         )
             binding.capacityAddedOverlay.apply {
 
@@ -846,7 +845,7 @@ interface OverlayInterface : BatteryInfoInterface {
                 binding.batteryHealthAndroidOverlay.context.resources
                     .getBoolean(R.bool.battery_health_android_overlay)
             ) ||
-            binding.batteryHealthAndroidOverlay.visibility == View.VISIBLE
+            binding.batteryHealthAndroidOverlay.isVisible
         )
             binding.batteryHealthAndroidOverlay.apply {
 
@@ -883,7 +882,7 @@ interface OverlayInterface : BatteryInfoInterface {
                 RESIDUAL_CAPACITY_OVERLAY, binding.residualCapacityOverlay.context
                     .resources.getBoolean(R.bool.residual_capacity_overlay)
             )) ||
-            binding.residualCapacityOverlay.visibility == View.VISIBLE
+            binding.residualCapacityOverlay.isVisible
         )
             binding.residualCapacityOverlay.apply {
 
@@ -921,7 +920,7 @@ interface OverlayInterface : BatteryInfoInterface {
                 STATUS_OVERLAY, binding.statusOverlay.context.resources.getBoolean(
                     R.bool.status_overlay
                 )
-            ) || binding.statusOverlay.visibility == View.VISIBLE
+            ) || binding.statusOverlay.isVisible
         )
             binding.statusOverlay.apply {
 
@@ -959,7 +958,7 @@ interface OverlayInterface : BatteryInfoInterface {
                 SOURCE_OF_POWER, binding.sourceOfPowerOverlay.context.resources
                     .getBoolean(R.bool.source_of_power_overlay)
             ) && sourceOfPower != "N/A")
-            || binding.sourceOfPowerOverlay.visibility == View.VISIBLE
+            || binding.sourceOfPowerOverlay.isVisible
         )
             binding.sourceOfPowerOverlay.apply {
 
@@ -993,7 +992,7 @@ interface OverlayInterface : BatteryInfoInterface {
                     R.bool.charge_discharge_current_overlay
                 )
             ) ||
-            binding.chargeDischargeCurrentOverlay.visibility == View.VISIBLE
+            binding.chargeDischargeCurrentOverlay.isVisible
         )
             binding.chargeDischargeCurrentOverlay.apply {
 
@@ -1067,7 +1066,7 @@ interface OverlayInterface : BatteryInfoInterface {
                 FAST_CHARGE_OVERLAY, binding.fastChargeOverlay.context.resources
                     .getBoolean(R.bool.fast_charge_overlay)
             ) ||
-            binding.fastChargeOverlay.visibility == View.VISIBLE
+            binding.fastChargeOverlay.isVisible
         )
             binding.fastChargeOverlay.apply {
 
@@ -1100,7 +1099,7 @@ interface OverlayInterface : BatteryInfoInterface {
                     R.bool.max_charge_discharge_current_overlay
                 )
             )
-            || binding.maxChargeDischargeCurrentOverlay.visibility == View.VISIBLE
+            || binding.maxChargeDischargeCurrentOverlay.isVisible
         )
             binding.maxChargeDischargeCurrentOverlay.apply {
 
@@ -1199,7 +1198,7 @@ interface OverlayInterface : BatteryInfoInterface {
                     R.bool.residual_capacity_overlay
                 )
             ) ||
-            binding.averageChargeDischargeCurrentOverlay.visibility == View.VISIBLE
+            binding.averageChargeDischargeCurrentOverlay.isVisible
         )
             binding.averageChargeDischargeCurrentOverlay.apply {
 
@@ -1298,7 +1297,7 @@ interface OverlayInterface : BatteryInfoInterface {
                     R.bool.min_charge_discharge_current_overlay
                 )
             ) ||
-            binding.minChargeDischargeCurrentOverlay.visibility == View.VISIBLE
+            binding.minChargeDischargeCurrentOverlay.isVisible
         )
             binding.minChargeDischargeCurrentOverlay.apply {
 
@@ -1395,7 +1394,7 @@ interface OverlayInterface : BatteryInfoInterface {
                 CHARGING_CURRENT_LIMIT_OVERLAY, binding.chargingCurrentLimitOverlay.context
                     .resources.getBoolean(R.bool.min_charge_discharge_current_overlay)
             ) ||
-            binding.chargingCurrentLimitOverlay.visibility == View.VISIBLE
+            binding.chargingCurrentLimitOverlay.isVisible
         )
             binding.chargingCurrentLimitOverlay.apply {
 
@@ -1462,8 +1461,7 @@ interface OverlayInterface : BatteryInfoInterface {
                 TEMPERATURE_OVERLAY, binding.temperatureOverlay.resources.getBoolean(
                     R.bool.temperature_overlay
                 )
-            ) || binding.temperatureOverlay.visibility ==
-            View.VISIBLE
+            ) || binding.temperatureOverlay.isVisible
         )
             binding.temperatureOverlay.apply {
 
@@ -1510,7 +1508,7 @@ interface OverlayInterface : BatteryInfoInterface {
                 MAXIMUM_TEMPERATURE_OVERLAY, binding.maximumTemperatureOverlay
                     .resources.getBoolean(R.bool.maximum_temperature_overlay)
             ) ||
-            binding.maximumTemperatureOverlay.visibility == View.VISIBLE
+            binding.maximumTemperatureOverlay.isVisible
         )
             binding.maximumTemperatureOverlay.apply {
 
@@ -1560,7 +1558,7 @@ interface OverlayInterface : BatteryInfoInterface {
                 AVERAGE_TEMPERATURE_OVERLAY, binding.averageTemperatureOverlay
                     .resources.getBoolean(R.bool.average_temperature_overlay)
             ) ||
-            binding.averageTemperatureOverlay.visibility == View.VISIBLE
+            binding.averageTemperatureOverlay.isVisible
         )
             binding.averageTemperatureOverlay.apply {
 
@@ -1610,7 +1608,7 @@ interface OverlayInterface : BatteryInfoInterface {
                 MINIMUM_TEMPERATURE_OVERLAY, binding.minimumTemperatureOverlay
                     .resources.getBoolean(R.bool.minimum_temperature_overlay)
             ) ||
-            binding.minimumTemperatureOverlay.visibility == View.VISIBLE
+            binding.minimumTemperatureOverlay.isVisible
         )
             binding.minimumTemperatureOverlay.apply {
 
@@ -1660,7 +1658,7 @@ interface OverlayInterface : BatteryInfoInterface {
                 VOLTAGE_OVERLAY, binding.voltageOverlay.resources.getBoolean(
                     R.bool.voltage_overlay
                 )
-            ) || binding.voltageOverlay.visibility == View.VISIBLE
+            ) || binding.voltageOverlay.isVisible
         )
             binding.voltageOverlay.apply {
 
@@ -1702,7 +1700,7 @@ interface OverlayInterface : BatteryInfoInterface {
                 LAST_CHARGE_TIME_OVERLAY, binding.lastChargeTimeOverlay.context
                     .resources.getBoolean(R.bool.last_charge_time_overlay)
             )
-            || binding.lastChargeTimeOverlay.visibility == View.VISIBLE
+            || binding.lastChargeTimeOverlay.isVisible
         )
             binding.lastChargeTimeOverlay.apply {
                 TextAppearanceHelper.setTextAppearance(
@@ -1741,8 +1739,7 @@ interface OverlayInterface : BatteryInfoInterface {
         if ((pref.getBoolean(
                 BATTERY_WEAR_OVERLAY, binding.batteryWearOverlay.resources
                     .getBoolean(R.bool.battery_wear_overlay)
-            )) || binding.batteryWearOverlay
-                .visibility == View.VISIBLE
+            )) || binding.batteryWearOverlay.isVisible
         )
             binding.batteryWearOverlay.apply {
 

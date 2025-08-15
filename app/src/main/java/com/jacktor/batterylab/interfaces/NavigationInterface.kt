@@ -8,7 +8,7 @@ import com.jacktor.batterylab.R
 import com.jacktor.batterylab.fragments.AboutFragment
 import com.jacktor.batterylab.fragments.BackupSettingsFragment
 import com.jacktor.batterylab.fragments.BatteryStatusInformationFragment
-import com.jacktor.batterylab.fragments.ChargeDischargeFragment
+import com.jacktor.batterylab.fragments.BatteryInfoFragment
 import com.jacktor.batterylab.fragments.DebugFragment
 import com.jacktor.batterylab.fragments.FeedbackFragment
 import com.jacktor.batterylab.fragments.HistoryFragment
@@ -17,7 +17,6 @@ import com.jacktor.batterylab.fragments.PowerConnectionSettingsFragment
 import com.jacktor.batterylab.fragments.SettingsFragment
 import com.jacktor.batterylab.fragments.ToolsFragment
 import com.jacktor.batterylab.helpers.BatteryLevelHelper
-import com.jacktor.batterylab.interfaces.PremiumInterface.Companion.isPremium
 import java.lang.ref.WeakReference
 
 interface NavigationInterface : BatteryInfoInterface {
@@ -28,10 +27,10 @@ interface NavigationInterface : BatteryInfoInterface {
 
     fun MainActivity.bottomNavigation(status: Int) {
 
-        navigation.menu.findItem(R.id.charge_discharge_navigation).title = getString(
+        /*navigation.menu.findItem(R.id.charge_discharge_navigation).title = getString(
             if (status == BatteryManager.BATTERY_STATUS_CHARGING) R.string.charging
             else R.string.discharge
-        )
+        )*/
 
         navigation.menu.findItem(R.id.charge_discharge_navigation).icon = ContextCompat.getDrawable(
             this,
@@ -49,15 +48,15 @@ interface NavigationInterface : BatteryInfoInterface {
 
                 R.id.charge_discharge_navigation -> {
 
-                    if (fragment !is ChargeDischargeFragment) {
+                    if (fragment !is BatteryInfoFragment) {
 
-                        fragment = ChargeDischargeFragment()
+                        fragment = BatteryInfoFragment()
 
-                        topAppBar.navigationIcon = null
+                        toolbar.navigationIcon = null
 
                         MainActivity.isLoadChargeDischarge = true
 
-                        MainActivity.isLoadKernel = false
+                        MainActivity.isLoadTools = false
 
                         MainActivity.isLoadHistory = false
 
@@ -69,9 +68,9 @@ interface NavigationInterface : BatteryInfoInterface {
 
                         inflateMenu(-1)
 
-                        loadFragment(fragment ?: ChargeDischargeFragment())
+                        loadFragment(fragment ?: BatteryInfoFragment())
 
-                        if (!isPremium) mainActivityRef?.get()?.showAds()
+                        this.showInterstitialAd()
                     }
                 }
 
@@ -81,13 +80,13 @@ interface NavigationInterface : BatteryInfoInterface {
 
                         fragment = ToolsFragment()
 
-                        topAppBar.title = getString(R.string.tools)
+                        toolbar.title = getString(R.string.tools)
 
-                        topAppBar.navigationIcon = null
+                        toolbar.navigationIcon = null
 
                         MainActivity.isLoadChargeDischarge = false
 
-                        MainActivity.isLoadKernel = true
+                        MainActivity.isLoadTools = true
 
                         MainActivity.isLoadHistory = false
 
@@ -101,7 +100,7 @@ interface NavigationInterface : BatteryInfoInterface {
 
                         loadFragment(fragment ?: ToolsFragment())
 
-                        if (!isPremium) mainActivityRef?.get()?.showAds()
+                        this.showInterstitialAd()
                     }
                 }
 
@@ -111,13 +110,13 @@ interface NavigationInterface : BatteryInfoInterface {
 
                         fragment = HistoryFragment()
 
-                        topAppBar.title = getString(R.string.history)
+                        toolbar.title = getString(R.string.history)
 
-                        topAppBar.navigationIcon = null
+                        toolbar.navigationIcon = null
 
                         MainActivity.isLoadChargeDischarge = false
 
-                        MainActivity.isLoadKernel = false
+                        MainActivity.isLoadTools = false
 
                         MainActivity.isLoadHistory = true
 
@@ -131,7 +130,7 @@ interface NavigationInterface : BatteryInfoInterface {
 
                         loadFragment(fragment ?: HistoryFragment())
 
-                        if (!isPremium) mainActivityRef?.get()?.showAds()
+                        this.showInterstitialAd()
                     }
                 }
 
@@ -139,17 +138,17 @@ interface NavigationInterface : BatteryInfoInterface {
 
                     when (fragment) {
 
-                        null, is ChargeDischargeFragment, is ToolsFragment, is HistoryFragment -> {
+                        null, is BatteryInfoFragment, is ToolsFragment, is HistoryFragment -> {
 
                             fragment = SettingsFragment()
 
-                            topAppBar.title = getString(R.string.settings)
+                            toolbar.title = getString(R.string.settings)
 
-                            topAppBar.navigationIcon = null
+                            toolbar.navigationIcon = null
 
                             MainActivity.isLoadChargeDischarge = false
 
-                            MainActivity.isLoadKernel = false
+                            MainActivity.isLoadTools = false
 
                             MainActivity.isLoadSettings = true
 
@@ -159,7 +158,7 @@ interface NavigationInterface : BatteryInfoInterface {
 
                             loadFragment(fragment ?: SettingsFragment())
 
-                            if (!isPremium) mainActivityRef?.get()?.showAds()
+                            this.showInterstitialAd()
                         }
                     }
                 }
@@ -176,7 +175,7 @@ interface NavigationInterface : BatteryInfoInterface {
             replace(R.id.fragment_container, fragment)
             if (isAddToBackStack) addToBackStack(null)
 
-            if (!MainActivity.isRecreate || fragment is ChargeDischargeFragment || fragment is ToolsFragment)
+            if (!MainActivity.isRecreate || fragment is BatteryInfoFragment || fragment is ToolsFragment)
                 commit()
         }
 
@@ -188,7 +187,7 @@ interface NavigationInterface : BatteryInfoInterface {
 
                 navigation.selectedItemId = when (fragment) {
 
-                    is ChargeDischargeFragment -> R.id.charge_discharge_navigation
+                    is BatteryInfoFragment -> R.id.charge_discharge_navigation
                     is ToolsFragment -> R.id.tools_navigation
                     is HistoryFragment -> R.id.history_navigation
                     is SettingsFragment -> R.id.settings_navigation
@@ -202,7 +201,7 @@ interface NavigationInterface : BatteryInfoInterface {
 
                 clearMenu()
 
-                topAppBar.navigationIcon = ContextCompat.getDrawable(
+                toolbar.navigationIcon = ContextCompat.getDrawable(
                     this,
                     R.drawable.ic_arrow_back_24dp
                 )

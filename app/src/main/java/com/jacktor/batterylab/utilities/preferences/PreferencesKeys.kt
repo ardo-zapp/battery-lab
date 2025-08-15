@@ -91,11 +91,8 @@ object PreferencesKeys {
     const val ENABLED_DEBUG_OPTIONS = "enabled_debug_options"
     const val FORCIBLY_SHOW_RATE_THE_APP = "forcibly_show_rate_the_app"
     const val AUTO_START_BOOT = "auto_start_boot"
-    const val AUTO_START_OPEN_APP = "auto_start_open_app"
+    //const val AUTO_START_OPEN_APP = "auto_start_open_app"
     const val AUTO_START_UPDATE_APP = "auto_start_update_app"
-
-    // Boot
-    const val EXECUTE_SCRIPT_ON_BOOT = "execute_script_on_boot"
 
     // Battery Information
     const val NUMBER_OF_CHARGES = "number_of_charges"

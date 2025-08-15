@@ -3,6 +3,7 @@ package com.jacktor.batterylab.interfaces
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
+import androidx.core.content.edit
 import androidx.documentfile.provider.DocumentFile
 import androidx.preference.Preference
 import androidx.preference.PreferenceManager
@@ -16,8 +17,6 @@ import com.jacktor.batterylab.services.BatteryLabService
 import com.jacktor.batterylab.services.OverlayService
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.UPDATE_TEMP_SCREEN_TIME
-import com.jacktor.batterylab.utilities.preferences.Prefs
-import com.jacktor.batterylab.utilities.Premium.TOKEN_PREF
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -37,9 +36,9 @@ interface BackupSettingsInterface {
                 "${requireContext().packageName}_preferences.xml"
         val prefName = File(prefPath).name
 
-        val pref = Prefs(requireContext())
+        val pref = PreferenceManager.getDefaultSharedPreferences(requireContext())
 
-        val tokenPref = pref.getString(TOKEN_PREF, null)
+        //val tokenPref = pref.getString(TOKEN_PREF, null)
 
         CoroutineScope(Dispatchers.IO).launch {
 
@@ -49,8 +48,12 @@ interface BackupSettingsInterface {
 
                 with(pref) {
                     apply {
-                        if (contains(UPDATE_TEMP_SCREEN_TIME)) remove(UPDATE_TEMP_SCREEN_TIME)
-                        if (contains(TOKEN_PREF)) remove(TOKEN_PREF)
+                        if (contains(UPDATE_TEMP_SCREEN_TIME)) pref.edit {
+                            remove(
+                                UPDATE_TEMP_SCREEN_TIME
+                            )
+                        }
+                        //if (contains(TOKEN_PREF)) remove(TOKEN_PREF)
                     }
                 }
 
@@ -94,7 +97,7 @@ interface BackupSettingsInterface {
                         Toast.LENGTH_LONG
                     ).show()
 
-                    pref.setString(TOKEN_PREF, tokenPref)
+                    //pref.setString(TOKEN_PREF, tokenPref)
                 }
             } catch (e: Exception) {
 
@@ -143,7 +146,6 @@ interface BackupSettingsInterface {
                 val prefArrays: HashMap<String, Any?> = hashMapOf()
 
                 pref.all.forEach {
-
                     when (it.key) {
 
                         PreferencesKeys.BATTERY_LEVEL_TO, PreferencesKeys.BATTERY_LEVEL_WITH,

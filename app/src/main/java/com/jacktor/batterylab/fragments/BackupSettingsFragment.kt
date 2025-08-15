@@ -3,17 +3,18 @@ package com.jacktor.batterylab.fragments
 import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.edit
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import com.jacktor.batterylab.R
 import com.jacktor.batterylab.helpers.HistoryHelper
 import com.jacktor.batterylab.interfaces.BackupSettingsInterface
 import com.jacktor.batterylab.utilities.Constants
-import com.jacktor.batterylab.utilities.preferences.Prefs
 
 
 class BackupSettingsFragment : PreferenceFragmentCompat(), BackupSettingsInterface {
@@ -24,7 +25,7 @@ class BackupSettingsFragment : PreferenceFragmentCompat(), BackupSettingsInterfa
     private var importSettings: Preference? = null
     private var exportHistory: Preference? = null
     private var importHistory: Preference? = null
-    private var pref: Prefs? = null
+    private var pref: SharedPreferences? = null
 
     private var requestCode = 0
 
@@ -58,7 +59,7 @@ class BackupSettingsFragment : PreferenceFragmentCompat(), BackupSettingsInterfa
                             it.data?.data!!,
                             Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
                         )
-                        pref?.setString("filestorageuri", it.data?.data!!.toString())
+                        pref?.edit { putString("filestorageuri", it.data?.data!!.toString()) }
                     }
             }
         }

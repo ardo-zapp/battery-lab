@@ -1,12 +1,12 @@
 package com.jacktor.batterylab.fragments
 
-import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
 import androidx.core.content.ContextCompat
+import androidx.core.content.edit
 import androidx.preference.ListPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
@@ -14,15 +14,13 @@ import androidx.preference.PreferenceManager
 import androidx.preference.SwitchPreferenceCompat
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.jacktor.batterylab.MainActivity
-import com.jacktor.batterylab.activity.PremiumActivity
+import com.jacktor.batterylab.MainApp
 import com.jacktor.batterylab.R
 import com.jacktor.batterylab.helpers.ServiceHelper
 import com.jacktor.batterylab.helpers.ThemeHelper.setTheme
 import com.jacktor.batterylab.interfaces.BatteryInfoInterface
 import com.jacktor.batterylab.interfaces.DebugOptionsInterface
 import com.jacktor.batterylab.interfaces.NavigationInterface
-import com.jacktor.batterylab.interfaces.PremiumInterface
-import com.jacktor.batterylab.interfaces.PremiumInterface.Companion.isPremium
 import com.jacktor.batterylab.interfaces.SettingsInterface
 import com.jacktor.batterylab.services.BatteryLabService
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys
@@ -49,6 +47,7 @@ import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.TEXT_STYLE
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.UNIT_OF_CHARGE_DISCHARGE_CURRENT
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.UNIT_OF_MEASUREMENT_OF_CURRENT_CAPACITY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.VOLTAGE_UNIT
+import com.jacktor.premium.ui.PremiumActivity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -57,15 +56,13 @@ import kotlin.time.Duration.Companion.seconds
 
 class SettingsFragment() : PreferenceFragmentCompat(),
     SettingsInterface, DebugOptionsInterface,
-    BatteryInfoInterface, PremiumInterface, NavigationInterface {
-
-    override var premiumContext: Context? = null
+    BatteryInfoInterface, NavigationInterface {
 
     private lateinit var pref: SharedPreferences
-
     private var mainActivity: MainActivity? = null
-
     private var premium: Preference? = null
+
+    private var isPremium = false
 
     // Service & Notification
     private var stopService: SwitchPreferenceCompat? = null
@@ -106,6 +103,8 @@ class SettingsFragment() : PreferenceFragmentCompat(),
     private var feedback: Preference? = null
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
+
+        isPremium = (requireContext().applicationContext as MainApp).billingManager.isPremium.value
 
         pref = PreferenceManager.getDefaultSharedPreferences(requireContext())
 
@@ -214,11 +213,11 @@ class SettingsFragment() : PreferenceFragmentCompat(),
                 setOnPreferenceClickListener {
                     mainActivity?.fragment = BatteryStatusInformationFragment()
 
-                    mainActivity?.topAppBar?.title = requireContext().getString(
+                    mainActivity?.toolbar?.title = requireContext().getString(
                         R.string.battery_status_information
                     )
 
-                    mainActivity?.topAppBar?.navigationIcon =
+                    mainActivity?.toolbar?.navigationIcon =
                         ContextCompat.getDrawable(
                             requireContext(),
                             R.drawable.ic_arrow_back_24dp
@@ -242,11 +241,11 @@ class SettingsFragment() : PreferenceFragmentCompat(),
             setOnPreferenceClickListener {
                 mainActivity?.fragment = PowerConnectionSettingsFragment()
 
-                mainActivity?.topAppBar?.title = requireContext().getString(
+                mainActivity?.toolbar?.title = requireContext().getString(
                     R.string.power_connection
                 )
 
-                mainActivity?.topAppBar?.navigationIcon =
+                mainActivity?.toolbar?.navigationIcon =
                     ContextCompat.getDrawable(requireContext(), R.drawable.ic_arrow_back_24dp)
 
                 mainActivity?.loadFragment(
@@ -398,11 +397,11 @@ class SettingsFragment() : PreferenceFragmentCompat(),
                 setOnPreferenceClickListener {
                     mainActivity?.fragment = BackupSettingsFragment()
 
-                    mainActivity?.topAppBar?.title = requireContext().getString(
+                    mainActivity?.toolbar?.title = requireContext().getString(
                         R.string.backup
                     )
 
-                    mainActivity?.topAppBar?.navigationIcon =
+                    mainActivity?.toolbar?.navigationIcon =
                         ContextCompat.getDrawable(
                             requireContext(),
                             R.drawable.ic_arrow_back_24dp
@@ -656,11 +655,11 @@ class SettingsFragment() : PreferenceFragmentCompat(),
                 setOnPreferenceClickListener {
                     mainActivity?.fragment = OverlayFragment()
 
-                    mainActivity?.topAppBar?.title = requireContext().getString(
+                    mainActivity?.toolbar?.title = requireContext().getString(
                         R.string.overlay
                     )
 
-                    mainActivity?.topAppBar?.navigationIcon =
+                    mainActivity?.toolbar?.navigationIcon =
                         ContextCompat.getDrawable(
                             requireContext(),
                             R.drawable.ic_arrow_back_24dp
@@ -683,7 +682,7 @@ class SettingsFragment() : PreferenceFragmentCompat(),
 
                     setPositiveButton(getString(android.R.string.ok)) { _, _ ->
 
-                        pref.edit().remove(NUMBER_OF_CHARGES).apply()
+                        pref.edit { remove(NUMBER_OF_CHARGES) }
 
                         it.isEnabled = pref.getLong(NUMBER_OF_CHARGES, 0) > 0
 
@@ -713,7 +712,7 @@ class SettingsFragment() : PreferenceFragmentCompat(),
 
                     setPositiveButton(getString(android.R.string.ok)) { _, _ ->
 
-                        pref.edit().remove(NUMBER_OF_CYCLES).apply()
+                        pref.edit { remove(NUMBER_OF_CYCLES) }
 
                         it.isEnabled = pref.getFloat(NUMBER_OF_CYCLES, 0f) > 0f
 
@@ -747,7 +746,7 @@ class SettingsFragment() : PreferenceFragmentCompat(),
 
                     setPositiveButton(getString(android.R.string.ok)) { _, _ ->
 
-                        pref.edit().remove(NUMBER_OF_FULL_CHARGES).apply()
+                        pref.edit { remove(NUMBER_OF_FULL_CHARGES) }
 
                         it.isEnabled = pref.getLong(NUMBER_OF_FULL_CHARGES, 0) > 0
 
@@ -771,9 +770,9 @@ class SettingsFragment() : PreferenceFragmentCompat(),
 
             mainActivity?.fragment = DebugFragment()
 
-            mainActivity?.topAppBar?.title = requireContext().getString(R.string.debug)
+            mainActivity?.toolbar?.title = requireContext().getString(R.string.debug)
 
-            mainActivity?.topAppBar?.navigationIcon = ContextCompat.getDrawable(
+            mainActivity?.toolbar?.navigationIcon = ContextCompat.getDrawable(
                 requireContext(),
                 R.drawable.ic_arrow_back_24dp
             )
@@ -795,11 +794,11 @@ class SettingsFragment() : PreferenceFragmentCompat(),
 
             mainActivity?.fragment = AboutFragment()
 
-            mainActivity?.topAppBar?.title = requireContext().getString(
+            mainActivity?.toolbar?.title = requireContext().getString(
                 R.string.about
             )
 
-            mainActivity?.topAppBar?.navigationIcon =
+            mainActivity?.toolbar?.navigationIcon =
                 ContextCompat.getDrawable(requireContext(), R.drawable.ic_arrow_back_24dp)
 
             mainActivity?.loadFragment(
@@ -813,11 +812,11 @@ class SettingsFragment() : PreferenceFragmentCompat(),
 
             mainActivity?.fragment = FeedbackFragment()
 
-            mainActivity?.topAppBar?.title = requireContext().getString(
+            mainActivity?.toolbar?.title = requireContext().getString(
                 R.string.feedback
             )
 
-            mainActivity?.topAppBar?.navigationIcon =
+            mainActivity?.toolbar?.navigationIcon =
                 ContextCompat.getDrawable(requireContext(), R.drawable.ic_arrow_back_24dp)
 
             mainActivity?.loadFragment(

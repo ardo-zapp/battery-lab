@@ -3,8 +3,9 @@ package com.jacktor.batterylab.receivers
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
-import android.content.SharedPreferences
+import android.telephony.TelephonyManager
 import android.widget.Toast
+import androidx.core.content.edit
 import androidx.preference.PreferenceManager
 import com.jacktor.batterylab.R
 import com.jacktor.batterylab.utilities.Constants.DISABLED_DEBUG_OPTIONS_HOST
@@ -14,47 +15,41 @@ import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.ENABLED_DEBU
 class DebugOptionsReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
+        if (intent.action != TelephonyManager.ACTION_SECRET_CODE) return
 
-        val action = intent.action
-        val scheme = intent.data?.scheme
-        val host = intent.data?.host
+        val data = intent.data ?: return
+        if (data.scheme != "android_secret_code") return
+        val host = data.host ?: return
 
-        when {
+        val pr = goAsync()
+        val appCtx = context.applicationContext
+        val pref = PreferenceManager.getDefaultSharedPreferences(appCtx)
 
-            action == "android.provider.Telephony.SECRET_CODE" && scheme == "android_secret_code"
-                    && (host == ENABLED_DEBUG_OPTIONS_HOST || host == DISABLED_DEBUG_OPTIONS_HOST)
-            -> {
+        when (host) {
+            ENABLED_DEBUG_OPTIONS_HOST -> {
+                // enable
+                pref.edit { putBoolean(ENABLED_DEBUG_OPTIONS, true) }
+                Toast.makeText(
+                    appCtx,
+                    appCtx.getString(R.string.debug_successfully_enabled),
+                    Toast.LENGTH_LONG
+                ).show()
+            }
 
-                val pref = PreferenceManager.getDefaultSharedPreferences(context)
+            DISABLED_DEBUG_OPTIONS_HOST -> {
+                // disable
+                pref.edit { putBoolean(ENABLED_DEBUG_OPTIONS, false) }
+                Toast.makeText(
+                    appCtx,
+                    appCtx.getString(R.string.debug_successfully_disabled),
+                    Toast.LENGTH_LONG
+                ).show()
+            }
 
-                val isEnabledDebugOptions = pref.getBoolean(ENABLED_DEBUG_OPTIONS,
-                    context.resources.getBoolean(R.bool.enabled_debug_options))
-
-                when(host) {
-
-                    ENABLED_DEBUG_OPTIONS_HOST ->
-                        if(!isEnabledDebugOptions) enabledDebugOptions(context, pref)
-
-                    DISABLED_DEBUG_OPTIONS_HOST -> if(isEnabledDebugOptions) disabledDebugOptions(
-                        context, pref)
-                }
+            else -> {
             }
         }
-    }
 
-    private fun enabledDebugOptions(context: Context, pref: SharedPreferences) {
-
-        pref.edit().putBoolean(ENABLED_DEBUG_OPTIONS, true).apply()
-
-        Toast.makeText(context, context.getString(R.string.debug_successfully_enabled),
-            Toast.LENGTH_LONG).show()
-    }
-
-    private fun disabledDebugOptions(context: Context, pref: SharedPreferences) {
-
-        pref.edit().remove(ENABLED_DEBUG_OPTIONS).apply()
-
-        Toast.makeText(context, R.string.debug_successfully_disabled,
-            Toast.LENGTH_LONG).show()
+        pr.finish()
     }
 }

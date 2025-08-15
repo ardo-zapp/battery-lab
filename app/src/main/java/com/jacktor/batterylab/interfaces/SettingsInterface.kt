@@ -8,13 +8,13 @@ import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.core.content.edit
 import androidx.preference.Preference
 import androidx.preference.PreferenceManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.textfield.TextInputEditText
 import com.jacktor.batterylab.R
 import com.jacktor.batterylab.databinding.ChangeDesignCapacityDialogBinding
-import com.jacktor.batterylab.fragments.ChargeDischargeFragment
 import com.jacktor.batterylab.fragments.SettingsFragment
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.DESIGN_CAPACITY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.TAB_ON_APPLICATION_LAUNCH
@@ -34,7 +34,7 @@ interface SettingsInterface {
         if (pref.getString(TEXT_SIZE, "2") !in
             resources.getStringArray(R.array.text_size_values)
         )
-            pref.edit().putString(TEXT_SIZE, "2").apply()
+            pref.edit { putString(TEXT_SIZE, "2") }
 
         return resources.getStringArray(R.array.text_size_list)[
                 (pref.getString(TEXT_SIZE, "2") ?: "2").toInt()]
@@ -47,7 +47,7 @@ interface SettingsInterface {
         if (pref.getString(TEXT_FONT, "6") !in
             resources.getStringArray(R.array.fonts_values)
         )
-            pref.edit().putString(TEXT_FONT, "6").apply()
+            pref.edit { putString(TEXT_FONT, "6") }
 
         return resources.getStringArray(R.array.fonts_list)[
                 (pref.getString(TEXT_FONT, "6") ?: "6").toInt()]
@@ -60,7 +60,7 @@ interface SettingsInterface {
         if (pref.getString(TEXT_STYLE, "0") !in
             resources.getStringArray(R.array.text_style_values)
         )
-            pref.edit().putString(TEXT_STYLE, "0").apply()
+            pref.edit { putString(TEXT_STYLE, "0") }
 
         return resources.getStringArray(R.array.text_style_list)[
                 (pref.getString(TEXT_STYLE, "0") ?: "0").toInt()]
@@ -73,7 +73,7 @@ interface SettingsInterface {
         if (pref.getString(TAB_ON_APPLICATION_LAUNCH, "0") !in
             resources.getStringArray(R.array.tab_on_application_launch_values)
         )
-            pref.edit().putString(TAB_ON_APPLICATION_LAUNCH, "0").apply()
+            pref.edit { putString(TAB_ON_APPLICATION_LAUNCH, "0") }
 
         return resources.getStringArray(R.array.tab_on_application_launch_list)[
                 (pref.getString(TAB_ON_APPLICATION_LAUNCH, "0") ?: "0").toInt()]
@@ -86,7 +86,7 @@ interface SettingsInterface {
         if (pref.getString(UNIT_OF_CHARGE_DISCHARGE_CURRENT, "μA")
             !in resources.getStringArray(R.array.unit_of_charge_discharge_current_values)
         )
-            pref.edit().putString(UNIT_OF_CHARGE_DISCHARGE_CURRENT, "μA").apply()
+            pref.edit { putString(UNIT_OF_CHARGE_DISCHARGE_CURRENT, "μA") }
 
         return when (pref.getString(UNIT_OF_CHARGE_DISCHARGE_CURRENT, "μA")) {
 
@@ -111,7 +111,7 @@ interface SettingsInterface {
                 R.array.unit_of_measurement_of_current_capacity_values
             )
         )
-            pref.edit().putString(UNIT_OF_MEASUREMENT_OF_CURRENT_CAPACITY, "μAh").apply()
+            pref.edit { putString(UNIT_OF_MEASUREMENT_OF_CURRENT_CAPACITY, "μAh") }
 
         return when (pref.getString(UNIT_OF_MEASUREMENT_OF_CURRENT_CAPACITY, "μAh")) {
 
@@ -136,7 +136,7 @@ interface SettingsInterface {
                 R.array.voltage_unit_values
             )
         )
-            pref.edit().putString(VOLTAGE_UNIT, "mV").apply()
+            pref.edit { putString(VOLTAGE_UNIT, "mV") }
 
         return when (pref.getString(VOLTAGE_UNIT, "mV")) {
 
@@ -153,10 +153,10 @@ interface SettingsInterface {
         onChangeDesignCapacity(requireContext(), designCapacity)
     }
 
-    fun ChargeDischargeFragment.onChangeDesignCapacity(designCapacity: Preference? = null) {
+    /*fun BatteryInfoFragment.onChangeDesignCapacity(designCapacity: Preference? = null) {
 
         onChangeDesignCapacity(requireContext(), designCapacity)
-    }
+    }*/
 
     private fun onChangeDesignCapacity(context: Context, designCapacity: Preference? = null) {
 
@@ -188,10 +188,12 @@ interface SettingsInterface {
 
         dialog.setPositiveButton(context.getString(R.string.change)) { _, _ ->
 
-            pref.edit().putInt(
-                DESIGN_CAPACITY, binding.changeDesignCapacityEdit.text.toString()
-                    .toInt()
-            ).apply()
+            pref.edit {
+                putInt(
+                    DESIGN_CAPACITY, binding.changeDesignCapacityEdit.text.toString()
+                        .toInt()
+                )
+            }
 
             designCapacity?.summary = binding.changeDesignCapacityEdit.text.toString()
         }

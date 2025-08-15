@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="md_theme_primary">#ADC6FF</color>
+    <color name="md_theme_primary">#015AC1</color>
     <color name="md_theme_onPrimary">#002E69</color>
     <color name="md_theme_primaryContainer">#004494</color>
     <color name="md_theme_onPrimaryContainer">#D8E2FF</color>
@@ -26,24 +26,15 @@
     <color name="md_theme_inverseOnSurface">#1B1B1F</color>
     <color name="md_theme_inverseSurface">#E3E2E6</color>
     <color name="md_theme_inversePrimary">#015AC1</color>
-    <color name="md_theme_shadow">#000000</color>
-    <color name="md_theme_surfaceTint">#ADC6FF</color>
-    <color name="md_theme_outlineVariant">#44474F</color>
-    <color name="md_theme_scrim">#000000</color>
     <color name="md_theme_surfaceContainer">#1E1F20</color>
-    
+
     <color name="scrollbar_thumb_vertical">@color/blue</color>
     <color name="title_text">@android:color/white</color>
     <color name="subtitle_text">@android:color/white</color>
     <color name="icons">@android:color/white</color>
     <color name="service_notification_text">@android:color/darker_gray</color>
     <color name="swipe_refresh_layout_progress_background">@color/dark</color>
-    <color name="navigation_bar">@color/dark</color>
-
-    <color name="battery_charge">@color/md_green_600</color>
-    <color name="battery_discharge">@color/md_blue_600</color>
     <color name="battery_health">@color/md_pink_400</color>
-    <color name="battery_off">@color/md_grey_400</color>
     <color name="battery_power">@color/md_yellow_400</color>
     <color name="battery_temp_cold">@color/md_blue_400</color>
     <color name="battery_temp_hot">@color/md_red_500</color>
@@ -51,4 +42,19 @@
     <color name="battery_temp_very_hot">@color/md_pink_700</color>
     <color name="battery_temp_warm">@color/md_yellow_600</color>
     <color name="battery_unknown">@color/md_purple_400</color>
+
+    <color name="battery_info_level_normal">#05BA7D</color>
+    <color name="battery_info_level_charging">#ADC6FF</color>
+    <color name="battery_info_level_low">#f44336</color>
+    <color name="battery_info_health">#ec407a</color>
+    <color name="battery_info_power_source_connected">#ADC6FF</color>
+    <color name="battery_info_power_source_unplugged">#C4C6D0</color>
+    <color name="battery_info_capacity">#ab47bc</color>
+    <color name="battery_info_temp_very_hot">#c2185b</color>
+    <color name="battery_info_temp_hot">#f44336</color>
+    <color name="battery_info_temp_warm">#fdd835</color>
+    <color name="battery_info_temp_normal">#1e88e5</color>
+    <color name="battery_info_temp_cold">#42a5f5</color>
+    <color name="battery_info_power_monitor">#ffee58</color>
+
 </resources>

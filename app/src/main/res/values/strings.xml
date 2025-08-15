@@ -1,129 +1,304 @@
-<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name" translatable="false">Battery Lab</string>
     <string name="app_name_dev" translatable="false">Battery Lab Dev</string>
+    <string name="battery_info">Battery Info</string>
+    <string name="information">Information</string>
+    <string name="settings">Settings</string>
+    <string name="about">About</string>
+    <string name="instruction">Instruction</string>
+    <string name="debug">Debug</string>
+    <string name="feedback">Feedback</string>
+    <string name="more">More…</string>
+    <string name="hide">Hide</string>
+    <string name="close">Close</string>
+    <string name="cancel">Cancel</string>
+    <string name="yes_continue">Yes, Continue</string>
+    <string name="premium" translatable="false">Premium</string>
+    <string name="rate_the_app">Rate the app</string>
+    <string name="forcibly_show_rate_the_app">Forcibly Show "Rate the app"</string>
+    <string name="share_the_app">Share The App</string>
+    <string name="history_premium_feature">Premium purchase is required to access this feature</string>
+    <string name="premium_feature">Premium feature</string>
+    <string name="update_available_dialog_title">Update available</string>
+    <string name="update_available_dialog_message">A new version of the app is available. Update?</string>
+    <string name="update">Update</string>
+    <string name="later_update">Later</string>
+    <string name="check_update">Check Update</string>
+    <string name="update_not_found">Update not Found!</string>
     <string name="charging">Charging</string>
     <string name="discharging">Discharging</string>
     <string name="full">Full</string>
+    <string name="not_charging">Not Charging</string>
     <string name="unknown">Unknown</string>
-    <string name="overheat">Overheat</string>
-    <string name="category_vibration">Vibration</string>
-    <string name="category_advanced">Advanced</string>
-    <string name="toast_power_connected">Power is connected!</string>
-    <string name="toast_power_disconnected">Power is disconnected!</string>
-    <string name="settings">Settings</string>
-    <string name="about">About</string>
-    <string name="already_purchased">Already Purchased</string>
-    <string name="appearance">Appearance</string>
-    <string name="premium" translatable="false">Premium</string>
-    <string name="sound_not_selected">Sound not selected</string>
-    <string name="restore">Restore Purchase</string>
-    <string name="all_features">All Features</string>
-    <string name="already_purchased_sb">No need, already bought</string>
-    <string name="jacktor_msg">I\'m waiting for you…</string>
-    <string name="jacktor_msg_purchased">Thank you for upgrading to premium</string>
-    <string name="temperature_title">Temperature</string>
-    <string name="temperature" translatable="false">%1$s°C/%2$s°F</string>
-    <string name="temperature_with_title">Temperature: %1$s°C/%2$s°F</string>
-    <string name="health_title">Health</string>
-    <string name="restore_purchases_success">Successfully restored</string>
-    <string name="restore_purchases_not_found">Oops, No purchase found.</string>
-    <string name="wait">Wait…</string>
+    <string name="status">Status: %1$s</string>
     <string name="battery_status_title">Battery Status</string>
+    <string name="battery_is_charged">Battery is charged</string>
+    <string name="battery_is_fully_charged">Battery is fully charged</string>
+    <string name="battery_is_discharged">Battery is discharged</string>
+    <string name="battery_is_charged_notification">Battery is charged. Battery Level: %1$d</string>
+    <string name="battery_is_discharged_notification">Battery is discharged. Battery Level: %1$d</string>
+    <string name="fully_charged">Fully Charged</string>
+    <string name="charged">Charged</string>
+    <string name="discharged">Discharged</string>
+    <string name="temperature_title">Temperature</string>
+    <string name="temperature">Temperature: %1$s°C/%2$s°F</string>
+    <string name="temperature_with_title">Temperature: %1$s°C/%2$s°F</string>
+    <string name="temperature_celsius">Temperature: %1$s °C</string>
+    <string name="overheat">Overheat</string>
+    <string name="overcool">Overcool</string>
+    <string name="overheat_overcool">Overheat/Overcool</string>
+    <string name="battery_overheating">Battery overheating! Temperature: %1$s°C/%2$s°F</string>
+    <string name="battery_overcooling">Battery overcooling! Temperature: %1$s°C/%2$s°F</string>
+    <string name="maximum_temperature">Maximum: %1$s°C/%2$s°F</string>
+    <string name="average_temperature">Average: %1$s°C/%2$s°F</string>
+    <string name="minimum_temperature">Minimum: %1$s°C/%2$s°F</string>
+    <string name="voltage">Voltage: %1$s mV</string>
+    <string name="voltage_unit">Voltage Unit</string>
+    <string name="mv" translatable="false">mV</string>
     <string name="plugged_type_title">Plugged Type</string>
     <string name="not_plugged">Not plugged</string>
+    <string name="source_of_power" translatable="false">%1$s</string>
+    <string name="source_of_power_ac" translatable="false">AC</string>
+    <string name="source_of_power_usb" translatable="false">USB</string>
+    <string name="source_of_power_wireless" translatable="false">Wireless</string>
+    <string name="source_of_power_dock" translatable="false">DOCK</string>
+    <string name="battery_level" translatable="false">%1$s</string>
+    <string name="battery_level_title">Battery Level</string>
+    <string name="battery_level_with_title">Battery Level: %1$s</string>
     <string name="capacity_title">Capacity</string>
-    <string name="power_monitor_title">Power Monitor</string>
-    <string name="reset">RESET</string>
+    <string name="design_capacity">%1$s mAh</string>
+    <string name="current_capacity">Current: %1$s mAh</string>
+    <string name="residual_capacity">Residual: %1$s mAh (%2$s)</string>
+    <string name="battery_wear">Wear: %1$s (%2$s mAh)</string>
+    <string name="capacity_in_wh">Capacity in Wh</string>
+    <string name="design_capacity_wh" translatable="false">%1$s Wh</string>
+    <string name="current_capacity_wh">Current: %1$s Wh</string>
+    <string name="residual_capacity_wh">Residual: %1$s Wh (%2$s)</string>
+    <string name="battery_wear_wh">Wear: %1$s (%2$s Wh)</string>
+    <string name="charge_current">Charging Current: %1$s mA</string>
+    <string name="discharge_current">Discharge current: %1$s mA</string>
+    <string name="max_charge_current">Max Charge Current: %1$d mA</string>
+    <string name="average_charge_current">Avg Charge Current: %1$d mA</string>
+    <string name="min_charge_current">Min Charge Current: %1$d mA</string>
+    <string name="max_discharge_current">Max Discharge Current: %1$d mA</string>
+    <string name="average_discharge_current">Average Discharge Current: %1$d mA</string>
+    <string name="min_discharge_current">Min Discharge Current: %1$d mA</string>
+    <string name="charging_current_limit">Charging Current Limit: %1$s mA</string>
+    <string name="charge_current_watt">Charging Current: %1$sW</string>
+    <string name="discharge_current_watt">Discharge current: %1$sW</string>
+    <string name="max_charge_current_watt">Max Charge Current: %1$sW</string>
+    <string name="average_charge_current_watt">Avg Charge Current: %1$sW</string>
+    <string name="min_charge_current_watt">Min Charge Current: %1$sW</string>
+    <string name="max_discharge_current_watt">Max Discharge Current: %1$sW</string>
+    <string name="average_discharge_current_watt">Avg Discharge Current: %1$sW</string>
+    <string name="min_discharge_current_watt">Min Discharge Current: %1$sW</string>
+    <string name="charging_current_limit_watt">Charging Current Limit: %1$sW</string>
+    <string name="charging_discharge_current_in_watt">Charging/Discharge Current in Watt</string>
+    <string name="overlay">Overlay</string>
+    <string name="enable_overlay">Enable Overlay</string>
+    <string name="show_hide">Show/Hide</string>
+    <string name="overlay_permission_dialog_message">Permission is required for the overlay to work. Please go to the next window and provide permission</string>
+    <string name="text_style_overlay">Text Style</string>
+    <string name="overlay_text_color">Text Color</string>
+    <string name="font_overlay">Font</string>
+    <string name="text_font">Text Font</string>
+    <string name="text_style">Text Style</string>
+    <string name="text_size">Text Size</string>
+    <string name="overlay_location">Location</string>
+    <string name="top">Top</string>
+    <string name="top_left">Top Left</string>
+    <string name="top_right">Top Right</string>
+    <string name="center">Center</string>
+    <string name="center_left">Center Left</string>
+    <string name="center_right">Center Right</string>
+    <string name="bottom">Bottom</string>
+    <string name="bottom_left">Bottom Left</string>
+    <string name="bottom_right">Bottom Right</string>
+    <string name="size">Size</string>
+    <string name="opacity">Opacity</string>
+    <string name="verysmall">Very Small</string>
+    <string name="small">Small</string>
+    <string name="medium">Medium (Default)</string>
+    <string name="large">Large</string>
+    <string name="verylarge">Very Large</string>
+    <string name="only_values">Only Values</string>
+    <string name="battery_level_overlay">Battery Level</string>
+    <string name="battery_level_overlay_only_values" translatable="false">%1$s</string>
+    <string name="number_of_charges_overlay">Number of Charges</string>
+    <string name="number_of_charges_overlay_only_values" translatable="false">%1$d</string>
+    <string name="number_of_cycles_overlay">Number of Cycles</string>
+    <string name="number_of_cycles_overlay_only_values" translatable="false">%1$s</string>
+    <string name="charging_time_overlay">Charging Time</string>
+    <string name="charging_time_overlay_only_values" translatable="false">%1$s</string>
+    <string name="charging_time_remaining_overlay">Charging Time Remaining</string>
+    <string name="charging_time_remaining_overlay_only_values" translatable="false">%1$s</string>
+    <string name="remaining_battery_time_overlay">Remaining Battery Time</string>
+    <string name="remaining_battery_time_overlay_only_values" translatable="false">%1$s</string>
+    <string name="current_capacity_overlay">Current Capacity</string>
+    <string name="current_capacity_overlay_only_values" translatable="false">%1$s mAh</string>
+    <string name="capacity_added_overlay">Capacity Added</string>
+    <string name="capacity_added_overlay_only_values" translatable="false">%1$s mAh (%2$s)</string>
+    <string name="battery_health_android_overlay">Battery Health (Android)</string>
+    <string name="battery_health_overlay_only_values" translatable="false">%1$s</string>
+    <string name="residual_capacity_overlay">Residual Capacity</string>
+    <string name="residual_capacity_overlay_only_values" translatable="false">%1$s mAh (%2$s)</string>
+    <string name="status_overlay">Status</string>
+    <string name="status_overlay_only_values" translatable="false">%1$s</string>
+    <string name="source_of_power_overlay">Source of Power</string>
+    <string name="source_of_power_overlay_only_values" translatable="false">%1$s</string>
+    <string name="charge_discharge_current_overlay">Charge/Discharge Current</string>
+    <string name="charge_discharge_overlay_only_values" translatable="false">%1$d mA</string>
+    <string name="max_charge_discharge_current_overlay">Maximum Charge/Discharge Current</string>
+    <string name="max_charge_discharge_overlay_only_values" translatable="false">%1$d mA</string>
+    <string name="average_charge_discharge_current_overlay">Average Charge/Discharge Current</string>
+    <string name="average_charge_discharge_overlay_only_values" translatable="false">%1$d mA</string>
+    <string name="min_charge_discharge_current_overlay">Minimum Charge/Discharge Current</string>
+    <string name="min_charge_discharge_overlay_only_values" translatable="false">%1$d mA</string>
+    <string name="temperature_overlay">Temperature</string>
+    <string name="temperature_overlay_only_values" translatable="false">%1$s°C/%2$s°F</string>
+    <string name="voltage_overlay">Voltage</string>
+    <string name="voltage_overlay_only_values" translatable="false">%1$s mV</string>
+    <string name="last_charge_time_overlay">Last Charge Time</string>
+    <string name="last_charge_time_overlay_only_values" translatable="false">%1$s (%2$s - %3$s)</string>
+    <string name="battery_wear_overlay">Battery Wear</string>
+    <string name="battery_wear_overlay_only_values" translatable="false">%1$s (%2$s mAh)</string>
+    <string name="charging_current_limit_overlay">Charging Current Limit</string>
+    <string name="charging_current_limit_overlay_only_values" translatable="false">%1$s mA</string>
+    <string name="current_capacity_wh_overlay_only_values" translatable="false">%1$s Wh</string>
+    <string name="residual_capacity_wh_overlay_only_values" translatable="false">%1$s Wh (%2$s)</string>
+    <string name="battery_wear_wh_overlay_only_values" translatable="false">%1$s (%2$s Wh)</string>
+    <string name="capacity_added_wh_overlay_only_values" translatable="false">%1$s Wh (%2$s)</string>
+    <string name="charging_discharge_current_watt_overlay_only_values" translatable="false">%1$sW</string>
+    <string name="screen_time_overlay">Screen Time</string>
+    <string name="screen_time_overlay_only_values" translatable="false">%1$s</string>
+    <string name="number_of_cycles_android_overlay">Number of Cycles (Android)</string>
+    <string name="number_of_cycles_android_overlay_only_values" translatable="false">%1$d</string>
+    <string name="charging_time_remaining">Charging Time Remaining: %1$s</string>
+    <string name="remaining_battery_time">Remaining Battery Time: %1$s</string>
+    <string name="fast_charge_yes_overlay_only_values">Yes (%1$sW)</string>
+    <string name="fast_charge_no_overlay_only_values">No</string>
+    <string name="history">History</string>
+    <string name="history_count">History Count</string>
+    <string name="history_is_empty">History is Empty!</string>
+    <string name="history_removed">History Removed</string>
+    <string name="empty_history_text">History of charges is empty! Please, charge the battery to full 100% (Battery Status: Charged)</string>
+    <string name="clear_history">Clear History</string>
+    <string name="history_cleared_successfully">History Cleared Successfully!</string>
+    <string name="error_clearing_history">Error Clearing History!</string>
+    <string name="clear_the_history_dialog_message">Clear the History?</string>
+    <string name="add_history">Add History</string>
+    <string name="add_custom_history">Add Custom History</string>
+    <string name="add_ten_history">Add 10 History</string>
+    <string name="add_fifty_history">Add 50 History</string>
+    <string name="export_history">Export History</string>
+    <string name="history_exported_successfully">History exported successfully!</string>
+    <string name="error_exporting_history">Error Exporting History!</string>
+    <string name="import_history">Import History</string>
+    <string name="history_imported_successfully">History imported successfully!</string>
+    <string name="error_importing_history">Error Importing History!</string>
+    <string name="export_notification_sounds">Export Notification Sounds</string>
+    <string name="successful_export_of_notification_sounds">Notification Sounds have been exported successfully!</string>
+    <string name="error_exporting_notification_sounds">Error Exporting Notification Sounds!\n%1$s</string>
+    <string name="number_of_charges">Number of Charges: %1$d</string>
+    <string name="number_of_cycles">Number of Cycles: %1$s</string>
+    <string name="number_of_cycles_android">Number of Cycles (Android): %1$d</string>
+    <string name="number_of_full_charges">Number of Full Charges: %1$d</string>
+    <string name="reset_to_zero_the_number_of_charges">Reset to zero the number of charges</string>
+    <string name="reset_to_zero_the_number_of_charges_dialog_message">Reset to zero the number of charges?</string>
+    <string name="number_of_charges_was_success_reset_to_zero">The number of charges was successfully reset to zero</string>
+    <string name="reset_to_zero_the_number_of_cycles">Reset to zero the number of cycles</string>
+    <string name="reset_to_zero_the_number_of_cycles_dialog_message">Reset to zero the number of cycles?</string>
+    <string name="number_of_cycles_was_success_reset_to_zero">The number of cycles was successfully reset to zero</string>
+    <string name="reset_the_number_of_full_charges_to_zero">Reset the Number of Full Charges to zero</string>
+    <string name="reset_the_number_of_full_charges_to_zero_dialog_message">Reset the Number of Full Charges to zero?</string>
+    <string name="number_of_full_charges_was_success_reset_to_zero">The Number of Full Charges was successfully reset to zero</string>
+    <string name="charging_time">Charging Time: %1$s</string>
+    <string name="last_charge_time">Last Charge Time: %1$s (%2$s - %3$s)</string>
+    <string name="screen_time">Screen Time: %1$s</string>
+    <string name="reset_screen_time_at_any_charge_level">Reset Screen Time at any charge level</string>
+    <string name="reset_screen_time">Reset Screen Time</string>
+    <string name="capacity_added">Added: %1$s mAh (%2$s)</string>
+    <string name="capacity_added_wh">Added: %1$s Wh (%2$s)</string>
+    <string name="undo">Undo</string>
     <string name="category_sound">Sound</string>
-    <string name="version">Version</string>
-
-    <string name="dialog_button_close">Close</string>
-
+    <string name="category_vibration">Vibration</string>
+    <string name="category_advanced">Advanced</string>
+    <string name="misc">Misc</string>
+    <string name="service_and_notification">Service &amp; Notification</string>
+    <string name="appearance">Appearance</string>
+    <string name="tools">Tools</string>
+    <string name="pref_show_toast_title">Show toast</string>
+    <string name="pref_show_toast_smry">Show toast power is connected or disconnected</string>
+    <string name="toast_power_connected">Power is connected!</string>
+    <string name="toast_power_disconnected">Power is disconnected!</string>
+    <string name="sound_not_selected">Sound not selected</string>
     <string name="pref_power_connected_ac_sound_title">Select sound for AC</string>
     <string name="pref_power_connected_usb_sound_title">Select sound for USB</string>
     <string name="pref_power_disconnected_sound_title">Select sound for power is disconnected</string>
     <string name="pref_sound_delay_title">Sound delay</string>
+    <string name="reset_sound">Reset Sound</string>
+    <string name="audio_permission_not_granted">Audio permission not granted</string>
     <string name="pref_enable_vibration_title">Enable vibration</string>
     <string name="pref_enable_vibration_smry">Vibrate when power is connected or disconnected</string>
-    <string name="pref_show_toast_title">Show toast</string>
-    <string name="pref_show_toast_smry">Show toast power is connected or disconnected</string>
     <string name="pref_vibration_duration_title">Vibration duration</string>
     <string name="pref_custom_vibration_duration_title">Custom vibration duration</string>
     <string name="pref_vibration_mode_title">Vibration mode</string>
-
-
-    <string name="design_capacity">%1$s mAh</string>
-    <string name="residual_capacity">Residual: %1$s mAh (%2$s)</string>
-    <string name="current_capacity">Current: %1$s mAh</string>
-    <string name="battery_wear">Wear: %1$s (%2$s mAh)</string>
+    <string name="vibrate_short">Short</string>
+    <string name="vibrate_medium">Medium</string>
+    <string name="vibrate_long">Long (Default)</string>
+    <string name="vibrate_custom">Custom</string>
     <string name="dark_mode">Dark Mode</string>
-    <string name="charge_current">Charging Current: %1$s mA</string>
-    <string name="discharge_current">Discharge current: %1$s mA</string>
-    <string name="voltage">Voltage: %1$s mV</string>
-    <string name="instruction">Instruction</string>
-    <string name="change_design_capacity">Change Design Capacity</string>
-    <string name="change">Change</string>
-    <string name="information">Information</string>
-    <string name="battery_technology">Technology: %1$s</string>
-    <string name="instruction_message" formatted="false">1.In order for the application to show the residual capacity, discharge the battery to 10% or lower and put the device on charge, while the service must be turned on.\n2.For a more accurate display of the remaining capacity, charge the device fully until \"Status: Charged\" is displayed.\n3.If charging occurs after reaching 100%, then this is normal. Modern devices continue to charge for some time after reaching 100%.\n4.If the design capacity is incorrect, change it in the application settings.\n5.If the current capacity and/or charge/discharge current and/or voltage is not displayed correctly, then change the unit in the application settings.\n\n</string>
-    <string name="instruction_message_enable_fast_charge_option">If you charge your device with fast charging, enable the \"Fast Charge\" option in the app settings to more correctly calculate battery wear\n\n</string>
-    <string name="instruction_message_do_not_kill_the_service">ATTENTION! Do not kill the service. If the shell of your device likes to \"kill\" applications, or completely \"kills\" applications when cleaning the most recently launched applications or when removing an application from the most recently launched applications, or you use power saving, add this application to all possible exceptions. If your firmware has an application startup setting, be sure to ensure that this application can start after loading the OS, if you want the application to start automatically after loading the OS.&#160;</string>
-    <string name="instruction_message_dont_kill_my_app">If you don’t know what and where to configure so that the application is not \"killed\" by the system, use the \"Don\'t kill my app!\" Service by choosing the manufacturer of your device.\n\n</string>
-    <string name="huawei_honor_information">ATTENTION! On Huawei &amp; Honor, the current capacity may not display correctly. Unfortunately nothing can be done about it</string>
-    <string name="status">Status: %1$s</string>
-    <string name="source_of_power" translatable="false">%1$s</string>
-    <string name="not_charging">Not Charging</string>
-    <string name="source_of_power_ac" translatable="false">AC</string>
-    <string name="source_of_power_usb" translatable="false">USB</string>
-    <string name="source_of_power_wireless" translatable="false">Wireless</string>
-    <string name="battery_level" translatable="false">%1$s</string>
-    <string name="battery_level_with_title">battery Level: %1$s</string>
-    <string name="last_charge_time">Last Charge Time: %1$s (%2$s - %3$s)</string>
-    <string name="service">Service</string>
-    <string name="charging_time">Charging Time: %1$s</string>
-    <string name="service_and_notification">Service &amp; Notification</string>
-    <string name="misc">Misc</string>
-    <string name="service_time">Service Time</string>
-    <string name="capacity_added">Added: %1$s mAh (%2$s)</string>
-    <string name="notification_priority">Notification Priority and Status Bar Icon</string>
-    <string name="developer">Developer</string>
-    <string name="build">Build</string>
-    <string name="build_date">Build Date (GMT+7)</string>
-    <string name="rate_the_app">Rate the app</string>
-    <string name="feedback">Feedback</string>
-    <string name="email" translatable="false">E-mail</string>
-    <string name="email_copied">E-mail copied</string>
     <string name="auto_dark_mode">Auto Dark Mode</string>
     <string name="auto_dark_mode_summary">Turn on dark mode depending on the system</string>
-    <string name="number_of_charges">Number of Charges: %1$d</string>
-    <string name="debug">Debug</string>
+    <string name="export_settings">Export Settings</string>
+    <string name="successful_export_of_settings">Settings have been exported successfully!\n\nFile Name: "%1$s"</string>
+    <string name="error_exporting_settings">Error Exporting Settings!\n%1$s</string>
+    <string name="import_settings">Import Settings</string>
+    <string name="import_settings_3dots">Import Settings…</string>
+    <string name="error_importing_settings">Error importing settings!\n%1$s</string>
+    <string name="reset_settings">Reset All Settings</string>
+    <string name="reset_setting">Reset Setting</string>
+    <string name="are_you_sure">Are you sure?</string>
+    <string name="settings_reset_successfully">Settings reset successfully</string>
+    <string name="key_successfully_reset">Setting "%1$s" Successfully Reset</string>
     <string name="change_setting">Change Setting</string>
     <string name="pref_key">Key</string>
     <string name="pref_value">Value</string>
-    <string name="success_change_key">Setting \"%1$s\" Successfully Changed</string>
-    <string name="error_changing_key">Error changing setting \"%1$s\"!\n%2$s</string>
-    <string name="reset_setting">Reset Setting</string>
-    <string name="key_successfully_reset">Setting \"%1$s\" Successfully Reset</string>
-    <string name="reset_settings">Reset All Settings</string>
-    <string name="are_you_sure">Are you sure?</string>
-    <string name="settings_reset_successfully">Settings reset successfully</string>
-    <string name="forcibly_show_rate_the_app">Forcibly Show \"Rate the app\"</string>
-    <string name="export_settings">Export Settings</string>
-    <string name="successful_export_of_settings">Settings have been exported successfully!\n\nFile Name: \"%1$s\"</string>
-    <string name="error_exporting_settings">Error Exporting Settings!\n%1$s</string>
-    <string name="about_and_feedback">About &amp; Feedback</string>
-    <string name="import_settings">Import Settings</string>
-    <string name="error_importing_settings">Error importing settings!\n%1$s</string>
-    <string name="share_the_app">Share The App</string>
-    <string name="more">More&#8230;</string>
-    <string name="hide">Hide</string>
-    <string name="change_design_summary" translatable="false">%1$d mAh</string>
-    <string name="unit_of_charge_discharge_current">Unit of Charge/Discharge Current</string>
-    <string name="unit_of_measurement_of_current_capacity">Unit of measurement of current capacity</string>
-    <string name="voltage_unit">Voltage Unit</string>
+    <string name="success_change_key">Setting "%1$s" Successfully Changed</string>
+    <string name="error_changing_key">Error changing setting "%1$s"!\n%2$s</string>
+    <string name="add_setting">Add Setting</string>
+    <string name="add">Add</string>
+    <string name="setting_added_successfully">Setting "%1$s" added successfully!</string>
+    <string name="error_adding_settings">Error adding settings "%1$s"!\n%2$s</string>
+    <string name="auto_start_boot">Auto Start (Boot)</string>
+    <string name="auto_start_open_app">Auto Start (Open Application)</string>
+    <string name="auto_start_update_app">Auto Start (Update Application)</string>
+    <string name="start_battery_lab_service">Start Battery Lab Service</string>
+    <string name="stop_battery_lab_service">Stop Battery Lab Service</string>
+    <string name="restart_battery_lab_service">Restart Battery Lab Service</string>
+    <string name="stop_overlay_service">Stop Overlay Service</string>
+    <string name="restart_overlay_service">Restart Overlay Service</string>
+    <string name="service_restart_required">Service restart required</string>
+    <string name="service_is_running">Service is running</string>
+    <string name="stop_service">Stop Service</string>
+    <string name="stopping_service">Stopping Service…</string>
+    <string name="service_stopped_successfully">Service Stopped Successfully!</string>
+    <string name="instruction_message_enable_fast_charge_option">If you charge your device with fast charging, enable the "Fast Charge" option in the app settings to more correctly calculate battery wear\n\n</string>
+    <string name="fast_charge">Fast Charge</string>
+    <string name="fast_charge_yes">Fast Charge: Yes (%1$sW)</string>
+    <string name="fast_charge_no">Fast Charge: No</string>
+    <string name="fast_charge_dialog_message">This option is designed to more correctly calculate battery wear when using fast charging. Only enable this option if you are charging your device with a fast charger</string>
+    <string name="full_charge_reminder">Full Charge Reminder</string>
+    <string name="full_charge_reminder_summary">Full charge reminder every 30 minutes</string>
+    <string name="full_charge_reminder_frequency">Full Charge Reminder Frequency</string>
+    <string name="storage_permission_not_granted">Storage permission not granted</string>
+    <string name="open_settings">Open Settings</string>
+    <string name="request_notification_message">For the application to work correctly, you need to enable notifications. This is necessary for the service that is responsible for most of the application\'s operation, including calculating the residual battery capacity</string>
+    <string name="auto_start_xiaomi_dialog">In order for the application to work correctly, allow autostart in the next window</string>
+    <string name="background_activity_control_xiaomi_dialog">In order for the application to work correctly in the background, go to the next window and select \"No restrictions\"</string>
+    <string name="ignoring_battery_optimizations_dialog_message">For the app to work properly, you must allow the app to run in the background</string>
     <string name="faq">FAQ</string>
-    <string name="faq_how_does_the_app_work" formatted="false">Question: How does the app work?\nAnswer: Residual capacity is formed on the basis of the current capacity upon reaching 100% and the status of \"Charged\". The current capacity is taken from the kernel of the OS, by the Android API itself, which allows you to get the current capacity without root rights. The kernel takes the current capacity from the battery itself and writes it to the \"charge_counter\" file (file path: /sys/class/power_supply/battery). On how accurate the current capacity depends on the battery and the kernel itself.\n\n</string>
+    <string name="faq_how_does_the_app_work" formatted="false">Question: How does the app work?\nAnswer: Residual capacity is formed on the basis of the current capacity upon reaching 100% and the status of \"Charged\" (up to the last 5 charges). The current capacity is taken from the kernel of the OS, by the Android API itself, which allows you to get the current capacity without root rights. The kernel takes the current capacity from the battery itself and writes it to the \"charge_counter\" file (file path: /sys/class/power_supply/battery). On how accurate the current capacity depends on the battery and the kernel itself.\n\n</string>
     <string name="faq_capacity_added">Question: What is considered to be \"Capacity Added\"?\nAnswer: \"Capacity Added\" is considered very simple: the current capacity - capacity, which was before you connected the charging.\n\n</string>
     <string name="faq_where_does_the_app_get_the_ccl">Question: Where does the application get the \"Charging Current Limit\"?\nAnswer: The application takes the \"Charging Current Limit\" from the kernel file \"constant_charge_current_max\" along the path /sys/class/power_supply/battery.\n\n</string>
     <string name="faq_why_is_ccl_not_displayed">Question: Why is \"Charging Current Limit\" not displayed?\nAnswer: The display \"Charging Current Limit\" depends on whether the file \"constant_charge_current_max\" is readable or not. Not all kernels allow \"reading\" this file, and also not all kernels have this file.\n\n</string>
@@ -136,13 +311,65 @@
     <string name="faq_with_each_charge_battery_wear_changes">Question: With each charge, the battery wear changes, then increases, then decreases\nAnswer: This is normal, since chemical processes occur in the battery\n\n</string>
     <string name="faq_where_does_the_app_get_the_number_of_cycles_android">Question: Where does the application get the \"Number of Cycles (Android)\"?\nAnswer: The application gets data from the \"cycles_count\" kernel file at the path: /sys/class/power_supply/battery\n\n</string>
     <string name="faq_not_displayed_number_of_cycles_android">Question: Not Displayed \"Number of Cycles (Android)\"\nAnswer: If \"Number of Cycles (Android)\" is not displayed, then it is not possible to read the file in which the number of charging cycles is recorded due to the fact that read access is closed\n\n</string>
-    <string name="import_settings_3dots">Import Settings&#8230;</string>
-    <string name="max_charge_current">Max Charge Current: %1$d mA</string>
-    <string name="average_charge_current">Avg Charge Current: %1$d mA</string>
-    <string name="min_charge_current">Min Charge Current: %1$d mA</string>
-    <string name="max_discharge_current">Max Discharge Current: %1$d mA</string>
-    <string name="average_discharge_current">Average Discharge Current: %1$d mA</string>
-    <string name="min_discharge_current">Min Discharge Current: %1$d mA</string>
+    <string name="tips_menu">Tips</string>
+    <string name="tips_dialog_title">Tips for extending battery life</string>
+    <string name="tip1">Tip #1: Try not to discharge the battery below 10%.\n\n</string>
+    <string name="tip2">Tip #2: Do not overcool (0°C/32°F and below) and do not overheat the battery (40+°C/104+°F). Overcooling and overheating negatively affect battery life.\n\n</string>
+    <string name="tip3">Tip #3: Avoid holding a fully charged battery for a long time. The longer you keep a fully charged battery on charge, the more often the battery recharges, and each recharge reduces the number of cycles.\n\n</string>
+    <string name="tip4">Tip #4: Try not to use the device when fully charged while the charger is connected. If you use the device with a fully charged battery when the charger is connected, then 2 things happen - heating, which negatively affects the battery life and frequent recharging, which reduces the number of cycles.</string>
+    <string name="developer">Developer</string>
+    <string name="version">Version</string>
+    <string name="build">Build</string>
+    <string name="build_date">Build Date (GMT+7)</string>
+    <string name="experiment">Experiment</string>
+    <string name="battery_status_information">Battery Status Information</string>
+    <string name="battery_is_discharged_voltage">Battery is Discharged (Voltage)</string>
+    <string name="battery_is_discharged_notification_voltage">Battery is discharged. %1$d mV</string>
+    <string name="discharged_voltage">Discharged (Voltage)</string>
+    <string name="backup">Backup</string>
+    <string name="success">Success!</string>
+    <string name="error">Error!</string>
+    <string name="unknown_error">Unknown Error!</string>
+    <string name="setting_is_intended_to_correct" translatable="false">This setting is intended to correct the display of the value</string>
+    <string name="overheat_overcool_degrees" translatable="false">%1$d°C/%2$s°F</string>
+    <string name="press_the_back_button_again">Press the back button again to exit</string>
+    <string name="github" translatable="false">Github</string>
+    <string name="github_battery_capacity" translatable="false">Github (Capacity Info)</string>
+    <string name="name">Name</string>
+    <string name="username" translatable="false">\@%1$s</string>
+    <string name="in_project">In Project</string>
+    <string name="license">License: Apache 2.0</string>
+    <string name="contributions">%1$s contributions</string>
+    <string name="contributors">Contributors</string>
+    <string name="visit_this_profile">Visit this profile?</string>
+    <string name="no_longer_available">No Longer Available</string>
+    <string name="this_feature_is_not_currently_available">This feature is not currently available</string>
+    <string name="failed_to_fetch_data_response_code">Failed to fetch data (HTTP %1$s)</string>
+    <string name="failed_to_load_data">Failed to load contributors: %1$s</string>
+    <string name="failed_open_security_miui">Failed to open the Security app! Follow the instructions on the Don\'t kill my app site</string>
+    <string name="failed_request_permission">Failed to request permission! Follow the instructions from the Don\'t kill my app site</string>
+    <string name="instruction_message_do_not_kill_the_service">ATTENTION! Do not kill the service. If the shell of your device likes to \"kill\" applications, or completely \"kills\" applications when cleaning the most recently launched applications or when removing an application from the most recently launched applications, or you use power saving, add this application to all possible exceptions. If your firmware has an application startup setting, be sure to ensure that this application can start after loading the OS, if you want the application to start automatically after loading the OS.&#160;</string>
+    <string name="instruction_message_dont_kill_my_app">If you don’t know what and where to configure so that the application is not \"killed\" by the system, use the \"Don\'t kill my app!\" Service by choosing the manufacturer of your device.\n\n</string>
+    <string name="huawei_honor_information">ATTENTION! On Huawei &amp; Honor, the current capacity may not display correctly. Unfortunately nothing can be done about it</string>
+    <string name="become_a_beta_tester">Become a beta tester</string>
+    <string name="become_a_beta_tester_summary">Be the first to receive updates</string>
+    <string name="about_and_feedback">About &amp; Feedback</string>
+    <string name="email" translatable="false">E-mail</string>
+    <string name="email_copied">E-mail copied</string>
+    <string name="do_you_like_the_app">Do you like the app?</string>
+    <string name="health_title">Health</string>
+    <string name="power_monitor_title">Power Monitor</string>
+    <string name="reset">RESET</string>
+    <string name="dialog_button_close">Close</string>
+    <string name="change_design_capacity">Change Design Capacity</string>
+    <string name="change">Change</string>
+    <string name="battery_technology">Technology: %1$s</string>
+    <string name="instruction_message" formatted="false">1.In order for the application to show the residual capacity, discharge the battery to 10% or lower and put the device on charge, while the service must be turned on.\n2.For a more accurate display of the remaining capacity, charge the device fully until \"Status: Charged\" is displayed.\n3.If charging occurs after reaching 100%, then this is normal. Modern devices continue to charge for some time after reaching 100%.\n4.If the design capacity is incorrect, change it in the application settings.\n5.If the current capacity and/or charge/discharge current and/or voltage is not displayed correctly, then change the unit in the application settings.\n\n</string>
+    <string name="service">Service</string>
+    <string name="service_time">Service Time</string>
+    <string name="change_design_summary" translatable="false">%1$d mAh</string>
+    <string name="unit_of_charge_discharge_current">Unit of Charge/Discharge Current</string>
+    <string name="unit_of_measurement_of_current_capacity">Unit of measurement of current capacity</string>
     <string name="battery_health_android" translatable="false">%1$s (Android)</string>
     <string name="battery_health_good_android">Good</string>
     <string name="battery_health_dead_android">Dead</string>
@@ -157,316 +384,67 @@
     <string name="battery_health_very_good">Very Good</string>
     <string name="battery_health_very_bad">Very Bad</string>
     <string name="battery_health_replacement_required">Replacement Required</string>
-    <string name="tips_menu">Tips</string>
-    <string name="tips_dialog_title">Tips for extending battery life</string>
-    <string name="tip1">Tip #1: Try not to discharge the battery below 10%.\n\n</string>
-    <string name="tip2">Tip #2: Do not overcool (0°C/32°F and below) and do not overheat the battery (40+°C/104+°F). Overcooling and overheating negatively affect battery life.\n\n</string>
-    <string name="tip3">Tip #3: Avoid holding a fully charged battery for a long time. The longer you keep a fully charged battery on charge, the more often the battery recharges, and each recharge reduces the number of cycles.\n\n</string>
-    <string name="tip4">Tip #4: Try not to use the device when fully charged while the charger is connected. If you use the device with a fully charged battery when the charger is connected, then 2 things happen - heating, which negatively affects the battery life and frequent recharging, which reduces the number of cycles.</string>
-    <string name="number_of_cycles">Number of Cycles: %1$s</string>
-    <string name="add_setting">Add Setting</string>
-    <string name="add">Add</string>
-    <string name="setting_added_successfully">Setting \"%1$s\" added successfully!</string>
-    <string name="error_adding_settings">Error adding settings \"%1$s\"!\n%2$s</string>
-    <string name="reset_to_zero_the_number_of_charges">Reset to zero the number of charges</string>
-    <string name="reset_to_zero_the_number_of_charges_dialog_message">Reset to zero the number of charges?</string>
-    <string name="number_of_charges_was_success_reset_to_zero">The number of charges was successfully reset to zero</string>
-    <string name="reset_to_zero_the_number_of_cycles">Reset to zero the number of cycles</string>
-    <string name="reset_to_zero_the_number_of_cycles_dialog_message">Reset to zero the number of cycles?</string>
-    <string name="number_of_cycles_was_success_reset_to_zero">The number of cycles was successfully reset to zero</string>
-    <string name="overlay">Overlay</string>
-    <string name="enable_overlay">Enable Overlay</string>
-    <string name="size">Size</string>
-    <string name="opacity">Opacity</string>
-    <string name="show_hide">Show/Hide</string>
-    <string name="battery_level_overlay">Battery Level</string>
-    <string name="number_of_charges_overlay">Number of Charges</string>
-    <string name="number_of_cycles_overlay">Number of Cycles</string>
-    <string name="charging_time_overlay">Charging Time</string>
-    <string name="current_capacity_overlay">Current Capacity</string>
-    <string name="capacity_added_overlay">Capacity Added</string>
-    <string name="battery_health_android_overlay">Battery Health (Android)</string>
-    <string name="residual_capacity_overlay">Residual Capacity</string>
-    <string name="status_overlay">Status</string>
-    <string name="source_of_power_overlay">Source of Power</string>
-    <string name="charge_discharge_current_overlay">Charge/Discharge Current</string>
-    <string name="max_charge_discharge_current_overlay">Maximum Charge/Discharge Current</string>
-    <string name="average_charge_discharge_current_overlay">Average Charge/Discharge Current</string>
-    <string name="min_charge_discharge_current_overlay">Minimum Charge/Discharge Current</string>
-    <string name="temperature_overlay">Temperature</string>
-    <string name="voltage_overlay">Voltage</string>
-    <string name="last_charge_time_overlay">Last Charge Time</string>
-    <string name="battery_wear_overlay">Battery Wear</string>
-    <string name="overlay_permission_dialog_message">Permission is required for the overlay to work. Please go to the next window and provide permission</string>
-    <string name="text_style_overlay">Text Style</string>
-    <string name="battery_status_information">Battery Status Information</string>
-    <string name="battery_is_fully_charged">Battery is fully charged</string>
-    <string name="battery_is_charged">Battery is charged</string>
-    <string name="battery_is_discharged">Battery is discharged</string>
     <string name="battery_level_charge_discharge">Battery Level</string>
-    <string name="fully_charged">Fully Charged</string>
-    <string name="charged">Charged</string>
-    <string name="discharged">Discharged</string>
-    <string name="battery_is_charged_notification">Battery is charged. Battery Level: %1$d</string>
-    <string name="battery_is_discharged_notification">Battery is discharged. Battery Level: %1$d</string>
-    <string name="charge">Charge</string>
-    <string name="discharge">Discharge</string>
     <string name="debug_successfully_enabled">Debug Successfully Enabled!</string>
     <string name="debug_successfully_disabled">Debug Successfully Disabled!</string>
     <string name="bypass_dnd_mode">Bypass DND Mode</string>
     <string name="bypass_dnd_mode_summary">Use alarms</string>
-    <string name="press_the_back_button_again">Press the back button again to exit</string>
     <string name="tab_on_application_launch">Tab on application launch</string>
-    <string name="overheat_overcool">Overheat/Overcool</string>
-    <string name="battery_overheating">Battery overheating! Temperature: %1$s°C/%2$s°F</string>
-    <string name="battery_overcooling">Battery overcooling! Temperature: %1$s°C/%2$s°F</string>
     <string name="show_expanded_notification">Show expanded notification</string>
-    <string name="service_restart_required">Service restart required</string>
-    <string name="charging_time_remaining">Charging Time Remaining: %1$s</string>
-    <string name="charging_time_remaining_overlay">Charging Time Remaining</string>
-    <string name="remaining_battery_time">Remaining Battery Time: %1$s</string>
-    <string name="remaining_battery_time_overlay">Remaining Battery Time</string>
-    <string name="only_values">Only Values</string>
-    <string name="battery_level_overlay_only_values" translatable="false">%1$s</string>
-    <string name="number_of_charges_overlay_only_values" translatable="false">%1$d</string>
-    <string name="number_of_cycles_overlay_only_values" translatable="false">%1$s</string>
-    <string name="charging_time_overlay_only_values" translatable="false">%1$s</string>
-    <string name="charging_time_remaining_overlay_only_values" translatable="false">%1$s</string>
-    <string name="remaining_battery_time_overlay_only_values" translatable="false">%1$s</string>
-    <string name="current_capacity_overlay_only_values" translatable="false">%1$s mAh</string>
-    <string name="capacity_added_overlay_only_values" translatable="false">%1$s mAh (%2$s)</string>
-    <string name="battery_health_overlay_only_values" translatable="false">%1$s</string>
-    <string name="residual_capacity_overlay_only_values" translatable="false">%1$s mAh (%2$s)</string>
-    <string name="status_overlay_only_values" translatable="false">%1$s</string>
-    <string name="source_of_power_overlay_only_values" translatable="false">%1$s</string>
-    <string name="charge_discharge_overlay_only_values" translatable="false">%1$d mA</string>
-    <string name="max_charge_discharge_overlay_only_values" translatable="false">%1$d mA</string>
-    <string name="average_charge_discharge_overlay_only_values" translatable="false">%1$d mA</string>
-    <string name="min_charge_discharge_overlay_only_values" translatable="false">%1$d mA</string>
-    <string name="temperature_overlay_only_values" translatable="false">%1$s°C/%2$s°F</string>
-    <string name="voltage_overlay_only_values" translatable="false">%1$s mV</string>
-    <string name="last_charge_time_overlay_only_values" translatable="false">%1$s (%2$s - %3$s)</string>
-    <string name="battery_wear_overlay_only_values" translatable="false">%1$s (%2$s mAh)</string>
-    <string name="close">Close</string>
     <string name="disable">Disable</string>
-    <string name="overlay_text_color">Text Color</string>
-    <string name="backup">Backup</string>
-    <string name="unknown_error">Unknown Error!</string>
-    <string name="charging_current_limit">Charging Current Limit: %1$s mA</string>
-    <string name="charging_current_limit_overlay">Charging Current Limit</string>
-    <string name="charging_current_limit_overlay_only_values" translatable="false">%1$s mA</string>
-    <string name="screen_time">Screen Time: %1$s</string>
-    <string name="screen_time_overlay">Screen Time</string>
-    <string name="screen_time_overlay_only_values" translatable="false">%1$s</string>
-    <string name="overcool">Overcool</string>
-    <string name="overheat_overcool_degrees" translatable="false">%1$d°C/%2$s°F</string>
-    <string name="number_of_cycles_android">Number of Cycles (Android): %1$d</string>
-    <string name="number_of_cycles_android_overlay">Number of Cycles (Android)</string>
-    <string name="number_of_cycles_android_overlay_only_values" translatable="false">%1$d</string>
-    <string name="auto_start_boot">Auto Start (Boot)</string>
-    <string name="auto_start_open_app">Auto Start (Open Application)</string>
-    <string name="auto_start_update_app">Auto Start (Update Application)</string>
-    <string name="start_battery_lab_service">Start Battery Lab Service</string>
-    <string name="stop_battery_lab_service">Stop Battery Lab Service</string>
-    <string name="restart_battery_lab_service">Restart Battery Lab Service</string>
-    <string name="stop_overlay_service">Stop Overlay Service</string>
-    <string name="restart_overlay_service">Restart Overlay Service</string>
-    <string name="history">History</string>
-    <string name="add_custom_history">Add Custom History</string>
-    <string name="add_history">Add History</string>
-    <string name="add_ten_history">Add 10 History</string>
-    <string name="add_fifty_history">Add 50 History</string>
-    <string name="clear_history">Clear History</string>
-    <string name="history_cleared_successfully">History Cleared Successfully!</string>
-    <string name="error_clearing_history">Error Clearing History!</string>
-    <string name="clear_the_history_dialog_message">Clear the History?</string>
-    <string name="export_history">Export History</string>
-    <string name="history_exported_successfully">History exported successfully!</string>
-    <string name="error_exporting_history">Error Exporting History!</string>
-    <string name="history_is_empty">History is Empty!</string>
-    <string name="export_notification_sounds">Export Notification Sounds</string>
-    <string name="successful_export_of_notification_sounds">Notification Sounds have been exported successfully!</string>
-    <string name="error_exporting_notification_sounds">Error Exporting Notification Sounds!\n%1$s</string>
-    <string name="import_history">Import History</string>
-    <string name="error_importing_history">Error Importing History!</string>
-    <string name="history_imported_successfully">History imported successfully!</string>
-    <string name="mv" translatable="false">mV</string>
-    <string name="battery_is_discharged_voltage">Battery is Discharged (Voltage)</string>
-    <string name="battery_is_discharged_notification_voltage">Battery is discharged. %1$d mV</string>
-    <string name="discharged_voltage">Discharged (Voltage)</string>
-    <string name="number_of_full_charges">Number of Full Charges: %1$d</string>
     <string name="number_of_full_charges_overlay">Number of Full Charges</string>
     <string name="number_of_full_charges_overlay_only_values" translatable="false">%1$d</string>
-    <string name="reset_the_number_of_full_charges_to_zero">Reset the Number of Full Charges to zero</string>
-    <string name="reset_the_number_of_full_charges_to_zero_dialog_message">Reset the Number of Full Charges to zero?</string>
-    <string name="number_of_full_charges_was_success_reset_to_zero">The Number of Full Charges was successfully reset to zero</string>
-    <string name="reset_screen_time_at_any_charge_level">Reset Screen Time at any charge level</string>
-    <string name="reset_screen_time">Reset Screen Time</string>
-    <string name="success">Success!</string>
-    <string name="error">Error!</string>
-    <string name="history_count">History Count</string>
-    <string name="premium_dialog">By purchasing Premium, you will get additional features of the app:\n\• History\n\• Show Battery Information\n\• Stop Service\n\• Stop the service when the charger is disconnected\n\• Battery Status Information\n\• Reset Screen Time at any charge level\n\• Backup\n\• Tab on application launch\n\• Overlay\n\• Capacity in Wh\n\• Charging/Discharge Current in Watt\n\nBy purchasing Premium you also support the further development of the app</string>
-    <string name="premium_feature">Premium feature</string>
-    <string name="empty_history_text">History of charges is empty! Please, charge the battery to full 100% (Battery Status: Charged)</string>
     <string name="show_battery_information">Show Battery Information</string>
-    <string name="service_is_running">Service is running</string>
     <string name="stop_the_service_when_the_cd">Stop the service when the charger is disconnected</string>
-    <string name="stop_service">Stop Service</string>
-    <string name="stopping_service">Stopping Service&#8230;</string>
-    <string name="service_stopped_successfully">Service Stopped Successfully!</string>
-    <string name="font_overlay">Font</string>
-    <string name="telegram_link_copied">Telegram link copied</string>
-    <string name="fast_charge_yes">Fast Charge: Yes (%1$sW)</string>
-    <string name="fast_charge_no">Fast Charge: No</string>
-    <string name="fast_charge_yes_overlay_only_values">Yes (%1$sW)</string>
-    <string name="fast_charge_no_overlay_only_values">No</string>
-    <string name="maximum_temperature">Maximum: %1$s°C/%2$s°F</string>
-    <string name="average_temperature">Average: %1$s°C/%2$s°F</string>
-    <string name="minimum_temperature">Minimum: %1$s°C/%2$s°F</string>
     <string name="maximum_temperature_overlay">Maximum Temperature</string>
     <string name="average_temperature_overlay">Average Temperature</string>
     <string name="minimum_temperature_overlay">Minimum Temperature</string>
-    <string name="history_removed">History Removed</string>
-    <string name="undo">Undo</string>
-    <string name="capacity_in_wh">Capacity in Wh</string>
-    <string name="design_capacity_wh" translatable="false">%1$s Wh</string>
-    <string name="current_capacity_wh">Current: %1$s Wh</string>
-    <string name="current_capacity_wh_overlay_only_values">%1$s Wh</string>
-    <string name="residual_capacity_wh">Residual: %1$s Wh (%2$s)</string>
-    <string name="residual_capacity_wh_overlay_only_values">%1$s Wh (%2$s)</string>
-    <string name="battery_wear_wh">Wear: %1$s (%2$s Wh)</string>
-    <string name="battery_wear_wh_overlay_only_values">%1$s (%2$s Wh)</string>
-    <string name="capacity_added_wh">Added: %1$s Wh (%2$s)</string>
-    <string name="capacity_added_wh_overlay_only_values">%1$s Wh (%2$s)</string>
-    <string name="charging_discharge_current_in_watt">Charging/Discharge Current in Watt</string>
-    <string name="charge_current_watt">Charging Current: %1$sW</string>
-    <string name="charging_current_limit_watt">Charging Current Limit: %1$sW</string>
-    <string name="discharge_current_watt">Discharge current: %1$sW</string>
-    <string name="max_charge_current_watt">Max Charge Current: %1$sW</string>
-    <string name="average_charge_current_watt">Avg Charge Current: %1$sW</string>
-    <string name="min_charge_current_watt">Min Charge Current: %1$sW</string>
-    <string name="max_discharge_current_watt">Max Discharge Current: %1$sW</string>
-    <string name="average_discharge_current_watt">Avg Discharge Current: %1$sW</string>
-    <string name="min_discharge_current_watt">Min Discharge Current: %1$sW</string>
-    <string name="charging_discharge_current_watt_overlay_only_values" translatable="false">%1$sW</string>
-    <string name="setting_is_intended_to_correct" translatable="false">
-        This setting is intended to correct the display of the value</string>
-    <string name="full_charge_reminder">Full Charge Reminder</string>
-    <string name="full_charge_reminder_summary">Full charge reminder every 30 minutes</string>
-    <string name="battery_level_title">Battery Level</string>
-    <string name="experiment">Experiment</string>
     <string name="power_connection">Power Connection</string>
-    <string name="show_all_features">Show All Features</string>
     <string name="allow_all_app_notifications">ALLOW ALL APP NOTIFICATIONS</string>
     <string name="power_connection_service">Enable Power Connection</string>
-    <string name="reset_sound">Reset Sound</string>
-    <string name="audio_permission_not_granted">Audio permission not granted</string>
-    <string name="storage_permission_not_granted">Storage permission not granted</string>
-    <string name="open_settings">Open Settings</string>
-    <string name="premium_features_unlocked">Premium features unlocked!</string>
-    <string name="not_installed_google_play_dialog">It is not possible to purchase Premium. Reason: not installed Google Play</string>
-    <string name="auto_start_xiaomi_dialog">In order for the application to work correctly, allow autostart in the next window</string>
-    <string name="background_activity_control_xiaomi_dialog">In order for the application to work correctly in the background, go to the next window and select \"No restrictions\"</string>
-    <string name="request_notification_message">For the application to work correctly, you need to enable notifications. This is necessary for the service that is responsible for most of the application\'s operation, including calculating the residual battery capacity</string>
-    <string name="kernel_0" translatable="false">kernel: 0</string>
-    <string name="text_font">Text Font</string>
-    <string name="text_style">Text Style</string>
-    <string name="ok">OK</string>
-    <string name="username" translatable="false">\@%1$s</string>
-    <string name="name">Name</string>
-    <string name="in_project">In Project</string>
-    <string name="visit_this_profile">Visit this profile?</string>
-    <string name="cancel">Cancel</string>
-    <string name="yes_continue">Yes, Continue</string>
-    <string name="change_kernel_value">Change Kernel Value</string>
-    <string name="kernel_status">Status: %1$s</string>
-    <string name="stored_value">Stored Value: %1$s</string>
-    <string name="kernel_available">Available: %1$s</string>
-    <string name="yes">Yes</string>
-    <string name="no">No</string>
-    <string name="none">None</string>
-    <string name="jacktor_shell" translatable="false">JACKTOR SHELL</string>
-    <string name="starting_command_execution_wait">Starting Command Execution, Wait…</string>
-    <string name="command_sh" translatable="false">command.sh</string>
-    <string name="copy_txt">Copy</string>
-    <string name="execute">Execute</string>
-    <string name="execute_failed">Failed to execute command.sh file</string>
-    <string name="enabled">Enabled</string>
-    <string name="disabled">Disabled</string>
-    <string name="executes_and_update_info">Executes script and updates kernel info</string>
-    <string name="get_kernel_information">Get kernel information</string>
-    <string name="create_and_saving_scripts">Create and saving scripts</string>
-    <string name="reset_script">Reset Script</string>
-    <string name="reset_script_dialog">This is intended with the aim of repair if the script is problematic, doesn\'t work, or the script display is messed up, continuing this your script will be deleted, want to continue?</string>
-    <string name="script_has_been_reset">The script has been reset</string>
-    <string name="command_file_is_not_available">The command.sh file is not available</string>
-    <string name="bash_script">Bash Script</string>
-    <string name="view_script">View Script</string>
-    <string name="command">Command</string>
-    <string name="enable_execute_script_on_boot">Script is executed automatically on boot</string>
-    <string name="disable_execute_script_on_boot">Script does not executed automatically on boot</string>
-    <string name="executing_script">Executing Script…</string>
-    <string name="root_access_info_1">Root access is available but denied to superuser</string>
-    <string name="root_access_info_0">Root access is not available</string>
-    <string name="history_premium_feature">Premium purchase is required to access this feature</string>
-    <string name="update_available_dialog_title">Update available</string>
-    <string name="update_available_dialog_message">A new version of the app is available. Update?</string>
-    <string name="update">Update</string>
-    <string name="later_update">Later</string>
-    <string name="check_update">Check Update</string>
-    <string name="update_not_found">Update not Found!</string>
-    <string name="overlay_location">Location</string>
-    <string name="do_you_like_the_app">Do you like the app?</string>
-    <string name="full_charge_reminder_frequency">Full Charge Reminder Frequency</string>
-    <string name="premium_purchase_error">Premium purchase error!</string>
-    <string name="install_the_app_from_gp">Install the app from Google Play</string>
-    <string name="refresh">Refresh</string>
     <string name="internet_connection_required">Internet connection required!</string>
-    <string name="purchase_cannot_be_made">Purchase cannot be made!</string>
-    <string name="fast_charge">Fast Charge</string>
-    <string name="fast_charge_dialog_message">This option is designed to more correctly calculate battery wear when using fast charging. Only enable this option if you are charging your device with a fast charger</string>
-    <string name="remove_ads">Remove ADS</string>
-    <string name="vibrate_short">Short</string>
-    <string name="vibrate_medium">Medium</string>
-    <string name="vibrate_long">Long (Default)</string>
-    <string name="vibrate_custom">Custom</string>
     <string name="charger_connected">Connected</string>
-    <string name="charger_disconnected">Disconnected</string>
     <string name="both">Both</string>
-    <string name="verysmall">Very Small</string>
-    <string name="small">Small</string>
-    <string name="medium">Medium (Default)</string>
-    <string name="large">Large</string>
-    <string name="verylarge">Very Large</string>
     <string name="charge_discharge">Charge/Discharge (Default)</string>
-    <string name="top">Top</string>
-    <string name="top_left">Top Left</string>
-    <string name="top_right">Top Right</string>
-    <string name="center">Center</string>
-    <string name="center_left">Center Left</string>
-    <string name="center_right">Center Right</string>
-    <string name="bottom">Bottom</string>
-    <string name="bottom_left">Bottom Left</string>
-    <string name="bottom_right">Bottom Right</string>
     <string name="minutes_15">15 Minutes</string>
     <string name="minutes_30">30 Minutes</string>
     <string name="minutes_45">45 Minutes</string>
     <string name="hour_1">1 Hour</string>
-    <string name="temperature_celsius">Temperature: %1$s °C</string>
-    <string name="github" translatable="false">Github</string>
-    <string name="license">License: Apache 2.0</string>
-    <string name="become_a_beta_tester">Become a beta tester</string>
-    <string name="become_a_beta_tester_summary">Be the first to receive updates</string>
-    <string name="capacity_info" translatable="false">Capacity Info</string>
-    <string name="github_battery_capacity" translatable="false">Github (Battery Capacity)</string>
-    <string name="ignoring_battery_optimizations_dialog_message">For the app to work properly, you must allow the app to run in the background</string>
-    <string name="text_size">Text Size</string>
-    <string name="calibration">Calibration</string>
-    <string name="tools">Tools</string>
+    <string name="idle_drain">Idle Drain</string>
     <string name="previous">Previous</string>
     <string name="next">Next</string>
-    <string name="failed_to_load_data">Failed to load data: %1$s</string>
-    <string name="failed_to_fetch_data_response_code">Failed to fetch data. Response Code: %1$s</string>
-    <string name="contributions">%1$s contributions</string>
-    <string name="contributors">Contributors</string>
+
+    <string name="thermal_title">Thermal &amp; Power Mode</string>
+    <string name="thermal_label">Thermal %1$s</string>
+    <string name="powersave_label">Battery Saver: %1$s</string>
+    <string name="on">On</string>
+    <string name="off">Off</string>
+    <string name="thermal_none">Normal</string>
+    <string name="thermal_light">Slightly warm</string>
+    <string name="thermal_moderate">Warm</string>
+    <string name="thermal_severe">Hot (throttling)</string>
+    <string name="thermal_critical">Very hot</string>
+    <string name="thermal_emergency">Emergency</string>
+    <string name="thermal_shutdown">Shutdown imminent</string>
+    <string name="charge_current_label">Charge Current</string>
+    <string name="discharge_current_label">Discharge Current</string>
+    <string name="peak_charge_power_verbose">Peak: %1$s W (%2$d mA @ %3$s V)</string>
+
+    <string name="premium_purchase_success">Yay! Premium is active</string>
+    <string name="premium_purchase_cancelled">Aww… Premium purchase canceled</string>
+    <string name="premium_purchase_failed">Oops, premium purchase failed. Try again later.</string>
+    <string name="premium_restore_success">Premium restored successfully</string>
+    <string name="premium_restore_failed">Restore failed. Have you bought premium before?</string>
+
+    <string name="welcome_title">Welcome to Battery Lab</string>
+    <string name="welcome_feature_one_summary">View real-time battery status and detailed information at a glance.</string>
+    <string name="welcome_feature_one_title">Battery Status &amp; Info</string>
+    <string name="welcome_feature_two_summary">Set a custom charging sound to replace the default system sound.</string>
+    <string name="welcome_feature_two_title">Custom Charging Sound</string>
+    <string name="welcome_feature_third_summary">Built with Material Design 3 and full dark mode support.</string>
+    <string name="welcome_feature_third_title">Clean, Modern Design</string>
+    <string name="welcome_feature_three_summary">Measure your charger performance and detect charging or discharging instability.</string>
+    <string name="welcome_feature_three_title">Ammeter</string>
+    <string name="welcome_advisory">Battery Lab does not collect analytics or sell your data to third parties. All data is stored securely and privately on your device.</string>
+    <string name="welcome_btn_continue">Get Started</string>
 </resources>

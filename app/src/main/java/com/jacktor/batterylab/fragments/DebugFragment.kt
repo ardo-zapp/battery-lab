@@ -159,7 +159,7 @@ class DebugFragment : PreferenceFragmentCompat(), DebugOptionsInterface {
 
             HistoryHelper.addHistory(requireContext(), date, residualCapacity)
 
-            val historyDB = HistoryDB(requireContext()).readDB()
+            val historyDB = HistoryDB(requireContext()).readAll()
 
             if (historyDB.isNotEmpty() && historyDB[historyDB.size - 1].date == date)
                 Toast.makeText(
@@ -211,7 +211,7 @@ class DebugFragment : PreferenceFragmentCompat(), DebugOptionsInterface {
 
                     HistoryHelper.addHistory(requireContext(), date, residualCapacity)
 
-                    val historyDB = HistoryDB(requireContext()).readDB()
+                    val historyDB = HistoryDB(requireContext()).readAll()
 
                     withContext(Dispatchers.Main) {
                         if (i == 10 && historyDB.isNotEmpty() && historyDB[historyDB.size - 1]
@@ -278,7 +278,7 @@ class DebugFragment : PreferenceFragmentCompat(), DebugOptionsInterface {
 
                     HistoryHelper.addHistory(requireContext(), date, residualCapacity)
 
-                    val historyDB = HistoryDB(requireContext()).readDB()
+                    val historyDB = HistoryDB(requireContext()).readAll()
 
                     withContext(Dispatchers.Main) {
                         if (i == 10 && historyDB.isNotEmpty() && historyDB[historyDB.size - 1]

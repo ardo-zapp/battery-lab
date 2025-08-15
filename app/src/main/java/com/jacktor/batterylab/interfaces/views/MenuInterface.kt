@@ -1,35 +1,17 @@
 package com.jacktor.batterylab.interfaces.views
 
 
-import android.content.ClipData
-import android.content.ClipboardManager
-import android.content.Context
 import android.content.Intent
 import android.os.Build
-import android.view.LayoutInflater
-import android.widget.Toast
-import androidx.appcompat.content.res.AppCompatResources
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.jacktor.batterylab.MainActivity
-import com.jacktor.batterylab.activity.PremiumActivity
+import com.jacktor.batterylab.MainApp
 import com.jacktor.batterylab.R
-import com.jacktor.batterylab.databinding.ShowScriptDialogBinding
-import com.jacktor.batterylab.fragments.ChargeDischargeFragment
+import com.jacktor.batterylab.fragments.BatteryInfoFragment
 import com.jacktor.batterylab.fragments.HistoryFragment
 import com.jacktor.batterylab.fragments.ToolsFragment
-import com.jacktor.batterylab.fragments.tab.KernelFragment
 import com.jacktor.batterylab.helpers.HistoryHelper
-import com.jacktor.batterylab.interfaces.KernelInterface.Companion.executeShellFile
-import com.jacktor.batterylab.interfaces.KernelInterface.Companion.getKernelFromFile
-import com.jacktor.batterylab.interfaces.KernelInterface.Companion.resetScript
-import com.jacktor.batterylab.interfaces.PremiumInterface
-import com.jacktor.batterylab.utilities.Constants.SCRIPT_FILE_NAME
-import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.EXECUTE_SCRIPT_ON_BOOT
-import com.jacktor.batterylab.utilities.preferences.Prefs
-import com.jacktor.batterylab.utilities.RootChecker
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import com.jacktor.premium.ui.PremiumActivity
 
 
 interface MenuInterface {
@@ -39,13 +21,14 @@ interface MenuInterface {
         when (fragment) {
             is HistoryFragment -> {
 
-                topAppBar.inflateMenu(R.menu.history_menu)
+                toolbar.inflateMenu(R.menu.history_menu)
 
-                topAppBar.menu.findItem(R.id.clear_history).apply {
+                toolbar.menu.findItem(R.id.clear_history).apply {
 
-                    isVisible = PremiumInterface.isPremium && HistoryHelper.isHistoryNotEmpty(
-                        this@inflateMenu
-                    )
+                    isVisible =
+                        (this@inflateMenu.applicationContext as MainApp).billingManager.isPremium.value && HistoryHelper.isHistoryNotEmpty(
+                            this@inflateMenu
+                        )
 
                     setOnMenuItemClickListener {
 
@@ -55,13 +38,20 @@ interface MenuInterface {
                     }
                 }
 
-                topAppBar.menu.findItem(R.id.history_premium).apply {
-                    isVisible = !PremiumInterface.isPremium
+                toolbar.menu.findItem(R.id.history_premium).apply {
+                    isVisible =
+                        !(this@inflateMenu.applicationContext as MainApp).billingManager.isPremium.value
 
                     setOnMenuItemClickListener {
-                        val intent = Intent(applicationContext, PremiumActivity::class.java)
-                        startActivity(intent)
+                        //val intent = Intent(applicationContext, PremiumActivity::class.java)
+                        //startActivity(intent)
 
+                        premiumLauncher.launch(
+                            Intent(
+                                this@inflateMenu,
+                                PremiumActivity::class.java
+                            )
+                        )
                         true
                     }
                 }
@@ -74,11 +64,11 @@ interface MenuInterface {
                         defaultMenu()
                     }
 
-                    1 -> {
+                    /*1 -> {
                         clearMenu()
-                        topAppBar.inflateMenu(R.menu.kernel_menu)
+                        toolbar.inflateMenu(R.menu.kernel_menu)
 
-                        topAppBar.menu.findItem(R.id.show_command).apply {
+                        toolbar.menu.findItem(R.id.show_command).apply {
                             setOnMenuItemClickListener {
                                 val binding = ShowScriptDialogBinding.inflate(
                                     LayoutInflater.from(this@inflateMenu), null, false
@@ -187,7 +177,7 @@ interface MenuInterface {
                                 true
                             }
                         }
-                    }
+                    }*/
                 }
             }
 
@@ -196,23 +186,23 @@ interface MenuInterface {
     }
 
     fun MainActivity.defaultMenu() {
-        topAppBar.inflateMenu(R.menu.main_menu)
+        toolbar.inflateMenu(R.menu.main_menu)
 
-        topAppBar.menu.findItem(R.id.instruction).apply {
+        toolbar.menu.findItem(R.id.instruction).apply {
             isVisible = getCurrentCapacity(this@defaultMenu) > 0.0 &&
-                    (fragment is ChargeDischargeFragment || fragment is KernelFragment)
+                    (fragment is BatteryInfoFragment /*|| fragment is KernelFragment*/)
             setOnMenuItemClickListener {
                 showInstruction()
                 true
             }
         }
 
-        topAppBar.menu.findItem(R.id.faq).setOnMenuItemClickListener {
+        toolbar.menu.findItem(R.id.faq).setOnMenuItemClickListener {
             showFaq()
             true
         }
 
-        topAppBar.menu.findItem(R.id.tips).setOnMenuItemClickListener {
+        toolbar.menu.findItem(R.id.tips).setOnMenuItemClickListener {
             MaterialAlertDialogBuilder(this@defaultMenu).apply {
                 setIcon(R.drawable.ic_tips_for_extending_battery_life_24dp)
                 setTitle(getString(R.string.tips_dialog_title))
@@ -226,14 +216,16 @@ interface MenuInterface {
             true
         }
 
-        topAppBar.menu.findItem(R.id.premium).setOnMenuItemClickListener {
-            val intent = Intent(applicationContext, PremiumActivity::class.java)
-            startActivity(intent)
+        toolbar.menu.findItem(R.id.premium).setOnMenuItemClickListener {
+            /*val intent = Intent(applicationContext, PremiumActivity::class.java)
+            startActivity(intent)*/
+
+            premiumLauncher.launch(Intent(this, PremiumActivity::class.java))
             true
         }
     }
 
-    fun MainActivity.clearMenu() = topAppBar.menu.clear()
+    fun MainActivity.clearMenu() = toolbar.menu.clear()
 
     fun MainActivity.showInstruction() {
 

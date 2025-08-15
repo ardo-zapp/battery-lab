@@ -2,17 +2,24 @@ package com.jacktor.batterylab.fragments
 
 import android.content.Intent
 import android.content.SharedPreferences
-import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.preference.*
+import androidx.core.content.edit
+import androidx.core.net.toUri
+import androidx.preference.ListPreference
+import androidx.preference.PreferenceCategory
+import androidx.preference.PreferenceFragmentCompat
+import androidx.preference.PreferenceManager
+import androidx.preference.PreferenceScreen
+import androidx.preference.SeekBarPreference
+import androidx.preference.SwitchPreferenceCompat
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.jacktor.batterylab.R
-import com.jacktor.batterylab.interfaces.OverlayInterface
 import com.jacktor.batterylab.helpers.ServiceHelper
 import com.jacktor.batterylab.interfaces.BatteryInfoInterface
+import com.jacktor.batterylab.interfaces.OverlayInterface
 import com.jacktor.batterylab.services.OverlayService
 import com.jacktor.batterylab.utilities.Constants.NUMBER_OF_CYCLES_PATH
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.AVERAGE_CHARGE_DISCHARGE_CURRENT_OVERLAY
@@ -24,33 +31,32 @@ import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CAPACITY_ADD
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGE_DISCHARGE_CURRENT_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGING_CURRENT_LIMIT_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGING_TIME_OVERLAY
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGING_TIME_REMAINING_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CURRENT_CAPACITY_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.ENABLED_OVERLAY
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.FAST_CHARGE_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.LAST_CHARGE_TIME_OVERLAY
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.MAXIMUM_TEMPERATURE_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.MAX_CHARGE_DISCHARGE_CURRENT_OVERLAY
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.MINIMUM_TEMPERATURE_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.MIN_CHARGE_DISCHARGE_CURRENT_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.NUMBER_OF_CHARGES_OVERLAY
-import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.NUMBER_OF_CYCLES_OVERLAY
-import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGING_TIME_REMAINING_OVERLAY
-import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.FAST_CHARGE_OVERLAY
-import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.MAXIMUM_TEMPERATURE_OVERLAY
-import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.MINIMUM_TEMPERATURE_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.NUMBER_OF_CYCLES_ANDROID_OVERLAY
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.NUMBER_OF_CYCLES_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.NUMBER_OF_FULL_CHARGES_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.ONLY_VALUES_OVERLAY
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.OVERLAY_FONT
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.OVERLAY_LOCATION
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.OVERLAY_OPACITY
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.OVERLAY_SIZE
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.OVERLAY_TEXT_STYLE
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.REMAINING_BATTERY_TIME_OVERLAY
-import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.SOURCE_OF_POWER
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.RESIDUAL_CAPACITY_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.SCREEN_TIME_OVERLAY
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.SOURCE_OF_POWER
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.STATUS_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.TEMPERATURE_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.VOLTAGE_OVERLAY
-import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.OVERLAY_FONT
-import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.OVERLAY_LOCATION
-import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.OVERLAY_SIZE
-import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.OVERLAY_OPACITY
-import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.OVERLAY_TEXT_STYLE
-import com.topjohnwu.superuser.Shell
 import java.io.File
 import java.text.DecimalFormat
 
@@ -158,12 +164,15 @@ class OverlayFragment : PreferenceFragmentCompat(), BatteryInfoInterface {
         overlayLocation?.apply {
             summary = getOverlayLocationSummary()
             setOnPreferenceChangeListener { preference, newValue ->
-                if(OverlayService.instance != null && OverlayInterface.isEnabledOverlay(
-                        requireContext(), enableOverlay?.isEnabled == true))
+                if (OverlayService.instance != null && OverlayInterface.isEnabledOverlay(
+                        requireContext(), enableOverlay?.isEnabled == true
+                    )
+                )
                     ServiceHelper.restartService(context, OverlayService::class.java)
                 preference.summary = resources.getStringArray(R.array.overlay_location_list)[
                     (newValue as? String)?.toInt() ?: resources.getInteger(
-                        R.integer.overlay_location_default)]
+                        R.integer.overlay_location_default
+                    )]
                 true
             }
         }
@@ -214,8 +223,11 @@ class OverlayFragment : PreferenceFragmentCompat(), BatteryInfoInterface {
 
                 val progress = newValue as? Int ?: 0
 
-                preference.summary = "${DecimalFormat("#").format(
-                    (progress.toFloat() / 255f) * 100f)}%"
+                preference.summary = "${
+                    DecimalFormat("#").format(
+                        (progress.toFloat() / 255f) * 100f
+                    )
+                }%"
 
                 true
             }
@@ -255,10 +267,7 @@ class OverlayFragment : PreferenceFragmentCompat(), BatteryInfoInterface {
         lastChargeTimeOverlay = findPreference(LAST_CHARGE_TIME_OVERLAY)
         batteryWearOverlay = findPreference(BATTERY_WEAR_OVERLAY)
 
-        numberOfCyclesAndroidOverlay?.isVisible =
-            if (File(NUMBER_OF_CYCLES_PATH).exists()) {
-                true
-            } else Shell.cmd("test -e $NUMBER_OF_CYCLES_PATH").exec().isSuccess
+        numberOfCyclesAndroidOverlay?.isVisible = File(NUMBER_OF_CYCLES_PATH).exists() // WARNING
         chargingCurrentLimitOverlay?.isVisible = chargingCurrentLimit != null &&
                 chargingCurrentLimit.toInt() > 0
 
@@ -532,22 +541,36 @@ class OverlayFragment : PreferenceFragmentCompat(), BatteryInfoInterface {
     }
 
     private fun getOverlayLocationSummary(): CharSequence? {
-        if(pref.getString(OVERLAY_LOCATION, "${resources.getInteger(
-                R.integer.overlay_location_default)}") !in
-            resources.getStringArray(R.array.overlay_location_values))
-            pref.edit().putString(OVERLAY_LOCATION, "${resources.getInteger(
-                R.integer.overlay_location_default)}").apply()
+        if (pref.getString(
+                OVERLAY_LOCATION, "${
+                    resources.getInteger(
+                        R.integer.overlay_location_default
+                    )
+                }"
+            ) !in
+            resources.getStringArray(R.array.overlay_location_values)
+        )
+            pref.edit {
+                putString(
+                    OVERLAY_LOCATION, "${
+                        resources.getInteger(
+                            R.integer.overlay_location_default
+                        )
+                    }"
+                )
+            }
 
         return resources.getStringArray(R.array.overlay_location_list)[pref.getString(
             OVERLAY_LOCATION,
-            "${resources.getInteger(R.integer.overlay_location_default)}")!!.toInt()]
+            "${resources.getInteger(R.integer.overlay_location_default)}"
+        )!!.toInt()]
     }
 
     private fun getOverlayTextSizeSummary(): CharSequence? {
         if (pref.getString(OVERLAY_SIZE, "2") !in
             resources.getStringArray(R.array.text_size_values)
         )
-            pref.edit().putString(OVERLAY_SIZE, "2").apply()
+            pref.edit { putString(OVERLAY_SIZE, "2") }
 
         return resources.getStringArray(R.array.text_size_list)[pref.getString(
             OVERLAY_SIZE,
@@ -560,10 +583,10 @@ class OverlayFragment : PreferenceFragmentCompat(), BatteryInfoInterface {
         if (pref.getString(OVERLAY_FONT, "6") !in
             resources.getStringArray(R.array.fonts_values)
         )
-            pref.edit().putString(OVERLAY_FONT, "6").apply()
+            pref.edit { putString(OVERLAY_FONT, "6") }
 
         return resources.getStringArray(R.array.fonts_list)[
-                pref.getString(OVERLAY_FONT, "6")?.toInt() ?: 6]
+            pref.getString(OVERLAY_FONT, "6")?.toInt() ?: 6]
     }
 
     private fun getOverlayTextStyleSummary(): CharSequence? {
@@ -571,10 +594,10 @@ class OverlayFragment : PreferenceFragmentCompat(), BatteryInfoInterface {
         if (pref.getString(OVERLAY_TEXT_STYLE, "0") !in
             resources.getStringArray(R.array.text_style_values)
         )
-            pref.edit().putString(OVERLAY_TEXT_STYLE, "0").apply()
+            pref.edit { putString(OVERLAY_TEXT_STYLE, "0") }
 
         return resources.getStringArray(R.array.text_style_list)[
-                pref.getString(OVERLAY_TEXT_STYLE, "0")?.toInt() ?: 0]
+            pref.getString(OVERLAY_TEXT_STYLE, "0")?.toInt() ?: 0]
     }
 
     private fun getOverlayOpacitySummary(): CharSequence {
@@ -590,11 +613,13 @@ class OverlayFragment : PreferenceFragmentCompat(), BatteryInfoInterface {
                 resources.getInteger(R.integer.overlay_opacity_default)
             ) < 0
         )
-            pref.edit().putInt(
-                OVERLAY_OPACITY, resources.getInteger(
-                    R.integer.overlay_opacity_default
+            pref.edit {
+                putInt(
+                    OVERLAY_OPACITY, resources.getInteger(
+                        R.integer.overlay_opacity_default
+                    )
                 )
-            ).apply()
+            }
 
         return "${
             DecimalFormat("#").format(
@@ -616,7 +641,7 @@ class OverlayFragment : PreferenceFragmentCompat(), BatteryInfoInterface {
 
                 val intent = Intent(
                     Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
-                    Uri.parse("package:${requireContext().packageName}")
+                    "package:${requireContext().packageName}".toUri()
                 )
 
                 getResult.launch(intent)

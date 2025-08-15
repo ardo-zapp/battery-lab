@@ -1,28 +1,36 @@
 package com.jacktor.batterylab
 
 import android.Manifest
+import android.app.ActivityOptions
 import android.content.ActivityNotFoundException
-import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
-import android.content.res.Configuration
-import android.net.Uri
 import android.os.BatteryManager
 import android.os.Build
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
+import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.content.edit
+import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
+import androidx.preference.PreferenceManager
+import com.google.android.gms.ads.AdError
 import com.google.android.gms.ads.AdRequest
+import com.google.android.gms.ads.FullScreenContentCallback
 import com.google.android.gms.ads.LoadAdError
 import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
+import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.snackbar.Snackbar
@@ -33,15 +41,15 @@ import com.jacktor.batterylab.MainApp.Companion.isInstalledGooglePlay
 import com.jacktor.batterylab.databinding.ActivityMainBinding
 import com.jacktor.batterylab.fragments.AboutFragment
 import com.jacktor.batterylab.fragments.BackupSettingsFragment
+import com.jacktor.batterylab.fragments.BatteryInfoFragment
 import com.jacktor.batterylab.fragments.BatteryStatusInformationFragment
-import com.jacktor.batterylab.fragments.ChargeDischargeFragment
 import com.jacktor.batterylab.fragments.DebugFragment
 import com.jacktor.batterylab.fragments.FeedbackFragment
 import com.jacktor.batterylab.fragments.HistoryFragment
-import com.jacktor.batterylab.fragments.ToolsFragment
 import com.jacktor.batterylab.fragments.OverlayFragment
 import com.jacktor.batterylab.fragments.PowerConnectionSettingsFragment
 import com.jacktor.batterylab.fragments.SettingsFragment
+import com.jacktor.batterylab.fragments.ToolsFragment
 import com.jacktor.batterylab.helpers.BatteryLevelHelper
 import com.jacktor.batterylab.helpers.ServiceHelper
 import com.jacktor.batterylab.helpers.ThemeHelper
@@ -51,17 +59,12 @@ import com.jacktor.batterylab.interfaces.CheckUpdateInterface
 import com.jacktor.batterylab.interfaces.ManufacturerInterface
 import com.jacktor.batterylab.interfaces.NavigationInterface
 import com.jacktor.batterylab.interfaces.NavigationInterface.Companion.mainActivityRef
-import com.jacktor.batterylab.interfaces.PremiumInterface
-import com.jacktor.batterylab.interfaces.PremiumInterface.Companion.isPremium
 import com.jacktor.batterylab.interfaces.SettingsInterface
-import com.jacktor.batterylab.interfaces.views.MenuInterface
 import com.jacktor.batterylab.services.BatteryLabService
 import com.jacktor.batterylab.services.OverlayService
 import com.jacktor.batterylab.utilities.AdMob
 import com.jacktor.batterylab.utilities.Constants
 import com.jacktor.batterylab.utilities.Constants.IMPORT_RESTORE_SETTINGS_EXTRA
-import com.jacktor.batterylab.utilities.Constants.POST_NOTIFICATIONS_PERMISSION_REQUEST_CODE
-import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.AUTO_START_OPEN_APP
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.BATTERY_LEVEL_TO
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.BATTERY_LEVEL_WITH
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CAPACITY_ADDED
@@ -75,230 +78,365 @@ import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.NUMBER_OF_FU
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.PERCENT_ADDED
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.RESIDUAL_CAPACITY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.TAB_ON_APPLICATION_LAUNCH
-import com.jacktor.batterylab.utilities.preferences.Prefs
-import com.jacktor.batterylab.views.CenteredTopAppBar
+import com.jacktor.premium.utilities.Constants.BILLING_RESULT_CANCELLED
+import com.jacktor.premium.utilities.Constants.BILLING_RESULT_FAILED
+import com.jacktor.premium.utilities.Constants.BILLING_RESULT_RESTORE_FAILED
+import com.jacktor.premium.utilities.Constants.BILLING_RESULT_RESTORE_SUCCESS
+import com.jacktor.premium.utilities.Constants.BILLING_RESULT_SUCCESS
+import com.jacktor.premium.utilities.PremiumFlag
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
+import java.lang.ref.WeakReference
 import kotlin.time.Duration.Companion.seconds
 
-class MainActivity() : AppCompatActivity(), BatteryInfoInterface, SettingsInterface,
-    PremiumInterface, MenuInterface, ManufacturerInterface, NavigationInterface,
-    CheckUpdateInterface, BatteryOptimizationsInterface {
+class MainActivity : AppCompatActivity(),
+    BatteryInfoInterface,
+    SettingsInterface,
+    com.jacktor.batterylab.interfaces.views.MenuInterface,
+    ManufacturerInterface,
+    NavigationInterface,
+    CheckUpdateInterface,
+    BatteryOptimizationsInterface {
 
-    override var premiumContext: Context? = null
-
-    var pref: Prefs? = null
-    private var isDoubleBackToExitPressedOnce = false
-    private var isRestoreImportSettings = false
+    var pref: SharedPreferences? = null
     private var prefArrays: HashMap<*, *>? = null
+    private var isRestoreImportSettings = false
+
     private var showRequestNotificationPermissionDialog: MaterialAlertDialogBuilder? = null
     var showFaqDialog: MaterialAlertDialogBuilder? = null
     var showXiaomiAutostartDialog: MaterialAlertDialogBuilder? = null
     var showHuaweiInformation: MaterialAlertDialogBuilder? = null
-    var showRequestIgnoringBatteryOptimizationsDialog: MaterialAlertDialogBuilder? = null
-    private var firebaseAnalytics: FirebaseAnalytics? = null
+    var showRequestIgnoringBatteryOptimizationsDialog: AlertDialog? = null
+    var showFailedRequestIgnoringBatteryOptimizationsDialog: AlertDialog? = null
 
-
-    val updateFlowResultLauncher = registerForActivityResult(
-        ActivityResultContracts
-            .StartIntentSenderForResult()
-    ) { _ -> }
-
+    private var isDoubleBackToExitPressedOnce = false
     var isCheckUpdateFromGooglePlay = true
     var isShowRequestIgnoringBatteryOptimizationsDialog = true
     var isShowXiaomiBackgroundActivityControlDialog = false
+    var isBatteryOptFlowActive = false
+
+    private var firebaseAnalytics: FirebaseAnalytics? = null
 
     private lateinit var binding: ActivityMainBinding
-    lateinit var topAppBar: CenteredTopAppBar
+    lateinit var toolbar: MaterialToolbar
     lateinit var navigation: BottomNavigationView
-
     var fragment: Fragment? = null
 
-    private var mInterstitialAd: InterstitialAd? = null
+    private var interstitialAd: InterstitialAd? = null
     private var adsCounter = 0
+
+    var isBatteryOptDialogVisible = false
+    var hasBatteryOptJustGranted = false
+
+    lateinit var premiumLauncher: ActivityResultLauncher<Intent>
+    private val requestPostNotificationsLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+            onPostNotificationsResult(granted)
+        }
+
+    val updateFlowResultLauncher = registerForActivityResult(
+        ActivityResultContracts.StartIntentSenderForResult()
+    ) { _ -> }
 
     companion object {
         var tempFragment: Fragment? = null
         var isLoadChargeDischarge = false
-        var isLoadKernel = false
+        var isLoadTools = false
         var isLoadHistory = false
         var isLoadSettings = false
         var isLoadDebug = false
         var isRecreate = false
         var isOnBackPressed = true
-
-        private var TAG = "MainActivity"
+        private const val TAG = "MainActivity"
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        //throw RuntimeException("Test Crash") // Force a crash
         super.onCreate(savedInstanceState)
 
+        val prefs = PreferenceManager.getDefaultSharedPreferences(this)
+        val isFirstLaunch = prefs.getBoolean("is_first_launch", true)
+        if (isFirstLaunch) {
+            val options = ActivityOptions.makeCustomAnimation(
+                this, android.R.anim.fade_in, android.R.anim.fade_out
+            )
+            startActivity(Intent(this, OnboardingActivity::class.java), options.toBundle())
+            finish()
+            return
+        }
+
+        setContentView(R.layout.activity_main)
+        enableEdgeToEdge()
+
+        mainActivityRef = WeakReference(this)
+
+        initViewBinding()
+        setupPremiumLauncher()
+        initFirebase()
+        loadPreferences()
+        applyTheme()
+        loadAdsIfNeeded()
+        setupFragment()
+        setupToolbar()
+        setupBottomNavigation(getBatteryStatus())
+        loadInitialFragment()
+        handleBackPressed()
+        checkNotificationPermissionOrBatteryOptimization()
+    }
+
+    private fun initViewBinding() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
-
-        //Firebase Analytics
-        firebaseAnalytics = FirebaseAnalytics.getInstance(this)
-
-        pref = Prefs(this)
-
-        ThemeHelper.setTheme(this)
-
-        if (premiumContext == null) premiumContext = this
-
-        //ADS
-        if (!isPremium) loadAds()
-
-        MainApp.Companion.currentTheme = ThemeHelper.currentTheme(resources.configuration)
-
-        fragment = tempFragment
-
-
-        batteryIntent = registerReceiver(
-            null, IntentFilter(
-                Intent.ACTION_BATTERY_CHANGED
-            )
-        )
-
-        val status = batteryIntent?.getIntExtra(
-            BatteryManager.EXTRA_STATUS,
-            BatteryManager.BATTERY_STATUS_UNKNOWN
-        ) ?: BatteryManager.BATTERY_STATUS_UNKNOWN
-
-        topAppBar = findViewById(R.id.topAppBar)
+        toolbar = findViewById(R.id.toolbar)
         navigation = binding.navigation
+    }
 
-        prefArrays = MainApp.Companion.getSerializable(
-            this, IMPORT_RESTORE_SETTINGS_EXTRA,
-            HashMap::class.java
-        )
+    private fun setupPremiumLauncher() {
+        premiumLauncher =
+            registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+                when (result.resultCode) {
+                    BILLING_RESULT_SUCCESS -> {
+                        Toast.makeText(
+                            this,
+                            getString(R.string.premium_purchase_success),
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
 
-        if (fragment == null)
+                    BILLING_RESULT_CANCELLED -> {
+                        Toast.makeText(
+                            this,
+                            getString(R.string.premium_purchase_cancelled),
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
 
-            fragment = when {
-                isLoadChargeDischarge || (pref!!.getString(TAB_ON_APPLICATION_LAUNCH, "0")
-                        != "1" && pref!!.getString(TAB_ON_APPLICATION_LAUNCH, "0") != "2"
-                        && prefArrays == null && !isLoadKernel && !isLoadHistory && !isLoadSettings
-                        && !isLoadDebug) -> ChargeDischargeFragment()
+                    BILLING_RESULT_FAILED -> {
+                        Toast.makeText(
+                            this,
+                            getString(R.string.premium_purchase_failed),
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
 
-                isLoadHistory || (pref!!.getString(TAB_ON_APPLICATION_LAUNCH, "0") == "1"
-                        /*&& HistoryHelper.isHistoryNotEmpty(this)*/
-                        && prefArrays == null && !isLoadChargeDischarge && !isLoadHistory &&
-                        !isLoadSettings && !isLoadDebug) -> HistoryFragment()
+                    BILLING_RESULT_RESTORE_SUCCESS -> {
+                        Toast.makeText(
+                            this,
+                            getString(R.string.premium_restore_success),
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
 
-                isLoadKernel || (pref!!.getString(TAB_ON_APPLICATION_LAUNCH, "0") == "2" &&
-                        prefArrays == null && !isLoadChargeDischarge && !isLoadHistory &&
-                        !isLoadSettings && !isLoadDebug) ->
-                    ToolsFragment()
-
-                !isLoadChargeDischarge && !isLoadKernel &&
-                        !isLoadHistory && !isLoadSettings && !isLoadDebug && prefArrays != null ->
-                    BackupSettingsFragment()
-
-                (isLoadDebug && !isLoadChargeDischarge && !isLoadKernel && !isLoadHistory
-                        && !isLoadSettings
-                        && prefArrays == null) || (Build.VERSION.SDK_INT < Build.VERSION_CODES.R
-                        && prefArrays != null) || (Build.VERSION
-                    .SDK_INT >= Build.VERSION_CODES.R && prefArrays != null && !isInstalledGooglePlay) -> DebugFragment()
-
-                else -> SettingsFragment()
+                    BILLING_RESULT_RESTORE_FAILED -> {
+                        Toast.makeText(
+                            this,
+                            getString(R.string.premium_restore_failed),
+                            Toast.LENGTH_LONG
+                        ).show()
+                    }
+                }
             }
+    }
 
-        topAppBar.title = when (fragment) {
+    private fun initFirebase() {
+        firebaseAnalytics = FirebaseAnalytics.getInstance(this)
+    }
 
-            is ChargeDischargeFragment -> getString(
-                if (status == BatteryManager.BATTERY_STATUS_CHARGING) R.string.charge
-                else R.string.discharge
-            )
+    private fun loadPreferences() {
+        pref = PreferenceManager.getDefaultSharedPreferences(this)
+        prefArrays =
+            MainApp.getSerializable(this, IMPORT_RESTORE_SETTINGS_EXTRA, HashMap::class.java)
+    }
 
+    private fun applyTheme() {
+        ThemeHelper.setTheme(this)
+        MainApp.currentTheme = ThemeHelper.currentTheme(resources.configuration)
+    }
+
+    private fun loadAdsIfNeeded() {
+        val premiumManager = (applicationContext as MainApp).billingManager
+        lifecycleScope.launch {
+            premiumManager.isPremium.combine(premiumManager.premiumStatusReady) { premium, ready ->
+                Pair(premium, ready)
+            }.collectLatest { _ ->
+                loadInterstitialAd()
+            }
+        }
+    }
+
+    private fun setupFragment() {
+        fragment = tempFragment ?: when {
+            isLoadChargeDischarge || shouldLoadChargeDischarge() -> BatteryInfoFragment()
+            isLoadHistory || shouldLoadHistory() -> HistoryFragment()
+            isLoadTools || shouldLoadTools() -> ToolsFragment()
+            shouldLoadBackupSettings() -> BackupSettingsFragment()
+            shouldLoadDebug() -> DebugFragment()
+            else -> SettingsFragment()
+        }
+    }
+
+    private fun tabOnLaunch(): String? = pref?.getString(TAB_ON_APPLICATION_LAUNCH, "0")
+
+    private fun shouldLoadChargeDischarge(): Boolean {
+        val tab = tabOnLaunch()
+        return tab != "1" && tab != "2" && prefArrays == null && !isLoadTools && !isLoadHistory &&
+                !isLoadSettings && !isLoadDebug
+    }
+
+    private fun shouldLoadHistory(): Boolean {
+        val tab = tabOnLaunch()
+        return tab == "1" && prefArrays == null && !isLoadChargeDischarge && !isLoadTools &&
+                !isLoadSettings && !isLoadDebug
+    }
+
+    private fun shouldLoadTools(): Boolean {
+        val tab = tabOnLaunch()
+        return tab == "2" && prefArrays == null && !isLoadChargeDischarge && !isLoadHistory &&
+                !isLoadSettings && !isLoadDebug
+    }
+
+    private fun shouldLoadBackupSettings(): Boolean {
+        return !isLoadChargeDischarge && !isLoadTools && !isLoadHistory &&
+                !isLoadSettings && !isLoadDebug && prefArrays != null
+    }
+
+    private fun shouldLoadDebug(): Boolean {
+        return (isLoadDebug && !isLoadChargeDischarge && !isLoadTools && !isLoadHistory &&
+                !isLoadSettings && prefArrays == null) ||
+                (Build.VERSION.SDK_INT < Build.VERSION_CODES.R && prefArrays != null) ||
+                (prefArrays != null && !isInstalledGooglePlay)
+    }
+
+    private fun setupToolbar() {
+        toolbar.title = when (fragment) {
+            is BatteryInfoFragment -> getString(R.string.battery_info)
             is ToolsFragment -> getString(R.string.tools)
             is HistoryFragment -> getString(R.string.history)
             is SettingsFragment -> getString(R.string.settings)
             is DebugFragment -> getString(R.string.debug)
             else -> getString(R.string.app_name)
         }
-
-        topAppBar.navigationIcon = null
-
+        toolbar.navigationIcon = null
         if (fragment !is SettingsFragment) inflateMenu(-1)
+        toolbar.setNavigationOnClickListener { onBackPressedDispatcher.onBackPressed() }
+    }
 
-        topAppBar.setNavigationOnClickListener {
-            onBackPressedDispatcher.onBackPressed()
-        }
-
+    private fun setupBottomNavigation(status: Int) {
         bottomNavigation(status)
+    }
 
+    private fun loadInitialFragment() {
+        if (!isRecreate || fragment !is SettingsFragment) {
+            val isOverlayFragment = fragment is BatteryStatusInformationFragment ||
+                    fragment is PowerConnectionSettingsFragment ||
+                    fragment is BackupSettingsFragment ||
+                    fragment is OverlayFragment ||
+                    fragment is DebugFragment ||
+                    fragment is AboutFragment ||
+                    fragment is FeedbackFragment
+            loadFragment(fragment ?: BatteryInfoFragment(), isOverlayFragment)
+        }
+    }
 
+    private fun handleBackPressed() {
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                backPressed()
+            }
+        })
+    }
 
-        if (!isRecreate || fragment !is SettingsFragment)
-            loadFragment(
-                fragment ?: ChargeDischargeFragment(), fragment is
-                        BatteryStatusInformationFragment || fragment is PowerConnectionSettingsFragment || fragment is BackupSettingsFragment
-                        || fragment is OverlayFragment || fragment is DebugFragment ||
-                        fragment is AboutFragment || fragment is FeedbackFragment
-            )
-
-        onBackPressedDispatcher.addCallback(this,
-            object : OnBackPressedCallback(true) {
-                override fun handleOnBackPressed() {
-                    backPressed()
-                }
-            })
-
+    private fun getBatteryStatus(): Int {
+        batteryIntent = registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+        return batteryIntent?.getIntExtra(
+            BatteryManager.EXTRA_STATUS,
+            BatteryManager.BATTERY_STATUS_UNKNOWN
+        ) ?: BatteryManager.BATTERY_STATUS_UNKNOWN
     }
 
     override fun onResume() {
-
         super.onResume()
 
-        //Firebase Analytics
+        if (needsPostNotifications()) return
+
+        if (!isIgnoringBatteryOptimizations()) {
+            isBatteryOptFlowActive = true
+            hasBatteryOptJustGranted = false
+            ensureBatteryOptDialog()
+            return
+        }
+
+        isBatteryOptFlowActive = false
+        isBatteryOptDialogVisible = false
+        hasBatteryOptJustGranted = true
+        checkManufacturer()
+
+        logScreenView()
+        handlePremiumStatus()
+        handleTempFragment()
+        resetRecreateFlag()
+        updateBatteryStatusUI()
+        ensureDesignCapacityValid()
+        updateToolbarMenuIfNeeded()
+        handleImportSettings()
+        startMainServicesIfNeeded()
+        checkNotificationPermissionOrBatteryOptimization()
+        startOverlayIfEnabled()
+        checkForUpdatesIfNeeded()
+        maybeRequestRateTheApp()
+        isShowRequestIgnoringBatteryOptimizationsDialog = true
+    }
+
+    private fun ensureBatteryOptDialog() {
+        if (showRequestIgnoringBatteryOptimizationsDialog == null && !isBatteryOptDialogVisible) {
+            isBatteryOptDialogVisible = true
+            showRequestIgnoringBatteryOptimizationsDialog()
+        }
+    }
+
+    private fun logScreenView() {
         val bundle = Bundle().apply {
             putString(FirebaseAnalytics.Param.SCREEN_CLASS, localClassName)
             putString(FirebaseAnalytics.Param.SCREEN_NAME, TAG)
         }
-        firebaseAnalytics!!.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW, bundle)
+        firebaseAnalytics?.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW, bundle)
+    }
 
+    private fun handlePremiumStatus() {
+        lifecycleScope.launch {
+            if (PremiumFlag.get(this@MainActivity)) {
+                PremiumFlag.clearPremiumChanged(this@MainActivity)
+                applyPremiumUI()
+            }
+        }
+    }
+
+    private fun handleTempFragment() {
         tempFragment = null
+    }
 
+    private fun resetRecreateFlag() {
         if (isRecreate) isRecreate = false
+    }
 
-        batteryIntent = registerReceiver(
-            null, IntentFilter(
-                Intent.ACTION_BATTERY_CHANGED
-            )
-        )
-
-        val status = batteryIntent?.getIntExtra(
-            BatteryManager.EXTRA_STATUS,
-            BatteryManager.BATTERY_STATUS_UNKNOWN
-        ) ?: BatteryManager.BATTERY_STATUS_UNKNOWN
-
-        if (fragment !is ChargeDischargeFragment) {
-
-            navigation.menu.findItem(R.id.charge_discharge_navigation).title = getString(
-                if (
-                    status == BatteryManager.BATTERY_STATUS_CHARGING) R.string.charge else
-                    R.string.discharge
-            )
-
-            navigation.menu.findItem(R.id.charge_discharge_navigation).icon = ContextCompat
-                .getDrawable(
-                    this, BatteryLevelHelper.batteryLevelIcon(
-                        getBatteryLevel(this),
+    private fun updateBatteryStatusUI() {
+        val status = getBatteryStatus()
+        if (fragment !is BatteryInfoFragment) {
+            navigation.menu.findItem(R.id.charge_discharge_navigation).apply {
+                icon = ContextCompat.getDrawable(
+                    this@MainActivity,
+                    BatteryLevelHelper.batteryLevelIcon(
+                        getBatteryLevel(this@MainActivity),
                         status == BatteryManager.BATTERY_STATUS_CHARGING
                     )
                 )
+            }
         }
-
-        topAppBar.title = when (fragment) {
-
-            is ChargeDischargeFragment -> getString(
-                if (status == BatteryManager.BATTERY_STATUS_CHARGING) R.string.charge
-                else R.string.discharge
-            )
-
+        toolbar.title = when (fragment) {
+            is BatteryInfoFragment -> getString(R.string.battery_info)
             is HistoryFragment -> getString(R.string.history)
             is ToolsFragment -> getString(R.string.tools)
             is SettingsFragment -> getString(R.string.settings)
@@ -311,343 +449,312 @@ class MainActivity() : AppCompatActivity(), BatteryInfoInterface, SettingsInterf
             is BackupSettingsFragment -> getString(R.string.backup)
             else -> getString(R.string.app_name)
         }
+    }
 
-        if (!pref?.contains(DESIGN_CAPACITY)!! ||
-            pref?.getInt(DESIGN_CAPACITY, resources.getInteger(R.integer.min_design_capacity))!! <
-            resources.getInteger(R.integer.min_design_capacity) || pref?.getInt(
-                DESIGN_CAPACITY,
-                resources.getInteger(R.integer.min_design_capacity)
-            )!! > resources.getInteger(
-                R.integer.max_design_capacity
-            )
-        ) {
-
-            pref!!.setInt(DESIGN_CAPACITY, getDesignCapacity(this@MainActivity))
+    private fun ensureDesignCapacityValid() {
+        val min = resources.getInteger(R.integer.min_design_capacity)
+        val max = resources.getInteger(R.integer.max_design_capacity)
+        val current = pref?.getInt(DESIGN_CAPACITY, min) ?: min
+        if (!pref?.contains(DESIGN_CAPACITY)!! || current < min || current > max) {
+            pref?.edit { putInt(DESIGN_CAPACITY, getDesignCapacity(this@MainActivity)) }
         }
+    }
 
-        if (showRequestNotificationPermissionDialog == null) checkManufacturer()
+    private fun updateToolbarMenuIfNeeded() {
+        if (fragment is BatteryInfoFragment) {
+            toolbar.menu.findItem(R.id.instruction).isVisible = getCurrentCapacity(this) > 0.0
+        }
+    }
 
+    private fun handleImportSettings() {
+        val imported =
+            MainApp.getSerializable(this, IMPORT_RESTORE_SETTINGS_EXTRA, HashMap::class.java)
+        if (imported != null) importSettings(imported)
+    }
 
-        if (fragment is ChargeDischargeFragment)
-            topAppBar.menu.findItem(R.id.instruction).isVisible = getCurrentCapacity(
-                this
-            ) > 0.0
-
-
-        val prefArrays = MainApp.Companion.getSerializable(
-            this, IMPORT_RESTORE_SETTINGS_EXTRA,
-            HashMap::class.java
-        )
-
-        if (prefArrays != null) importSettings(prefArrays)
-
+    private fun startMainServicesIfNeeded() {
         ServiceHelper.startService(this, BatteryLabService::class.java)
-
-        if (pref!!.getBoolean(
-                AUTO_START_OPEN_APP, resources.getBoolean(
-                    R.bool
-                        .auto_start_open_app
-                )
-            ) &&  BatteryLabService.instance == null &&
-            !ServiceHelper.isStartedBatteryLabService()
-        )
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && ContextCompat
-                    .checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) ==
-                PackageManager.PERMISSION_DENIED
-            )
-                requestNotificationPermission()
-            else checkBatteryOptimizations()
-
-        if (pref!!.getBoolean(ENABLED_OVERLAY, resources.getBoolean(R.bool.enabled_overlay))
-            && OverlayService.instance == null && !ServiceHelper.isStartedOverlayService()
-        )
-            ServiceHelper.startService(this, OverlayService::class.java)
-
-        if (isInstalledGooglePlay && isGooglePlay(this) && isCheckUpdateFromGooglePlay)
-            checkUpdateFromGooglePlay()
-
-        val numberOfFullCharges = pref!!.getLong(NUMBER_OF_FULL_CHARGES, 0)
-        if ((isInstalledGooglePlay && isGooglePlay(this) &&
-                    numberOfFullCharges > 0 && numberOfFullCharges % 3 == 0L) &&
-            pref!!.getBoolean(
-                IS_REQUEST_RATE_THE_APP,
-                resources.getBoolean(R.bool.is_request_rate_the_app)
-            )
-        ) requestRateTheApp()
-
-        isShowRequestIgnoringBatteryOptimizationsDialog = true
     }
 
-    override fun onConfigurationChanged(newConfig: Configuration) {
+    private fun needsPostNotifications(): Boolean {
+        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+                ContextCompat.checkSelfPermission(
+                    this, Manifest.permission.POST_NOTIFICATIONS
+                ) != PackageManager.PERMISSION_GRANTED
+    }
 
-        super.onConfigurationChanged(newConfig)
-
-        val newTheme = newConfig.uiMode and Configuration.UI_MODE_NIGHT_MASK or
-                newConfig.uiMode and Configuration.UI_MODE_NIGHT_YES or
-                newConfig.uiMode and Configuration.UI_MODE_NIGHT_NO
-
-        if (newTheme != MainApp.Companion.currentTheme) {
-
-            tempFragment = fragment
-
-            isRecreate = true
-
-            recreate()
+    private fun checkNotificationPermissionOrBatteryOptimization() {
+        if (needsPostNotifications()) {
+            requestNotificationPermission()
+            return
         }
-
+        if (!isIgnoringBatteryOptimizations()) {
+            ensureBatteryOptDialog()
+            return
+        }
+        isBatteryOptFlowActive = false
+        isBatteryOptDialogVisible = false
+        hasBatteryOptJustGranted = true
+        checkManufacturer()
     }
 
-    override fun onRequestPermissionsResult(
-        requestCode: Int, permissions: Array<out String>,
-        grantResults: IntArray
-    ) {
+    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
+    private fun requestNotificationPermission() {
+        if (showRequestNotificationPermissionDialog != null) return
+        showRequestNotificationPermissionDialog =
+            createPermissionDialog(
+                messageRes = R.string.request_notification_message,
+                onConfirm = {
+                    showRequestNotificationPermissionDialog = null
+                    requestPostNotificationsLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                }
+            )
+    }
 
-        when (requestCode) {
-            POST_NOTIFICATIONS_PERMISSION_REQUEST_CODE ->
-                if ((grantResults.isNotEmpty() && grantResults[0] ==
-                            PackageManager.PERMISSION_GRANTED) || (grantResults.isNotEmpty() &&
-                            grantResults[0] == PackageManager.PERMISSION_DENIED)
-                ) checkManufacturer()
+    @Suppress("SameParameterValue")
+    private fun createPermissionDialog(
+        messageRes: Int,
+        onConfirm: () -> Unit
+    ): MaterialAlertDialogBuilder {
+        return MaterialAlertDialogBuilder(this).apply {
+            setIcon(R.drawable.ic_instruction_not_supported_24dp)
+            setTitle(R.string.information)
+            setMessage(messageRes)
+            setPositiveButton(android.R.string.ok) { _, _ -> onConfirm() }
+            setCancelable(false)
+            show()
+        }
+    }
 
-            else -> super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+    private fun startOverlayIfEnabled() {
+        if (pref!!.getBoolean(ENABLED_OVERLAY, resources.getBoolean(R.bool.enabled_overlay)) &&
+            OverlayService.instance == null &&
+            !ServiceHelper.isStartedOverlayService()
+        ) {
+            ServiceHelper.startService(this, OverlayService::class.java)
+        }
+    }
+
+    private fun checkForUpdatesIfNeeded() {
+        if (isInstalledGooglePlay && isGooglePlay(this) && isCheckUpdateFromGooglePlay) {
+            checkUpdateFromGooglePlay()
+        }
+    }
+
+    private fun maybeRequestRateTheApp() {
+        val numberOfFullCharges = pref!!.getLong(NUMBER_OF_FULL_CHARGES, 0)
+        val shouldRequest = isInstalledGooglePlay &&
+                isGooglePlay(this) &&
+                numberOfFullCharges > 0 &&
+                numberOfFullCharges % 3 == 0L &&
+                pref!!.getBoolean(
+                    IS_REQUEST_RATE_THE_APP,
+                    resources.getBoolean(R.bool.is_request_rate_the_app)
+                )
+        if (shouldRequest) requestRateTheApp()
+    }
+
+    private fun requestRateTheApp() {
+        Snackbar.make(
+            toolbar,
+            getString(R.string.do_you_like_the_app),
+            Snackbar.LENGTH_LONG
+        ).setAction(getString(R.string.rate_the_app)) {
+            openPlayStoreForRating()
+        }.show()
+    }
+
+    private fun openPlayStoreForRating() {
+        try {
+            startActivity(Intent(Intent.ACTION_VIEW, Constants.GOOGLE_PLAY_APP_LINK.toUri()))
+            pref?.edit { putBoolean(IS_REQUEST_RATE_THE_APP, false) }
+        } catch (_: ActivityNotFoundException) {
+            Toast.makeText(this@MainActivity, getString(R.string.unknown_error), Toast.LENGTH_LONG)
+                .show()
         }
     }
 
     override fun onStop() {
         showRequestIgnoringBatteryOptimizationsDialog = null
-        //Toast.makeText(this, "${BatteryLabService.instance}", Toast.LENGTH_LONG).show()
         super.onStop()
     }
 
     override fun onDestroy() {
+        clearMainActivityRef()
+        cleanupDialogs()
+        resetStateIfNotRecreate()
+        super.onDestroy()
+    }
+
+    private fun clearMainActivityRef() {
         mainActivityRef?.clear()
         fragment = null
+    }
 
+    private fun cleanupDialogs() {
         showFaqDialog = null
+    }
 
+    private fun resetStateIfNotRecreate() {
         if (!isRecreate) {
-
             tempFragment = null
-
             isLoadChargeDischarge = false
-            isLoadKernel = false
+            isLoadTools = false
             isLoadHistory = false
             isLoadSettings = false
             isLoadDebug = false
         }
-
-        super.onDestroy()
-    }
-
-    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-    private fun requestNotificationPermission() {
-        if (showRequestNotificationPermissionDialog == null)
-            showRequestNotificationPermissionDialog =
-                MaterialAlertDialogBuilder(this).apply {
-                    setIcon(R.drawable.ic_instruction_not_supported_24dp)
-                    setTitle(R.string.information)
-                    setMessage(R.string.request_notification_message)
-                    setPositiveButton(android.R.string.ok) { _, _ ->
-                        requestPermissions(
-                            arrayOf(Manifest.permission.POST_NOTIFICATIONS),
-                            POST_NOTIFICATIONS_PERMISSION_REQUEST_CODE
-                        )
-
-                        showRequestNotificationPermissionDialog = null
-                        CoroutineScope(Dispatchers.Main).launch {
-                            delay(2.5.seconds)
-                            checkBatteryOptimizations()
-                        }
-                    }
-                    setCancelable(false)
-                    show()
-                }
-    }
-
-    private fun checkBatteryOptimizations() {
-        if (showRequestNotificationPermissionDialog == null) checkManufacturer()
-
-        if (!isIgnoringBatteryOptimizations() && !isShowXiaomiBackgroundActivityControlDialog
-            && isShowRequestIgnoringBatteryOptimizationsDialog &&
-            showRequestIgnoringBatteryOptimizationsDialog == null &&
-            showXiaomiAutostartDialog == null && showHuaweiInformation == null
-        )
-            showRequestIgnoringBatteryOptimizationsDialog()
     }
 
     private fun importSettings(prefArrays: HashMap<*, *>?) {
-
-        val prefsTempList = arrayListOf(
-            BATTERY_LEVEL_TO,
-            BATTERY_LEVEL_WITH,
-            DESIGN_CAPACITY,
-            CAPACITY_ADDED,
-            LAST_CHARGE_TIME,
-            PERCENT_ADDED,
-            RESIDUAL_CAPACITY
+        val prefsToImport = listOf(
+            BATTERY_LEVEL_TO, BATTERY_LEVEL_WITH, DESIGN_CAPACITY,
+            CAPACITY_ADDED, LAST_CHARGE_TIME, PERCENT_ADDED, RESIDUAL_CAPACITY
         )
-
-        if (prefArrays != null)
-            prefsTempList.forEach {
-
-                with(prefArrays) {
-
-                    when {
-
-                        !containsKey(it) -> pref?.remove(it)
-
-                        else -> {
-
-                            forEach {
-
-                                when (it.key as String) {
-
-                                    NUMBER_OF_CHARGES -> pref?.setLong(
-                                        it.key as String,
-                                        it.value as Long
-                                    )
-
-                                    BATTERY_LEVEL_TO, BATTERY_LEVEL_WITH, LAST_CHARGE_TIME,
-                                    DESIGN_CAPACITY, RESIDUAL_CAPACITY, PERCENT_ADDED ->
-                                        pref?.setInt(it.key as String, it.value as Int)
-
-                                    CAPACITY_ADDED, NUMBER_OF_CYCLES ->
-                                        pref?.setFloat(
-                                            it.key as String,
-                                            it.value as Float
-                                        )
-                                }
-                            }
-                        }
-                    }
+        prefArrays?.let {
+            prefsToImport.forEach { key ->
+                if (!it.containsKey(key)) {
+                    pref?.edit { remove(key)?.apply() }
+                } else {
+                    importSinglePref(key, it)
                 }
             }
-
-        topAppBar.menu.clear()
-
+        }
+        toolbar.menu.clear()
         isRestoreImportSettings = true
-
         this.prefArrays = null
-
         intent.removeExtra(IMPORT_RESTORE_SETTINGS_EXTRA)
     }
 
+    @Suppress("unused")
+    private fun importSinglePref(key: String, source: Map<*, *>) {
+        source.forEach {
+            when (it.key as String) {
+                NUMBER_OF_CHARGES -> pref?.edit()?.putLong(it.key as String, it.value as Long)
+                    ?.apply()
+
+                BATTERY_LEVEL_TO, BATTERY_LEVEL_WITH, LAST_CHARGE_TIME,
+                DESIGN_CAPACITY, RESIDUAL_CAPACITY, PERCENT_ADDED ->
+                    pref?.edit()?.putInt(it.key as String, it.value as Int)?.apply()
+
+                CAPACITY_ADDED, NUMBER_OF_CYCLES ->
+                    pref?.edit { putFloat(it.key as String, it.value as Float)?.apply() }
+            }
+        }
+    }
+
     fun backPressed() {
-        if (isOnBackPressed) {
-            if (topAppBar.title != getString(R.string.settings) && !isRestoreImportSettings && ((fragment != null
-                        && fragment !is SettingsFragment && fragment !is ChargeDischargeFragment
-                        && fragment !is ToolsFragment && fragment !is HistoryFragment &&
-                        fragment !is DebugFragment && fragment !is BackupSettingsFragment) || ((
-                        fragment is BackupSettingsFragment || fragment is DebugFragment) &&
-                        supportFragmentManager.backStackEntryCount > 0))
-            ) {
+        if (!isOnBackPressed) return
+        when {
+            shouldPopBackStackToSettings() -> navigateToSettingsFragment()
+            shouldResetToSettings() -> resetToSettingsFragment()
+            else -> handleDoubleBackToExit()
+        }
+    }
 
-                fragment = SettingsFragment()
+    private fun shouldPopBackStackToSettings(): Boolean {
+        return toolbar.title != getString(R.string.settings) &&
+                !isRestoreImportSettings &&
+                ((fragment != null && fragment !is SettingsFragment &&
+                        fragment !is BatteryInfoFragment && fragment !is ToolsFragment &&
+                        fragment !is HistoryFragment && fragment !is DebugFragment &&
+                        fragment !is BackupSettingsFragment) ||
+                        ((fragment is BackupSettingsFragment || fragment is DebugFragment) &&
+                                supportFragmentManager.backStackEntryCount > 0))
+    }
 
-                topAppBar.title = getString(
-                    if (fragment !is DebugFragment) R.string.settings
-                    else R.string.debug
-                )
+    private fun shouldResetToSettings(): Boolean {
+        return (toolbar.title != getString(R.string.settings) &&
+                fragment is BackupSettingsFragment &&
+                supportFragmentManager.backStackEntryCount == 0) || isRestoreImportSettings
+    }
 
-                if (fragment is SettingsFragment) topAppBar.navigationIcon = null
+    private fun navigateToSettingsFragment() {
+        fragment = SettingsFragment()
+        toolbar.title =
+            getString(if (fragment !is DebugFragment) R.string.settings else R.string.debug)
+        toolbar.navigationIcon = null
+        supportFragmentManager.popBackStack()
+    }
 
-                supportFragmentManager.popBackStack()
-            } else if (topAppBar.title != getString(R.string.settings) &&
-                (fragment is BackupSettingsFragment && supportFragmentManager.backStackEntryCount == 0)
-                || isRestoreImportSettings
-            ) {
+    private fun resetToSettingsFragment() {
+        fragment = SettingsFragment()
+        toolbar.title = getString(R.string.settings)
+        toolbar.navigationIcon = null
+        isRestoreImportSettings = false
+        loadFragment(fragment ?: SettingsFragment())
+    }
 
-                fragment = SettingsFragment()
-
-                topAppBar.title = getString(R.string.settings)
-
-                topAppBar.navigationIcon = null
-
-                isRestoreImportSettings = false
-
-                loadFragment(fragment ?: SettingsFragment())
-            } else {
-
-                if (isDoubleBackToExitPressedOnce) finish()
-                else {
-
-                    isDoubleBackToExitPressedOnce = true
-
-                    Toast.makeText(
-                        this@MainActivity, R.string.press_the_back_button_again,
-                        Toast.LENGTH_LONG
-                    ).show()
-
-                    CoroutineScope(Dispatchers.Main).launch {
-
-                        delay(3.seconds)
-                        isDoubleBackToExitPressedOnce = false
-                    }
-                }
+    private fun handleDoubleBackToExit() {
+        if (isDoubleBackToExitPressedOnce) {
+            finish()
+        } else {
+            isDoubleBackToExitPressedOnce = true
+            Toast.makeText(this, R.string.press_the_back_button_again, Toast.LENGTH_LONG).show()
+            CoroutineScope(Dispatchers.Main).launch {
+                delay(3.seconds)
+                isDoubleBackToExitPressedOnce = false
             }
         }
     }
 
-    private fun requestRateTheApp() {
-        Snackbar.make(
-            topAppBar, getString(R.string.do_you_like_the_app),
-            Snackbar.LENGTH_LONG
-        ).apply {
-            setAction(getString(R.string.rate_the_app)) {
-                try {
-                    startActivity(
-                        Intent(
-                            Intent.ACTION_VIEW,
-                            Uri.parse(Constants.GOOGLE_PLAY_APP_LINK)
-                        )
-                    )
-                    pref!!.setBoolean(IS_REQUEST_RATE_THE_APP, false)
-                } catch (_: ActivityNotFoundException) {
-                    Toast.makeText(
-                        this@MainActivity, getString(
-                            R.string.unknown_error
-                        ), Toast.LENGTH_LONG
-                    ).show()
-                }
-            }
-            show()
-        }
-    }
-
-    private fun loadAds() {
+    private fun loadInterstitialAd() {
         val adRequest = AdRequest.Builder().build()
-
-        InterstitialAd.load(
-            this,
-            AdMob.AD_UNIT_ID,
-            adRequest,
-            object : InterstitialAdLoadCallback() {
-                override fun onAdFailedToLoad(adError: LoadAdError) {
-                    Log.d(TAG, adError.toString())
-                    mInterstitialAd = null
-                }
-
-                override fun onAdLoaded(interstitialAd: InterstitialAd) {
-                    Log.d(TAG, "Ad was loaded.")
-                    mInterstitialAd = interstitialAd
-                }
-            })
+        InterstitialAd.load(this, AdMob.AD_UNIT_ID, adRequest, adLoadCallback())
     }
 
-    fun showAds() {
-        adsCounter++
-        Log.d("ADS COUNTER: ", adsCounter.toString())
-
-        if (adsCounter >= 3) {
-            adsCounter = 0
-
-            if (mInterstitialAd != null) {
-                mInterstitialAd?.show(this)
-                loadAds()
-            } else {
-                Log.d(TAG, "The interstitial ad wasn't ready yet.")
+    private fun adLoadCallback(): InterstitialAdLoadCallback {
+        return object : InterstitialAdLoadCallback() {
+            override fun onAdLoaded(ad: InterstitialAd) {
+                interstitialAd = ad
+                if (adsCounter >= 3) showInterstitialAd()
             }
 
+            override fun onAdFailedToLoad(adError: LoadAdError) {
+                interstitialAd = null
+            }
+        }
+    }
+
+    fun showInterstitialAd(force: Boolean = false) {
+        val premiumManager = (applicationContext as MainApp).billingManager
+        val isPremiumUser = premiumManager.isPremium.value
+        val premiumReady = premiumManager.premiumStatusReady.value
+        if (isPremiumUser && premiumReady) return
+        adsCounter++
+        if ((adsCounter >= 3 || force) && !isPremiumUser && premiumReady && interstitialAd != null) {
+            interstitialAd?.fullScreenContentCallback = adContentCallback()
+            interstitialAd?.show(this)
+        }
+    }
+
+    private fun adContentCallback(): FullScreenContentCallback {
+        return object : FullScreenContentCallback() {
+            override fun onAdDismissedFullScreenContent() {
+                loadInterstitialAd()
+            }
+
+            override fun onAdFailedToShowFullScreenContent(adError: AdError) {}
+            override fun onAdShowedFullScreenContent() {
+                adsCounter = 0
+                interstitialAd = null
+            }
+        }
+    }
+
+    private fun applyPremiumUI() {
+        navigation.selectedItemId = R.id.charge_discharge_navigation
+        invalidateOptionsMenu()
+        recreate()
+    }
+
+    @Suppress("unused")
+    private fun onPostNotificationsResult(granted: Boolean) {
+        isBatteryOptFlowActive = false
+        if (!isIgnoringBatteryOptimizations()) {
+            ensureBatteryOptDialog()
+        } else {
+            checkManufacturer()
         }
     }
 }

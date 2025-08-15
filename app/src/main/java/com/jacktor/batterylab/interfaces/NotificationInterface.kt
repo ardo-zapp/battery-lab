@@ -14,7 +14,6 @@ import android.content.IntentFilter
 import android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
 import android.graphics.Color
 import android.media.AudioAttributes
-import android.net.Uri
 import android.os.BatteryManager
 import android.os.Build
 import android.view.View
@@ -22,13 +21,13 @@ import android.widget.RemoteViews
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationCompat.FOREGROUND_SERVICE_IMMEDIATE
 import androidx.core.content.ContextCompat
+import androidx.core.net.toUri
 import androidx.preference.PreferenceManager
 import com.jacktor.batterylab.MainActivity
+import com.jacktor.batterylab.MainApp
 import com.jacktor.batterylab.MainApp.Companion.batteryIntent
 import com.jacktor.batterylab.R
 import com.jacktor.batterylab.helpers.StatusBarHelper
-import com.jacktor.batterylab.helpers.ThemeHelper.isSystemDarkMode
-import com.jacktor.batterylab.interfaces.PremiumInterface.Companion.isPremium
 import com.jacktor.batterylab.services.BatteryLabService
 import com.jacktor.batterylab.services.CloseNotificationBatteryStatusInformationService
 import com.jacktor.batterylab.services.DisableNotificationBatteryStatusInformationService
@@ -57,7 +56,7 @@ import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.SHOW_STOP_SE
 import java.text.DecimalFormat
 
 @SuppressLint("StaticFieldLeak")
-interface NotificationInterface : BatteryInfoInterface, PremiumInterface {
+interface NotificationInterface : BatteryInfoInterface {
 
     companion object {
 
@@ -83,7 +82,8 @@ interface NotificationInterface : BatteryInfoInterface, PremiumInterface {
 
         val pref = PreferenceManager.getDefaultSharedPreferences(context)
 
-        if (isNotificationExists(context, NOTIFICATION_SERVICE_ID)) return
+        val existed = isNotificationExists(context, NOTIFICATION_SERVICE_ID)
+        if (existed && notificationBuilder != null) return
 
         channelId = onCreateNotificationChannel(context, SERVICE_CHANNEL_ID)
 
@@ -115,20 +115,17 @@ interface NotificationInterface : BatteryInfoInterface, PremiumInterface {
 
             setOngoing(true)
             setCategory(Notification.CATEGORY_SERVICE)
-            //setSmallIcon(R.drawable.ic_service_small_icon)
             setSmallIcon(StatusBarHelper.stat(getBatteryLevel(context)))
+            setOnlyAlertOnce(true)
+            setSilent(true)
 
             color = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
                 ContextCompat.getColor(context, android.R.color.system_accent1_300) else
-                ContextCompat.getColor(
-                    context,
-                    if (isSystemDarkMode(context.resources.configuration)) R.color.red
-                    else R.color.blue
-                )
+                ContextCompat.getColor(context, R.color.blue)
 
             setContentIntent(openApp)
 
-            if (isPremium) {
+            if ((context.applicationContext as MainApp).billingManager.isPremium.value) {
                 if (pref.getBoolean(
                         SHOW_STOP_SERVICE, context.resources.getBoolean(
                             R.bool.show_stop_service
@@ -210,25 +207,19 @@ interface NotificationInterface : BatteryInfoInterface, PremiumInterface {
                 getNotificationMessage(context, status, remoteViewsServiceBigContent)
 
                 setCustomBigContentView(remoteViewsServiceBigContent)
+            } else {
+                setCustomBigContentView(null)
             }
 
             setStyle(NotificationCompat.DecoratedCustomViewStyle())
 
-            setShowWhen(
-                pref.getBoolean(
-                    SERVICE_TIME, context.resources.getBoolean(
-                        R.bool.service_time
-                    )
+            val showTime = pref.getBoolean(
+                SERVICE_TIME, context.resources.getBoolean(
+                    R.bool.service_time
                 )
             )
-
-            setUsesChronometer(
-                pref.getBoolean(
-                    SERVICE_TIME, context.resources.getBoolean(
-                        R.bool.service_time
-                    )
-                )
-            )
+            setShowWhen(showTime)
+            setUsesChronometer(showTime)
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
                 foregroundServiceBehavior = FOREGROUND_SERVICE_IMMEDIATE
@@ -254,8 +245,13 @@ interface NotificationInterface : BatteryInfoInterface, PremiumInterface {
 
     @SuppressLint("RestrictedApi")
     fun onUpdateServiceNotification(context: Context) {
-        if (!isNotificationExists(context, NOTIFICATION_SERVICE_ID))
+        if (notificationBuilder == null || !isNotificationExists(
+                context,
+                NOTIFICATION_SERVICE_ID
+            )
+        ) {
             onCreateServiceNotification(context)
+        }
 
         val pref = PreferenceManager.getDefaultSharedPreferences(context)
 
@@ -279,13 +275,12 @@ interface NotificationInterface : BatteryInfoInterface, PremiumInterface {
 
             color = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
                 ContextCompat.getColor(context, android.R.color.system_accent1_300) else
-                ContextCompat.getColor(
-                    context,
-                    if (isSystemDarkMode(context.resources.configuration)) R.color.red
-                    else R.color.blue
-                )
+                ContextCompat.getColor(context, R.color.blue)
 
-            if (isPremium) {
+            setOnlyAlertOnce(true)
+            setSilent(true)
+
+            if ((context.applicationContext as MainApp).billingManager.isPremium.value) {
                 if (pref.getBoolean(
                         SHOW_STOP_SERVICE, context.resources.getBoolean(
                             R.bool.show_stop_service
@@ -348,6 +343,18 @@ interface NotificationInterface : BatteryInfoInterface, PremiumInterface {
                 context.getString(R.string.service_is_running)
             )
 
+            try {
+                remoteViewsServiceContent.setViewVisibility(
+                    R.id.notification_content_text,
+                    View.INVISIBLE
+                )
+                remoteViewsServiceContent.setViewVisibility(
+                    R.id.notification_content_text,
+                    View.VISIBLE
+                )
+            } catch (_: Throwable) {
+            }
+
             setCustomContentView(remoteViewsServiceContent)
 
             val isShowBigContent = isShowBatteryInformation && isShowExpandedNotification
@@ -368,26 +375,32 @@ interface NotificationInterface : BatteryInfoInterface, PremiumInterface {
 
                 getNotificationMessage(context, status, remoteViewsServiceBigContent)
 
+                try {
+                    remoteViewsServiceBigContent.setViewVisibility(
+                        R.id.status_service_notification,
+                        View.INVISIBLE
+                    )
+                    remoteViewsServiceBigContent.setViewVisibility(
+                        R.id.status_service_notification,
+                        View.VISIBLE
+                    )
+                } catch (_: Throwable) {
+                }
+
                 setCustomBigContentView(remoteViewsServiceBigContent)
+            } else {
+                setCustomBigContentView(null)
             }
 
             setStyle(NotificationCompat.DecoratedCustomViewStyle())
 
-            setShowWhen(
-                pref.getBoolean(
-                    SERVICE_TIME, context.resources.getBoolean(
-                        R.bool.service_time
-                    )
+            val showTime = pref.getBoolean(
+                SERVICE_TIME, context.resources.getBoolean(
+                    R.bool.service_time
                 )
             )
-
-            setUsesChronometer(
-                pref.getBoolean(
-                    SERVICE_TIME, context.resources.getBoolean(
-                        R.bool.service_time
-                    )
-                )
-            )
+            setShowWhen(showTime)
+            setUsesChronometer(showTime)
         }
 
         notificationManager?.notify(NOTIFICATION_SERVICE_ID, notificationBuilder?.build())
@@ -496,10 +509,8 @@ interface NotificationInterface : BatteryInfoInterface, PremiumInterface {
             setShowWhen(true)
 
             setSound(
-                Uri.parse(
-                    "${ContentResolver.SCHEME_ANDROID_RESOURCE}://" +
-                            "${context.packageName}/${R.raw.overheat_overcool}"
-                )
+                ("${ContentResolver.SCHEME_ANDROID_RESOURCE}://" +
+                        "${context.packageName}/${R.raw.overheat_overcool}").toUri()
             )
         }
 
@@ -585,10 +596,8 @@ interface NotificationInterface : BatteryInfoInterface, PremiumInterface {
             setShowWhen(true)
 
             setSound(
-                Uri.parse(
-                    "${ContentResolver.SCHEME_ANDROID_RESOURCE}://" +
-                            "${context.packageName}/${R.raw.battery_is_fully_charged}"
-                )
+                ("${ContentResolver.SCHEME_ANDROID_RESOURCE}://" +
+                        "${context.packageName}/${R.raw.battery_is_fully_charged}").toUri()
             )
         }
 
@@ -685,10 +694,8 @@ interface NotificationInterface : BatteryInfoInterface, PremiumInterface {
             setLights(Color.GREEN, 1500, 500)
 
             setSound(
-                Uri.parse(
-                    "${ContentResolver.SCHEME_ANDROID_RESOURCE}://" +
-                            "${context.packageName}/${R.raw.battery_is_charged}"
-                )
+                ("${ContentResolver.SCHEME_ANDROID_RESOURCE}://" +
+                        "${context.packageName}/${R.raw.battery_is_charged}").toUri()
             )
         }
 
@@ -791,10 +798,8 @@ interface NotificationInterface : BatteryInfoInterface, PremiumInterface {
             setLights(Color.RED, 1000, 500)
 
             setSound(
-                Uri.parse(
-                    "${ContentResolver.SCHEME_ANDROID_RESOURCE}://" +
-                            "${context.packageName}/${R.raw.battery_is_discharged}"
-                )
+                ("${ContentResolver.SCHEME_ANDROID_RESOURCE}://" +
+                        "${context.packageName}/${R.raw.battery_is_discharged}").toUri()
             )
         }
 
@@ -893,10 +898,8 @@ interface NotificationInterface : BatteryInfoInterface, PremiumInterface {
             setLights(Color.RED, 1000, 500)
 
             setSound(
-                Uri.parse(
-                    "${ContentResolver.SCHEME_ANDROID_RESOURCE}://" +
-                            "${context.packageName}/${R.raw.battery_is_discharged}"
-                )
+                ("${ContentResolver.SCHEME_ANDROID_RESOURCE}://" +
+                        "${context.packageName}/${R.raw.battery_is_discharged}").toUri()
             )
         }
 
@@ -922,66 +925,59 @@ interface NotificationInterface : BatteryInfoInterface, PremiumInterface {
 
                 val channelName = context.getString(R.string.service)
 
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    notificationService?.createNotificationChannel(NotificationChannel(
+                notificationService?.createNotificationChannel(
+                    NotificationChannel(
                         notificationChannelId, channelName, NotificationManager.IMPORTANCE_LOW
                     ).apply {
 
                         setShowBadge(false)
                     })
-                }
             }
 
             OVERHEAT_OVERCOOL_CHANNEL_ID -> {
 
                 val channelName = context.getString(R.string.overheat_overcool)
 
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    notificationService?.createNotificationChannel(NotificationChannel(
+                notificationService?.createNotificationChannel(
+                    NotificationChannel(
                         notificationChannelId, channelName, NotificationManager.IMPORTANCE_HIGH
                     ).apply {
 
                         setShowBadge(true)
 
                         setSound(
-                            Uri.parse(
-                                "${ContentResolver.SCHEME_ANDROID_RESOURCE}://" +
-                                        "${context.packageName}/${R.raw.overheat_overcool}"
-                            ),
+                            ("${ContentResolver.SCHEME_ANDROID_RESOURCE}://" +
+                                    "${context.packageName}/${R.raw.overheat_overcool}").toUri(),
                             soundAttributes.build()
                         )
                     })
-                }
             }
 
             FULLY_CHARGED_CHANNEL_ID -> {
 
                 val channelName = context.getString(R.string.fully_charged)
 
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    notificationService?.createNotificationChannel(NotificationChannel(
+                notificationService?.createNotificationChannel(
+                    NotificationChannel(
                         notificationChannelId, channelName, NotificationManager.IMPORTANCE_HIGH
                     ).apply {
 
                         setShowBadge(true)
 
                         setSound(
-                            Uri.parse(
-                                "${ContentResolver.SCHEME_ANDROID_RESOURCE}://" +
-                                        "${context.packageName}/${R.raw.battery_is_fully_charged}"
-                            ),
+                            ("${ContentResolver.SCHEME_ANDROID_RESOURCE}://" +
+                                    "${context.packageName}/${R.raw.battery_is_fully_charged}").toUri(),
                             soundAttributes.build()
                         )
                     })
-                }
             }
 
             CHARGED_CHANNEL_ID -> {
 
                 val channelName = context.getString(R.string.charged)
 
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    notificationService?.createNotificationChannel(NotificationChannel(
+                notificationService?.createNotificationChannel(
+                    NotificationChannel(
                         notificationChannelId, channelName, NotificationManager.IMPORTANCE_HIGH
                     ).apply {
 
@@ -992,22 +988,19 @@ interface NotificationInterface : BatteryInfoInterface, PremiumInterface {
                         lightColor = Color.GREEN
 
                         setSound(
-                            Uri.parse(
-                                "${ContentResolver.SCHEME_ANDROID_RESOURCE}://" +
-                                        "${context.packageName}/${R.raw.battery_is_charged}"
-                            ),
+                            ("${ContentResolver.SCHEME_ANDROID_RESOURCE}://" +
+                                    "${context.packageName}/${R.raw.battery_is_charged}").toUri(),
                             soundAttributes.build()
                         )
                     })
-                }
             }
 
             DISCHARGED_CHANNEL_ID -> {
 
                 val channelName = context.getString(R.string.discharged)
 
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    notificationService?.createNotificationChannel(NotificationChannel(
+                notificationService?.createNotificationChannel(
+                    NotificationChannel(
                         notificationChannelId, channelName, NotificationManager.IMPORTANCE_HIGH
                     ).apply {
 
@@ -1018,22 +1011,19 @@ interface NotificationInterface : BatteryInfoInterface, PremiumInterface {
                         lightColor = Color.RED
 
                         setSound(
-                            Uri.parse(
-                                "${ContentResolver.SCHEME_ANDROID_RESOURCE}://" +
-                                        "${context.packageName}/${R.raw.battery_is_discharged}"
-                            ),
+                            ("${ContentResolver.SCHEME_ANDROID_RESOURCE}://" +
+                                    "${context.packageName}/${R.raw.battery_is_discharged}").toUri(),
                             soundAttributes.build()
                         )
                     })
-                }
             }
 
             DISCHARGED_VOLTAGE_CHANNEL_ID -> {
 
                 val channelName = context.getString(R.string.discharged_voltage)
 
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    notificationService?.createNotificationChannel(NotificationChannel(
+                notificationService?.createNotificationChannel(
+                    NotificationChannel(
                         notificationChannelId, channelName, NotificationManager.IMPORTANCE_HIGH
                     ).apply {
 
@@ -1044,14 +1034,11 @@ interface NotificationInterface : BatteryInfoInterface, PremiumInterface {
                         lightColor = Color.RED
 
                         setSound(
-                            Uri.parse(
-                                "${ContentResolver.SCHEME_ANDROID_RESOURCE}://" +
-                                        "${context.packageName}/${R.raw.battery_is_discharged}"
-                            ),
+                            ("${ContentResolver.SCHEME_ANDROID_RESOURCE}://" +
+                                    "${context.packageName}/${R.raw.battery_is_discharged}").toUri(),
                             soundAttributes.build()
                         )
                     })
-                }
             }
         }
 
@@ -1749,13 +1736,12 @@ interface NotificationInterface : BatteryInfoInterface, PremiumInterface {
     }
 
     private fun isNotificationExists(context: Context, notificationID: Int): Boolean {
-        val notificationManager =
-            context.getSystemService(NOTIFICATION_SERVICE) as? NotificationManager
-        val notifications = notificationManager?.activeNotifications
-        var isNotificationExists = false
-        if (notifications != null)
-            for (notification in notifications)
-                isNotificationExists = notification.id == notificationID
-        return isNotificationExists
+        val nm = context.getSystemService(NOTIFICATION_SERVICE) as? NotificationManager
+        val list = try {
+            nm?.activeNotifications
+        } catch (_: Throwable) {
+            null
+        }
+        return list?.any { it.id == notificationID } ?: false
     }
 }

@@ -2,17 +2,22 @@ package com.jacktor.batterylab.receivers
 
 import android.content.BroadcastReceiver
 import android.content.Context
-import android.content.Context.VIBRATOR_SERVICE
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.SharedPreferences
+import android.media.AudioAttributes
+import android.media.Ringtone
 import android.media.RingtoneManager
-import android.net.Uri
+import android.os.BatteryManager
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
 import android.os.VibrationEffect
 import android.os.Vibrator
+import android.os.VibratorManager
 import android.widget.Toast
+import androidx.core.net.toUri
+import androidx.preference.PreferenceManager
 import com.jacktor.batterylab.R
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.AC_CONNECTED_SOUND
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CUSTOM_VIBRATE_DURATION
@@ -22,115 +27,123 @@ import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.ENABLE_VIBRA
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.SOUND_DELAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.USB_CONNECTED_SOUND
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.VIBRATE_MODE
-import com.jacktor.batterylab.utilities.preferences.Prefs
 
 class PowerConnectionReceiver : BroadcastReceiver() {
-    private lateinit var prefs: Prefs
+
+    private var prefs: SharedPreferences? = null
+    private val mainHandler by lazy { Handler(Looper.getMainLooper()) }
 
     override fun onReceive(context: Context, intent: Intent) {
-        init(context)
+        val pr = goAsync()
+        initPrefs(context)
 
         when (intent.action) {
-            Intent.ACTION_POWER_CONNECTED -> handlePowerChange(
-                context, isConnected = true
-            )
-
-            Intent.ACTION_POWER_DISCONNECTED -> handlePowerChange(
-                context, isConnected = false
-            )
+            Intent.ACTION_POWER_CONNECTED -> handlePowerChange(context, isConnected = true, pr)
+            Intent.ACTION_POWER_DISCONNECTED -> handlePowerChange(context, isConnected = false, pr)
+            else -> pr.finish()
         }
     }
 
-    private fun handlePowerChange(context: Context, isConnected: Boolean) {
-        val vibrationMode = prefs.getString(VIBRATE_MODE, "disconnected")
-        val duration = prefs.getString(CUSTOM_VIBRATE_DURATION, "450")!!.toLong()
-        val delay = prefs.getString(SOUND_DELAY, "550")!!.toLong()
+    private fun handlePowerChange(context: Context, isConnected: Boolean, pr: PendingResult) {
+        val p = prefs ?: run { pr.finish(); return }
 
-        if (prefs.getBoolean(ENABLE_VIBRATION, true)) {
+        val vibrationMode = p.getString(VIBRATE_MODE, "disconnected") ?: "disconnected"
+        val duration = (p.getString(CUSTOM_VIBRATE_DURATION, "450")?.toLongOrNull() ?: 450L)
+            .coerceIn(50L, 3000L)
+        val delay = (p.getString(SOUND_DELAY, "550")?.toLongOrNull() ?: 550L)
+            .coerceIn(0L, 5000L)
+
+        if (p.getBoolean(ENABLE_VIBRATION, true)) {
             handleVibration(context, duration, isConnected, vibrationMode)
         }
 
-        Handler(Looper.getMainLooper()).postDelayed({
-            if (isConnected) {
-                playPowerConnectedSound(context)
-            } else {
-                playPowerDisconnectedSound(context)
-            }
-        }, delay)
+        // main-thread delayed sound & toast
+        mainHandler.postDelayed({
+            if (isConnected) playPowerConnectedSound(context) else playPowerDisconnectedSound(
+                context
+            )
 
-        if (prefs.getBoolean(ENABLE_TOAST, false)) {
-            showToast(context, isConnected)
-        }
+            if (p.getBoolean(ENABLE_TOAST, false)) showToast(context, isConnected)
+
+            pr.finish()
+        }, delay)
     }
 
     private fun handleVibration(
-        context: Context, duration: Long, isConnected: Boolean, vibrationMode: String?
+        context: Context,
+        duration: Long,
+        isConnected: Boolean,
+        vibrationMode: String
     ) {
-        if ((isConnected && vibrationMode in listOf("connected", "both")) ||
-            (!isConnected && vibrationMode in listOf("disconnected", "both"))
-        ) {
-            val vibrator = getVibrator(context)
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                vibrator.vibrate(
-                    VibrationEffect.createOneShot(duration, VibrationEffect.DEFAULT_AMPLITUDE)
+        val shouldVibrate =
+            (isConnected && (vibrationMode == "connected" || vibrationMode == "both")) ||
+                    (!isConnected && (vibrationMode == "disconnected" || vibrationMode == "both"))
+        if (!shouldVibrate) return
+
+        val vibrator = getVibratorCompat(context) ?: return
+        try {
+            vibrator.vibrate(
+                VibrationEffect.createOneShot(
+                    duration,
+                    VibrationEffect.DEFAULT_AMPLITUDE
                 )
-            } else {
-                @Suppress("DEPRECATION")
-                vibrator.vibrate(duration)
-            }
+            )
+        } catch (_: SecurityException) {
         }
     }
 
-    private fun getVibrator(context: Context): Vibrator {
+    private fun getVibratorCompat(context: Context): Vibrator? {
         return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            val vibratorManager =
-                context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as android.os.VibratorManager
-            vibratorManager.defaultVibrator
+            val vm = context.getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as? VibratorManager
+            vm?.defaultVibrator
         } else {
             @Suppress("DEPRECATION")
-            context.getSystemService(VIBRATOR_SERVICE) as Vibrator
+            context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator
         }
     }
 
     private fun playPowerConnectedSound(context: Context) {
-        val isAcConnected = isAcConnected(context)
-        val prefKey = if (isAcConnected) AC_CONNECTED_SOUND else USB_CONNECTED_SOUND
-        playSound(context, prefKey)
+        val prefKey = if (isAcConnected(context)) AC_CONNECTED_SOUND else USB_CONNECTED_SOUND
+        playSoundFromPrefs(context, prefKey)
     }
 
     private fun playPowerDisconnectedSound(context: Context) {
-        playSound(context, DISCONNECTED_SOUND)
+        playSoundFromPrefs(context, DISCONNECTED_SOUND)
     }
 
-    private fun playSound(context: Context, prefKey: String) {
-        val filePath = prefs.getString(prefKey, "") ?: return
-        if (filePath.isNotEmpty()) {
-            try {
-                val ringtone = RingtoneManager.getRingtone(context, Uri.parse(filePath))
+    private fun playSoundFromPrefs(context: Context, prefKey: String) {
+        val filePath = prefs?.getString(prefKey, "").orEmpty()
+        if (filePath.isBlank()) return
+
+        try {
+            val uri = filePath.toUri()
+            val ringtone: Ringtone? = RingtoneManager.getRingtone(context, uri)
+            if (ringtone != null) {
+                ringtone.audioAttributes = AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_NOTIFICATION_EVENT)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                    .build()
                 ringtone.play()
-            } catch (e: Exception) {
-                e.printStackTrace()
             }
+        } catch (_: Throwable) {
         }
     }
 
     private fun isAcConnected(context: Context): Boolean {
-        val batteryStatus = context.registerReceiver(
-            null, IntentFilter(Intent.ACTION_BATTERY_CHANGED)
-        )
-        return batteryStatus?.getIntExtra("plugged", -1) == 1
+        val sticky = context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+        val plugged = sticky?.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1) ?: -1
+        return plugged == BatteryManager.BATTERY_PLUGGED_AC
     }
 
     private fun showToast(context: Context, isConnected: Boolean) {
-        val messageResId = if (isConnected) {
-            R.string.toast_power_connected
-        } else {
-            R.string.toast_power_disconnected
-        }
-        Toast.makeText(context.applicationContext, messageResId, Toast.LENGTH_LONG).show()
+        val msgRes =
+            if (isConnected) R.string.toast_power_connected else R.string.toast_power_disconnected
+        Toast.makeText(context.applicationContext, msgRes, Toast.LENGTH_LONG).show()
     }
 
-    private fun init(context: Context) {
-        prefs = Prefs(context)
+    private fun initPrefs(context: Context) {
+        if (prefs == null) {
+            prefs = PreferenceManager.getDefaultSharedPreferences(context.applicationContext)
+        }
     }
 }

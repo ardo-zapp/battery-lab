@@ -27,7 +27,7 @@
             android:title="@string/auto_start_boot"
             android:defaultValue="@bool/auto_start_boot"
             android:key="auto_start_boot"
-            app:icon="@drawable/ic_settings_kernel_24"
+            app:icon="@drawable/ic_tools_24"
             app:singleLineTitle="false" />
 
         <SwitchPreferenceCompat

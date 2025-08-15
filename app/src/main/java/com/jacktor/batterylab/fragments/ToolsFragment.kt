@@ -1,10 +1,12 @@
 package com.jacktor.batterylab.fragments
 
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.preference.PreferenceManager
 import androidx.viewpager2.widget.ViewPager2
 import com.google.android.material.tabs.TabLayoutMediator
 import com.jacktor.batterylab.MainActivity
@@ -12,15 +14,14 @@ import com.jacktor.batterylab.R
 import com.jacktor.batterylab.adapters.ViewPagerAdapter
 import com.jacktor.batterylab.databinding.ToolsFragmentBinding
 import com.jacktor.batterylab.interfaces.views.MenuInterface
-import com.jacktor.batterylab.utilities.preferences.Prefs
 
 class ToolsFragment : Fragment(R.layout.tools_fragment), MenuInterface {
 
     private lateinit var binding: ToolsFragmentBinding
-    private var pref: Prefs? = null
+    private var pref: SharedPreferences? = null
 
     companion object {
-        var instance: ToolsFragment? = null
+        //var instance: ToolsFragment? = null
     }
 
     override fun onCreateView(
@@ -33,7 +34,7 @@ class ToolsFragment : Fragment(R.layout.tools_fragment), MenuInterface {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        pref = Prefs(requireContext())
+        pref = PreferenceManager.getDefaultSharedPreferences(requireContext())
 
         // Setup ViewPager2 dan TabLayout
         val viewPagerAdapter = ViewPagerAdapter(requireActivity())
@@ -43,7 +44,7 @@ class ToolsFragment : Fragment(R.layout.tools_fragment), MenuInterface {
         // Hubungkan TabLayout dengan ViewPager2
         TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
             when (position) {
-                0 -> tab.text = getString(R.string.calibration)
+                0 -> tab.text = getString(R.string.idle_drain)
                 1 -> tab.text = getString(R.string.experiment)
             }
         }.attach()
@@ -57,7 +58,7 @@ class ToolsFragment : Fragment(R.layout.tools_fragment), MenuInterface {
         })
     }
 
-    override fun onResume() {
+    /*override fun onResume() {
         super.onResume()
         if (instance == null) instance = this
     }
@@ -65,5 +66,5 @@ class ToolsFragment : Fragment(R.layout.tools_fragment), MenuInterface {
     override fun onDestroy() {
         instance = null
         super.onDestroy()
-    }
+    }*/
 }

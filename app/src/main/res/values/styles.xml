@@ -91,14 +91,6 @@
         <item name="android:textSize">20sp</item>
     </style>
 
-    <style name="AppTheme.NestedScrollBarStyle">
-        <item name="android:fadeScrollbars">true</item>
-        <item name="android:scrollbarFadeDuration">3</item>
-        <item name="android:scrollbars">vertical</item>
-        <item name="android:fillViewport">true</item>
-        <item name="android:orientation">vertical</item>
-    </style>
-
     <style name="TitleTheme" parent="TextAppearance.AppCompat.Widget.ActionBar.Title">
         <item name="android:textColor">@color/title_text</item>
     </style>

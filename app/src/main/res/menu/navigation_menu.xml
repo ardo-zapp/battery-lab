@@ -4,7 +4,7 @@
 
     <item
             android:id="@+id/charge_discharge_navigation"
-            android:title="@string/discharge"
+        android:title="@string/information"
             android:icon="@drawable/ic_discharge_navigation_90_24dp"
             app:showAsAction="always"/>
 
@@ -17,7 +17,7 @@
     <item
         android:id="@+id/tools_navigation"
         android:title="@string/tools"
-        android:icon="@drawable/ic_settings_kernel_24"
+        android:icon="@drawable/ic_tools_24"
         app:showAsAction="always"/>
 
     <item

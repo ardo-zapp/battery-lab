@@ -1,18 +1,15 @@
 package com.jacktor.batterylab.utilities
 
-import kotlin.time.Duration.Companion.hours
 import kotlin.time.Duration.Companion.minutes
 
 object Constants {
-
-    const val SCRIPT_FILE_NAME = "script.sh"
     const val IMPORT_RESTORE_SETTINGS_EXTRA = "import_settings"
     const val GOOGLE_PLAY_APP_LINK =
         "https://play.google.com/store/apps/details?id=com.jacktor.batterylab"
-    const val GITHUB_LINK = "https://github.com/jacktor-stan/battery-lab"
+    const val GITHUB_LINK = "https://github.com/ardo-zapp/battery-lab"
     const val GITHUB_LINK_BATTERY_CAPCITY = "https://github.com/Ph03niX-X/CapacityInfo"
-    const val BACKEND_API_CONTRIBUTORS = "https://jacktor.com/api/get/github-contributors?repo=jacktor-stan/battery-lab"
-    const val TELEGRAM_DEVELOPER_LINK = "https://t.me/deniliandi"
+    const val BACKEND_API_CONTRIBUTORS =
+        "https://jacktor.com/api/get/github-contributors?repo=ardo-zapp/battery-lab"
     const val GOOGLE_PLAY_PACKAGE_NAME = "com.android.vending"
     const val SERVICE_CHANNEL_ID = "service_channel"
     const val OVERHEAT_OVERCOOL_CHANNEL_ID = "overheat_overcool"
@@ -31,7 +28,6 @@ object Constants {
     const val DISABLE_NOTIFICATION_BATTERY_STATUS_INFORMATION_REQUEST_CODE = 1
     const val POST_NOTIFICATIONS_PERMISSION_REQUEST_CODE = 2
     const val NOTIFY_FULL_CHARGE_REMINDER_JOB_ID = 0
-    const val CHECK_PREMIUM_JOB_ID = 1
     const val HISTORY_COUNT_MAX = 1500
     const val EXPORT_HISTORY_REQUEST_CODE = 2
     const val IMPORT_HISTORY_REQUEST_CODE = 3
@@ -39,7 +35,7 @@ object Constants {
     const val STOP_SERVICE_REQUEST_CODE = 1
     const val NOMINAL_BATTERY_VOLTAGE = 3.87
     const val CHARGING_VOLTAGE_WATT = 5.0
+    const val DONT_KILL_MY_APP_LINK = "https://dontkillmyapp.com"
 
-    val CHECK_PREMIUM_JOB_SERVICE_PERIODIC = 12.hours.inWholeMilliseconds
     val SERVICE_WAKELOCK_TIMEOUT = 1.minutes.inWholeMilliseconds
 }

@@ -15,6 +15,7 @@ import android.widget.AdapterView
 import android.widget.Spinner
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
+import androidx.core.content.edit
 import androidx.preference.Preference
 import androidx.preference.PreferenceManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -65,7 +66,6 @@ import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.UNIT_OF_CHAR
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.UNIT_OF_MEASUREMENT_OF_CURRENT_CAPACITY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.UPDATE_TEMP_SCREEN_TIME
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.VOLTAGE_UNIT
-import com.jacktor.batterylab.utilities.Premium.TOKEN_PREF
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -377,9 +377,7 @@ interface DebugOptionsInterface {
         val pref = PreferenceManager.getDefaultSharedPreferences(context)
 
         try {
-
             when (key) {
-
                 UNIT_OF_MEASUREMENT_OF_CURRENT_CAPACITY, UNIT_OF_CHARGE_DISCHARGE_CURRENT,
                 VOLTAGE_UNIT, OVERLAY_LOCATION, OVERLAY_SIZE, OVERLAY_FONT, TEXT_SIZE, TEXT_FONT,
                 OVERLAY_TEXT_STYLE, TEXT_STYLE, TAB_ON_APPLICATION_LAUNCH,
@@ -465,7 +463,7 @@ interface DebugOptionsInterface {
                                 prefValueInputTypeDef, prefValueKeyListenerDef
                             )
 
-                        TOKEN_PREF -> return
+                        //TOKEN_PREF -> return
 
                         else -> setValueType(
                             "boolean", changePrefValue, pref,
@@ -713,7 +711,7 @@ interface DebugOptionsInterface {
 
     private fun addChangeSetting(pref: SharedPreferences, key: String, value: String) {
 
-        pref.edit().putString(key, value).apply()
+        pref.edit { putString(key, value) }
     }
 
     private fun addChangeSetting(
@@ -721,7 +719,7 @@ interface DebugOptionsInterface {
         value: Int
     ) {
 
-        pref.edit().putInt(key, value).apply()
+        pref.edit { putInt(key, value) }
     }
 
     private fun addChangeSetting(
@@ -729,7 +727,7 @@ interface DebugOptionsInterface {
         value: Long
     ) {
 
-        pref.edit().putLong(key, value).apply()
+        pref.edit { putLong(key, value) }
     }
 
     private fun addChangeSetting(
@@ -737,7 +735,7 @@ interface DebugOptionsInterface {
         value: Float
     ) {
 
-        pref.edit().putFloat(key, value).apply()
+        pref.edit { putFloat(key, value) }
     }
 
     private fun addChangeSetting(
@@ -745,7 +743,7 @@ interface DebugOptionsInterface {
         value: Boolean
     ) {
 
-        pref.edit().putBoolean(key, value).apply()
+        pref.edit { putBoolean(key, value) }
 
         if (key == AUTO_DARK_MODE || key == DARK_MODE)
             ThemeHelper.setTheme(context)
@@ -784,7 +782,7 @@ interface DebugOptionsInterface {
 
         dialog.setPositiveButton(getString(R.string.reset)) { _, _ ->
 
-            pref.edit().remove(key).apply()
+            pref.edit { remove(key) }
 
             when (key) {
 
@@ -855,7 +853,7 @@ interface DebugOptionsInterface {
             setMessage(getString(R.string.are_you_sure))
             setPositiveButton(getString(R.string.reset)) { _, _ ->
 
-                pref.edit().clear().apply()
+                pref.edit { clear() }
 
                 Toast.makeText(
                     context, R.string.settings_reset_successfully,

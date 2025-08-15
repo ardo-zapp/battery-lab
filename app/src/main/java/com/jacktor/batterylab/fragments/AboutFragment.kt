@@ -2,14 +2,16 @@ package com.jacktor.batterylab.fragments
 
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
 import androidx.core.content.pm.PackageInfoCompat
+import androidx.core.net.toUri
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
+import androidx.preference.PreferenceManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.jacktor.batterylab.BuildConfig
 import com.jacktor.batterylab.MainApp
@@ -19,13 +21,12 @@ import com.jacktor.batterylab.interfaces.CheckUpdateInterface
 import com.jacktor.batterylab.interfaces.ContributorsInterface
 import com.jacktor.batterylab.utilities.Constants.GITHUB_LINK
 import com.jacktor.batterylab.utilities.Constants.GITHUB_LINK_BATTERY_CAPCITY
-import com.jacktor.batterylab.utilities.preferences.Prefs
-import com.jacktor.batterylab.views.ContributorsModel
+import com.jacktor.batterylab.models.ContributorsModel
 
 class AboutFragment : PreferenceFragmentCompat(), ContributorsInterface,
     CheckUpdateInterface {
 
-    var pref: Prefs? = null
+    var pref: SharedPreferences? = null
     private var checkUpdate: Preference? = null
     private var developer: Preference? = null
     private var version: Preference? = null
@@ -38,7 +39,7 @@ class AboutFragment : PreferenceFragmentCompat(), ContributorsInterface,
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
 
-        pref = Prefs(requireContext())
+        pref = PreferenceManager.getDefaultSharedPreferences(requireContext())
 
         addPreferencesFromResource(R.xml.about_settings)
 
@@ -105,18 +106,16 @@ class AboutFragment : PreferenceFragmentCompat(), ContributorsInterface,
                     startActivity(
                         Intent(
                             Intent.ACTION_VIEW,
-                            Uri.parse("market://search?q=pub:${developer?.summary}")
+                            "market://search?q=pub:${developer?.summary}".toUri()
                         )
                     )
                 else startActivity(
                     Intent(
                         Intent.ACTION_VIEW,
-                        Uri.parse(
-                            "https://play.google.com/store/apps/developer?id=${
-                                developer
-                                    ?.summary
-                            }"
-                        )
+                        "https://play.google.com/store/apps/developer?id=${
+                            developer
+                                ?.summary
+                        }".toUri()
                     )
                 )
             } catch (e: ActivityNotFoundException) {
@@ -134,7 +133,7 @@ class AboutFragment : PreferenceFragmentCompat(), ContributorsInterface,
 
             try {
 
-                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(GITHUB_LINK)))
+                startActivity(Intent(Intent.ACTION_VIEW, GITHUB_LINK.toUri()))
             } catch (e: ActivityNotFoundException) {
 
                 Toast.makeText(
@@ -150,7 +149,7 @@ class AboutFragment : PreferenceFragmentCompat(), ContributorsInterface,
 
             try {
 
-                startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(GITHUB_LINK_BATTERY_CAPCITY)))
+                startActivity(Intent(Intent.ACTION_VIEW, GITHUB_LINK_BATTERY_CAPCITY.toUri()))
             } catch (e: ActivityNotFoundException) {
 
                 Toast.makeText(
@@ -169,12 +168,10 @@ class AboutFragment : PreferenceFragmentCompat(), ContributorsInterface,
                 startActivity(
                     Intent(
                         Intent.ACTION_VIEW,
-                        Uri.parse(
-                            "https://play.google.com/apps/testing/${
-                                requireContext()
-                                    .packageName
-                            }"
-                        )
+                        "https://play.google.com/apps/testing/${
+                            requireContext()
+                                .packageName
+                        }".toUri()
                     )
                 )
             } catch (e: ActivityNotFoundException) {
@@ -209,7 +206,7 @@ class AboutFragment : PreferenceFragmentCompat(), ContributorsInterface,
             // Respond to negative button press
             //}
             .setPositiveButton(getString(R.string.yes_continue)) { _, _ ->
-                openURL.data = Uri.parse(data.htmlUrl)
+                openURL.data = data.htmlUrl.toUri()
                 startActivity(openURL)
             }
             .show()

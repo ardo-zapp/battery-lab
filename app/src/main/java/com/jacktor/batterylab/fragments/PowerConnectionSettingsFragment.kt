@@ -1,32 +1,23 @@
 package com.jacktor.batterylab.fragments
 
-import android.Manifest
-import android.app.Activity.RESULT_OK
-import android.content.Context
 import android.content.Intent
-import android.content.pm.PackageManager
+import android.content.SharedPreferences
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
-import android.provider.Settings
+import android.provider.OpenableColumns
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.content.ContextCompat
+import androidx.core.content.edit
 import androidx.core.net.toUri
-import androidx.preference.*
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import androidx.preference.Preference
+import androidx.preference.PreferenceFragmentCompat
+import androidx.preference.PreferenceManager
 import com.jacktor.batterylab.R
-import com.jacktor.batterylab.interfaces.PremiumInterface
-import com.jacktor.batterylab.utilities.FileUtils
-import com.jacktor.batterylab.utilities.preferences.Prefs
 
-class PowerConnectionSettingsFragment() : PreferenceFragmentCompat(), PremiumInterface {
+class PowerConnectionSettingsFragment : PreferenceFragmentCompat() {
 
-    override var premiumContext: Context? = null
-    private lateinit var pref: Prefs
+    private lateinit var pref: SharedPreferences
 
-    // Preferences
     private val preferencesMap = mutableMapOf<String, Preference?>()
-
     private var selectedFileType: FileType? = null
 
     private enum class FileType(val key: String) {
@@ -35,52 +26,40 @@ class PowerConnectionSettingsFragment() : PreferenceFragmentCompat(), PremiumInt
         DISCONNECTED("disconnected_sound")
     }
 
-    private val requestPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted: Boolean ->
-        if (isGranted) {
-            showFileChooser()
-        } else {
-            val messageRes = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                R.string.audio_permission_not_granted
-            } else {
-                R.string.storage_permission_not_granted
-            }
-            showPermissionBlockedDialog(messageRes)
-        }
-    }
+    // SAF picker
+    private val openAudio = registerForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri: Uri? ->
+        uri ?: return@registerForActivityResult
+        val type = selectedFileType ?: return@registerForActivityResult
 
-    private val selectFileActivityResult = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        if (result.resultCode == RESULT_OK) {
-            val uri =
-                result.data?.data?.let { FileUtils.getRealPath(requireContext(), it)?.toUri() }
-            uri?.let {
-                selectedFileType?.let { fileType ->
-                    pref.setString(fileType.key, it.toString())
-                }
-                setSummaries()
-            }
+        runCatching {
+            requireContext().contentResolver.takePersistableUriPermission(
+                uri,
+                Intent.FLAG_GRANT_READ_URI_PERMISSION
+            )
         }
+
+        pref.edit { putString(type.key, uri.toString()) }
+        setSummaries()
     }
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
-        pref = Prefs(requireContext())
+        pref = PreferenceManager.getDefaultSharedPreferences(requireContext())
         addPreferencesFromResource(R.xml.power_connection_settings)
 
-        // Initialize preferences map
-        preferencesMap["enablePowerConnection"] = findPreference("power_connection_service")
+        // Map preferences
+        preferencesMap["power_connection_service"] = findPreference("power_connection_service")
         preferencesMap[FileType.AC.key] = findPreference(FileType.AC.key)
         preferencesMap[FileType.USB.key] = findPreference(FileType.USB.key)
         preferencesMap[FileType.DISCONNECTED.key] = findPreference(FileType.DISCONNECTED.key)
-        preferencesMap["resetSound"] = findPreference("reset_sound")
-        preferencesMap["soundDelay"] = findPreference("sound_delay")
-        preferencesMap["enableVibration"] = findPreference("enable_vibration")
-        preferencesMap["vibrationDuration"] = findPreference("vibrate_duration")
-        preferencesMap["customVibrationDuration"] = findPreference("custom_vibrate_duration")
-        preferencesMap["vibrationMode"] = findPreference("vibrate_mode")
-        preferencesMap["showToast"] = findPreference("enable_toast")
+        preferencesMap["reset_sound"] = findPreference("reset_sound")
+        preferencesMap["sound_delay"] = findPreference("sound_delay")
+        preferencesMap["enable_vibration"] = findPreference("enable_vibration")
+        preferencesMap["vibrate_duration"] = findPreference("vibrate_duration")
+        preferencesMap["custom_vibrate_duration"] = findPreference("custom_vibrate_duration")
+        preferencesMap["vibrate_mode"] = findPreference("vibrate_mode")
+        preferencesMap["enable_toast"] = findPreference("enable_toast")
 
         setupListeners()
         togglePreferences(pref.getBoolean("power_connection_service", false))
@@ -88,28 +67,23 @@ class PowerConnectionSettingsFragment() : PreferenceFragmentCompat(), PremiumInt
     }
 
     private fun setupListeners() {
-        preferencesMap["enablePowerConnection"]?.setOnPreferenceChangeListener { _, newValue ->
-            val isEnabled = newValue as? Boolean == true
-            togglePreferences(isEnabled)
+        preferencesMap["power_connection_service"]?.setOnPreferenceChangeListener { _, newValue ->
+            val enabled = newValue as? Boolean ?: false
+            togglePreferences(enabled)
             true
         }
 
         preferencesMap[FileType.AC.key]?.setOnPreferenceClickListener {
-            handleFileSelection(FileType.AC)
-            true
+            handleFileSelection(FileType.AC); true
         }
-
         preferencesMap[FileType.USB.key]?.setOnPreferenceClickListener {
-            handleFileSelection(FileType.USB)
-            true
+            handleFileSelection(FileType.USB); true
         }
-
         preferencesMap[FileType.DISCONNECTED.key]?.setOnPreferenceClickListener {
-            handleFileSelection(FileType.DISCONNECTED)
-            true
+            handleFileSelection(FileType.DISCONNECTED); true
         }
 
-        preferencesMap["resetSound"]?.setOnPreferenceClickListener {
+        preferencesMap["reset_sound"]?.setOnPreferenceClickListener {
             resetSoundPreferences()
             setSummaries()
             true
@@ -118,81 +92,66 @@ class PowerConnectionSettingsFragment() : PreferenceFragmentCompat(), PremiumInt
 
     private fun handleFileSelection(fileType: FileType) {
         selectedFileType = fileType
-        requestPermissionAndBrowseFile()
-    }
-
-    private fun requestPermissionAndBrowseFile() {
-        val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            Manifest.permission.READ_MEDIA_AUDIO
-        } else {
-            Manifest.permission.READ_EXTERNAL_STORAGE
-        }
-
-        when {
-            ContextCompat.checkSelfPermission(
-                requireContext(),
-                permission
-            ) == PackageManager.PERMISSION_GRANTED -> {
-                showFileChooser()
-            }
-
-            shouldShowRequestPermissionRationale(permission) -> {
-                showPermissionBlockedDialog(R.string.storage_permission_not_granted)
-            }
-
-            else -> {
-                requestPermissionLauncher.launch(permission)
-            }
-        }
+        showFileChooser()
     }
 
     private fun showFileChooser() {
-        val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
-            addCategory(Intent.CATEGORY_OPENABLE)
-            type = "audio/*"
-        }
-        selectFileActivityResult.launch(intent)
+        openAudio.launch(arrayOf("audio/*"))
     }
 
     private fun togglePreferences(isEnabled: Boolean) {
-        preferencesMap.filterKeys { it != "enablePowerConnection" }.values.forEach {
-            it?.isEnabled = isEnabled
-        }
+        preferencesMap
+            .filterKeys { it != "power_connection_service" }
+            .values
+            .forEach { it?.isEnabled = isEnabled }
     }
 
     private fun setSummaries() {
         FileType.entries.forEach { fileType ->
-            val filePath = pref.getString(fileType.key, "")
-            val summary =
-                filePath?.takeIf { it.isNotEmpty() } ?: getString(R.string.sound_not_selected)
+            val uriStr = pref.getString(fileType.key, "").orEmpty()
+            val summary = if (uriStr.isNotEmpty()) {
+                getDisplayNameFromUri(uriStr.toUri()) ?: uriStr
+            } else {
+                getString(R.string.sound_not_selected)
+            }
             preferencesMap[fileType.key]?.summary = summary
         }
     }
 
     private fun resetSoundPreferences() {
+        val cr = requireContext().contentResolver
         FileType.entries.forEach { fileType ->
-            pref.setString(fileType.key, "")
+            val uriStr = pref.getString(fileType.key, null) ?: return@forEach
+            val uri = uriStr.toUri()
+
+            cr.persistedUriPermissions.firstOrNull { it.uri == uri }?.let { perm ->
+                var modeFlags = 0
+                if (perm.isReadPermission) modeFlags =
+                    modeFlags or Intent.FLAG_GRANT_READ_URI_PERMISSION
+                if (perm.isWritePermission) modeFlags =
+                    modeFlags or Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                if (modeFlags != 0) {
+                    runCatching { cr.releasePersistableUriPermission(uri, modeFlags) }
+                }
+            }
+        }
+        pref.edit {
+            FileType.entries.forEach { putString(it.key, "") }
         }
     }
 
-    private fun showPermissionBlockedDialog(messageRes: Int) {
-        MaterialAlertDialogBuilder(requireContext())
-            .setMessage(messageRes)
-            .setNegativeButton(R.string.open_settings) { _, _ ->
-                startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS).apply {
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                    data = Uri.fromParts("package", requireActivity().packageName, null)
-                })
-            }
-            .setPositiveButton(R.string.dialog_button_close) { dialog, _ -> dialog.dismiss() }
-            .setCancelable(false)
-            .show()
+    private fun getDisplayNameFromUri(uri: Uri): String? {
+        return runCatching {
+            requireContext().contentResolver
+                .query(uri, arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)
+                ?.use { c -> if (c.moveToFirst()) c.getString(0) else null }
+        }.getOrNull() ?: uri.lastPathSegment
     }
 
     override fun onResume() {
         super.onResume()
-        val isPowerConnectionEnabled = pref.getBoolean("power_connection_service", false)
-        togglePreferences(isPowerConnectionEnabled)
-        setSummaries() // Update summary
+        val enabled = pref.getBoolean("power_connection_service", false)
+        togglePreferences(enabled)
+        setSummaries()
     }
 }

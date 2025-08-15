@@ -22,3 +22,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "Battery Lab"
 include(":app")
+include(":premium")

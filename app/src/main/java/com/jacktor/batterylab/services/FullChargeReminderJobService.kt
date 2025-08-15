@@ -2,7 +2,6 @@ package com.jacktor.batterylab.services
 
 import android.app.job.JobParameters
 import android.app.job.JobService
-import android.content.Context
 import androidx.preference.PreferenceManager
 import androidx.work.Configuration
 import com.jacktor.batterylab.R
@@ -14,8 +13,6 @@ import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.NOTIFY_FULL_
 
 
 class FullChargeReminderJobService() : JobService(), NotificationInterface {
-
-    override var premiumContext: Context? = null
 
     override fun onStartJob(params: JobParameters?): Boolean {
 
@@ -33,7 +30,7 @@ class FullChargeReminderJobService() : JobService(), NotificationInterface {
 
         if (!isNotifyFullyChargeReminder || BatteryLabService.instance == null)
             ServiceHelper.cancelJob(this, Constants.NOTIFY_FULL_CHARGE_REMINDER_JOB_ID)
-        else if (isNotifyBatteryIsFullyCharged && BatteryLabService.instance!!.isFull == true)
+        else if (isNotifyBatteryIsFullyCharged && BatteryLabService.instance!!.isFull)
             onNotifyBatteryFullyCharged(this, true)
 
         return false

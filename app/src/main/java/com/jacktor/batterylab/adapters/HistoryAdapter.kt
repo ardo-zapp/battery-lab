@@ -7,6 +7,7 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.RecyclerView
+import com.jacktor.batterylab.MainApp
 import com.jacktor.batterylab.R
 import com.jacktor.batterylab.databases.History
 import com.jacktor.batterylab.databases.HistoryDB
@@ -15,18 +16,13 @@ import com.jacktor.batterylab.fragments.HistoryFragment
 import com.jacktor.batterylab.helpers.HistoryHelper
 import com.jacktor.batterylab.helpers.TextAppearanceHelper
 import com.jacktor.batterylab.interfaces.BatteryInfoInterface
-import com.jacktor.batterylab.interfaces.PremiumInterface
-import com.jacktor.batterylab.interfaces.PremiumInterface.Companion.isPremium
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys
 import java.text.DecimalFormat
 
 class HistoryAdapter(private var historyList: MutableList<History>) :
-    RecyclerView.Adapter<HistoryViewHolder>(), PremiumInterface, BatteryInfoInterface {
-
-    override var premiumContext: Context? = null
+    RecyclerView.Adapter<HistoryViewHolder>(), BatteryInfoInterface {
 
     private lateinit var binding: HistoryRecyclerListItemBinding
-
     private lateinit var pref: SharedPreferences
 
     companion object {
@@ -45,7 +41,6 @@ class HistoryAdapter(private var historyList: MutableList<History>) :
             parent, false
         )
 
-
         pref = PreferenceManager.getDefaultSharedPreferences(parent.context)
 
         return HistoryViewHolder(binding.root.rootView)
@@ -54,7 +49,8 @@ class HistoryAdapter(private var historyList: MutableList<History>) :
     override fun onBindViewHolder(holderHistory: HistoryViewHolder, position: Int) {
         updateTextAppearance(holderHistory)
 
-        if (isPremium) {
+        val context = holderHistory.itemView.context
+        if ((context.applicationContext as MainApp).billingManager.isPremium.value) {
             binding.apply {
                 historyDate.text = historyList[itemCount - 1 - position].date
                 historyResidualCapacity.text = getResidualCapacity(
@@ -72,7 +68,7 @@ class HistoryAdapter(private var historyList: MutableList<History>) :
     fun getHistoryList() = historyList
 
     private fun updateTextAppearance(holderHistory: HistoryViewHolder) {
-        TextAppearanceHelper.setTextAppearance(
+        TextAppearanceHelper.setTextAppearanceArray(
             holderHistory.itemView.context,
             arrayListOf(
                 binding.historyDate, binding.historyResidualCapacity,
@@ -183,12 +179,12 @@ class HistoryAdapter(private var historyList: MutableList<History>) :
         pref = PreferenceManager.getDefaultSharedPreferences(context)
 
         if (HistoryHelper.getHistoryCount(context) > historyList.count()) {
-            historyList = HistoryDB(context).readDB()
+            historyList = HistoryDB(context).readAll() as MutableList<History>
             notifyItemInserted(0)
         } else if (HistoryHelper.isHistoryEmpty(context) ||
             HistoryHelper.getHistoryCount(context) < historyList.count()
         ) {
-            historyList = HistoryDB(context).readDB()
+            historyList = HistoryDB(context).readAll() as MutableList<History>
             notifyItemRangeChanged(0, itemCount - 1)
         }
     }
@@ -205,7 +201,7 @@ class HistoryAdapter(private var historyList: MutableList<History>) :
 
     fun undoRemoving(context: Context, position: Int) {
         if (position >= 0) {
-            historyList = HistoryDB(context).readDB()
+            historyList = HistoryDB(context).readAll() as MutableList<History>
             notifyItemInserted(position)
         }
     }

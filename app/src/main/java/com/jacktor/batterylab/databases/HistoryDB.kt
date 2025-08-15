@@ -2,122 +2,94 @@ package com.jacktor.batterylab.databases
 
 import android.content.ContentValues
 import android.content.Context
-import android.database.DatabaseUtils
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
+import android.database.DatabaseUtils
+import com.jacktor.batterylab.databases.HistoryContract.Columns.DATE
+import com.jacktor.batterylab.databases.HistoryContract.Columns.ID
+import com.jacktor.batterylab.databases.HistoryContract.Columns.RESIDUAL_CAPACITY
+import com.jacktor.batterylab.databases.HistoryContract.TABLE_NAME
 
-const val DB_NAME = "History.db"
-const val DB_TITLE = "History"
-const val ID = "id"
-const val DATE = "Date"
-const val RESIDUAL_CAPACITY = "Residual_Capacity"
+class HistoryDB(context: Context) :
+    SQLiteOpenHelper(context, HistoryContract.DB_NAME, null, HistoryContract.DB_VERSION) {
 
-class HistoryDB(var context: Context) : SQLiteOpenHelper(context, DB_NAME, null, 1) {
-
-    override fun onCreate(db: SQLiteDatabase?) {
-
-        val createTable =
-            "CREATE TABLE $DB_TITLE ($ID INTEGER PRIMARY KEY DEFAULT 1, $DATE TEXT, $RESIDUAL_CAPACITY INTEGER)"
-        db?.execSQL(createTable)
+    override fun onCreate(db: SQLiteDatabase) {
+        db.execSQL(HistoryContract.SQL_CREATE_TABLE)
     }
 
-    override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {}
-
-    fun insertData(history: History) {
-
-        val db = writableDatabase
-        val cv = ContentValues()
-        cv.put(DATE, history.date)
-        cv.put(RESIDUAL_CAPACITY, history.residualCapacity)
-        db.insert(DB_TITLE, null, cv)
-        db.close()
+    override fun onUpgrade(db: SQLiteDatabase, oldVersion: Int, newVersion: Int) {
+        // Not implemented
     }
 
-    fun readDB(): MutableList<History> {
-
-        val historyList: MutableList<History> = mutableListOf()
-        val db = readableDatabase
-        val query = "Select * from $DB_TITLE"
-        val cursor = db.rawQuery(query, null)
-        if (cursor.moveToFirst()) {
-            do {
-                val history = History()
-                history.apply {
-                    id = cursor.getString(cursor.getColumnIndexOrThrow(ID)).toInt()
-                    date = cursor.getString(cursor.getColumnIndexOrThrow(DATE))
-                    residualCapacity =
-                        cursor.getInt(cursor.getColumnIndexOrThrow(RESIDUAL_CAPACITY))
-                }
-                historyList.add(history)
-            } while (cursor.moveToNext())
+    fun insert(history: History) {
+        writableDatabase.use { db ->
+            val values = ContentValues().apply {
+                put(DATE, history.date)
+                put(RESIDUAL_CAPACITY, history.residualCapacity)
+            }
+            db.insert(TABLE_NAME, null, values)
         }
-        cursor.close()
-        db.close()
-        return historyList
+    }
+
+    fun readAll(): List<History> {
+        val list = mutableListOf<History>()
+        readableDatabase.use { db ->
+            db.rawQuery("SELECT * FROM $TABLE_NAME", null).use { cursor ->
+                while (cursor.moveToNext()) {
+                    list.add(
+                        History().apply {
+                            id = cursor.getInt(cursor.getColumnIndexOrThrow(ID))
+                            date = cursor.getString(cursor.getColumnIndexOrThrow(DATE))
+                            residualCapacity =
+                                cursor.getInt(cursor.getColumnIndexOrThrow(RESIDUAL_CAPACITY))
+                        }
+                    )
+                }
+            }
+        }
+        return list
     }
 
     fun clear() {
-
-        val db = writableDatabase
-        db.apply {
-            delete(DB_TITLE, null, null)
-            close()
+        writableDatabase.use { db ->
+            db.delete(TABLE_NAME, null, null)
         }
     }
 
     fun removeFirstRow() {
-        val db = writableDatabase
-        val cursor = db.query(
-            DB_TITLE, null, null, null, null,
-            null, null
-        )
-
-        if (cursor.moveToFirst()) {
-            val rowId: String = cursor.getString(cursor.getColumnIndexOrThrow(ID))
-            db.delete(DB_TITLE, "$ID=?", arrayOf(rowId))
+        writableDatabase.use { db ->
+            db.query(TABLE_NAME, null, null, null, null, null, null).use { cursor ->
+                if (cursor.moveToFirst()) {
+                    val id = cursor.getInt(cursor.getColumnIndexOrThrow(ID))
+                    db.delete(TABLE_NAME, "$ID=?", arrayOf(id.toString()))
+                }
+            }
         }
+    }
 
-        cursor.close()
-        db.close()
+    fun remove(capacity: Int) {
+        val id = getIdByResidualCapacity(capacity)
+        if (id != -1) {
+            writableDatabase.use { db ->
+                db.delete(TABLE_NAME, "$ID=?", arrayOf(id.toString()))
+            }
+        }
     }
 
     fun getCount(): Long {
-        val db = readableDatabase
-        val count = DatabaseUtils.queryNumEntries(db, DB_TITLE)
-        db.close()
-        return count
-    }
-
-    fun remove(residualCapacity: Int) {
-
-        val id = getId(residualCapacity)
-        val db = writableDatabase
-        val query = "Select * from $DB_TITLE"
-        val result = db.rawQuery(query, null)
-        db.delete(DB_TITLE, "$ID =?", arrayOf("$id"))
-        result.close()
-        db.close()
-    }
-
-    private fun getId(residualCapacity: Int): Int {
-
-        val sqLiteDatabase = readableDatabase
-        val cursor = sqLiteDatabase.rawQuery("Select * from $DB_TITLE", null)
-
-        var currentId = -1
-
-        if (cursor.moveToFirst()) {
-            do {
-                if (cursor.getInt(cursor.getColumnIndexOrThrow(RESIDUAL_CAPACITY)) ==
-                    residualCapacity
-                ) {
-                    currentId = cursor.getInt(cursor.getColumnIndexOrThrow(ID))
-                    break
-                }
-            } while (cursor.moveToNext())
+        return readableDatabase.use { db ->
+            DatabaseUtils.queryNumEntries(db, TABLE_NAME)
         }
-        cursor.close()
-        sqLiteDatabase.close()
-        return currentId
+    }
+
+    private fun getIdByResidualCapacity(capacity: Int): Int {
+        readableDatabase.use { db ->
+            db.rawQuery(
+                "SELECT $ID FROM $TABLE_NAME WHERE $RESIDUAL_CAPACITY=?",
+                arrayOf(capacity.toString())
+            ).use { cursor ->
+                return if (cursor.moveToFirst()) cursor.getInt(cursor.getColumnIndexOrThrow(ID)) else -1
+            }
+        }
     }
 }

@@ -200,7 +200,7 @@
         <item>@string/bottom_right</item>
     </string-array>
 
-    <string-array name="overlay_location_values"> // Do Not Translation
+    <string-array name="overlay_location_values">// Do Not Translation
         <item>0</item>
         <item>1</item>
         <item>2</item>
@@ -219,7 +219,7 @@
         <item>@string/hour_1</item>
     </string-array>
 
-    <string-array name="full_charge_reminder_frequency_values"> // Do Not Translation
+    <string-array name="full_charge_reminder_frequency_values">// Do Not Translation
         <item>15</item>
         <item>30</item>
         <item>45</item>

@@ -3,6 +3,7 @@ package com.jacktor.batterylab.interfaces
 import android.widget.Toast
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.IntentSenderRequest
+import androidx.core.content.edit
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.play.core.appupdate.AppUpdateInfo
 import com.google.android.play.core.appupdate.AppUpdateManager
@@ -41,7 +42,7 @@ interface CheckUpdateInterface {
             } else if (isUpdateAvailable) {
                 pref?.apply {
                     if (contains(UPDATE_TEMP_SCREEN_TIME))
-                        remove(UPDATE_TEMP_SCREEN_TIME)
+                        pref?.edit { remove(UPDATE_TEMP_SCREEN_TIME) }
                 }
                 intentResultStarter()
                 val appUpdateOptions =
@@ -70,10 +71,12 @@ interface CheckUpdateInterface {
                 )
             }
             if (isUpdateAvailable) {
-                pref?.setLong(
-                    UPDATE_TEMP_SCREEN_TIME,
-                    BatteryLabService.instance?.screenTime ?: 0L
-                )
+                pref?.edit {
+                    putLong(
+                        UPDATE_TEMP_SCREEN_TIME,
+                        BatteryLabService.instance?.screenTime ?: 0L
+                    )
+                }
                 mainActivityRef?.get()?.intentResultStarter()
                 val updateFlowResultLauncher = mainActivityRef?.get()?.updateFlowResultLauncher
                 val appUpdateOptions =
@@ -85,7 +88,7 @@ interface CheckUpdateInterface {
             } else {
                 pref?.apply {
                     if (contains(UPDATE_TEMP_SCREEN_TIME))
-                        remove(UPDATE_TEMP_SCREEN_TIME)
+                        pref?.edit { remove(UPDATE_TEMP_SCREEN_TIME) }
                 }
                 mainActivityRef?.get()?.isCheckUpdateFromGooglePlay = true
                 Toast.makeText(requireContext(), R.string.update_not_found, Toast.LENGTH_LONG)
@@ -104,10 +107,12 @@ interface CheckUpdateInterface {
             setTitle(R.string.update_available_dialog_title)
             setMessage(R.string.update_available_dialog_message)
             setPositiveButton(R.string.update) { _, _ ->
-                pref?.setLong(
-                    UPDATE_TEMP_SCREEN_TIME,
-                    BatteryLabService.instance?.screenTime ?: 0L
-                )
+                pref?.edit {
+                    putLong(
+                        UPDATE_TEMP_SCREEN_TIME,
+                        BatteryLabService.instance?.screenTime ?: 0L
+                    )
+                }
                 startUpdate(
                     appUpdateManager, appUpdateInfo, updateFlowResultLauncher,
                     appUpdateOptions
@@ -116,7 +121,7 @@ interface CheckUpdateInterface {
             setNegativeButton(R.string.later_update) { _, _ ->
                 pref?.apply {
                     if (contains(UPDATE_TEMP_SCREEN_TIME))
-                        remove(UPDATE_TEMP_SCREEN_TIME)
+                        pref?.edit { remove(UPDATE_TEMP_SCREEN_TIME) }
                 }
 
                 isCheckUpdateFromGooglePlay = true

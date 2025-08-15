@@ -14,12 +14,14 @@ import com.google.android.material.textview.MaterialTextView
 import com.jacktor.batterylab.R
 import com.jacktor.batterylab.adapters.ContributorsAdapter
 import com.jacktor.batterylab.utilities.Constants.BACKEND_API_CONTRIBUTORS
-import com.jacktor.batterylab.views.ContributorsModel
+import com.jacktor.batterylab.models.ContributorsModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.json.JSONArray
+import org.json.JSONObject
 import java.io.File
 import java.net.HttpURLConnection
 import java.net.URL
@@ -28,213 +30,239 @@ import java.util.concurrent.TimeUnit
 interface ContributorsInterface {
     fun onItemClick(data: ContributorsModel)
 
-    companion object {
+    fun showContributorsDialog(context: Context) {
+        ContributorsDialogHelper(this).show(context)
+    }
+
+    private class ContributorsDialogHelper(private val callback: ContributorsInterface) {
+
         private lateinit var recyclerView: RecyclerView
         private lateinit var noInternetText: MaterialTextView
         private lateinit var nextButton: MaterialButton
         private lateinit var prevButton: MaterialButton
         private lateinit var progressBar: LinearProgressIndicator
-        private var contributorsModelArrayList: ArrayList<ContributorsModel> = ArrayList()
+
+        private val contributorsList = ArrayList<ContributorsModel>()
 
         private var currentPage = 0
-        private var pageSize = 5
+        private val pageSize = 5
         private var totalPages = 0
-    }
 
-    fun showContributorsDialog(context: Context) {
-        val dialog = MaterialAlertDialogBuilder(context, R.style.ContributorsDialog)
-        val inflater = LayoutInflater.from(context)
-        val customView = inflater.inflate(R.layout.contributors_dialog, null)
+        fun show(context: Context) {
+            val dialogBuilder = MaterialAlertDialogBuilder(context, R.style.ContributorsDialog)
+            val inflater = LayoutInflater.from(context)
+            val customView = inflater.inflate(R.layout.contributors_dialog, null)
 
-        recyclerView = customView.findViewById(R.id.contributors_recycler)
-        noInternetText = customView.findViewById(R.id.no_internet_text)
-        nextButton = customView.findViewById(R.id.next_button)
-        prevButton = customView.findViewById(R.id.prev_button)
-        progressBar = customView.findViewById(R.id.progressBar)
+            recyclerView = customView.findViewById(R.id.contributors_recycler)
+            noInternetText = customView.findViewById(R.id.no_internet_text)
+            nextButton = customView.findViewById(R.id.next_button)
+            prevButton = customView.findViewById(R.id.prev_button)
+            progressBar = customView.findViewById(R.id.progressBar)
 
-        recyclerView.layoutManager = LinearLayoutManager(context)
+            recyclerView.layoutManager = LinearLayoutManager(context)
 
-        // Bersihkan list agar tidak ada data ganda
-        contributorsModelArrayList.clear()
+            contributorsList.clear()
 
-        // Periksa jika cache sudah kadaluwarsa
-        val cacheFile = getCacheFile(context)
-        if (isCacheExpired(cacheFile)) {
-            clearCache(context)
-        }
+            val cacheFile = getCacheFile(context)
 
-        // Jika data tersedia di cache, gunakan cache
-        val cachedData = readFromCache(context)
-        if (cachedData != null) {
-            parseContributorsFromCache(cachedData)
-            totalPages = (contributorsModelArrayList.size + pageSize - 1) / pageSize
-            displayPage(context)
-        } else if (isNetworkAvailable(context)) {
-            fetchContributors(context)
-        } else {
-            showNoInternetMessage()
-        }
+            if (cacheFile.exists() && !isCacheExpired(cacheFile)) {
+                // Cache masih valid
+                val cachedData = readFromCache(context)
+                if (!cachedData.isNullOrEmpty()) {
+                    parseContributors(cachedData)
+                    totalPages = (contributorsList.size + pageSize - 1) / pageSize
+                    displayPage(context)
+                    updateButtonsVisibility()
+                }
+            } else if (isNetworkAvailable(context)) {
+                // Cache expired → bersihkan dan fetch baru
+                clearCache(context)
+                fetchContributors(context)
+            } else {
+                // Tidak ada cache dan tidak ada internet
+                showNoInternetMessage()
+            }
 
-        dialog.setView(customView)
-            .setTitle(context.getString(R.string.contributors))
-            .setCancelable(false)
-            .setPositiveButton(context.getString(R.string.close)) { dialogBtn, _ -> dialogBtn.dismiss() }
-            .show()
+            dialogBuilder.setView(customView)
+                .setTitle(context.getString(R.string.contributors))
+                .setCancelable(false)
+                .setPositiveButton(context.getString(R.string.close)) { dialogBtn, _ -> dialogBtn.dismiss() }
+                .show()
 
-        prevButton.setOnClickListener {
-            if (currentPage > 0) {
-                currentPage--
-                displayPage(context)
+            prevButton.setOnClickListener {
+                if (currentPage > 0) {
+                    currentPage--
+                    displayPage(context)
+                }
+            }
+
+            nextButton.setOnClickListener {
+                if (currentPage < totalPages - 1) {
+                    currentPage++
+                    displayPage(context)
+                }
             }
         }
 
-        nextButton.setOnClickListener {
-            if (currentPage < totalPages - 1) {
-                currentPage++
-                displayPage(context)
-            }
-        }
-    }
+        private fun fetchContributors(context: Context) {
+            progressBar.visibility = View.VISIBLE
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    retry(times = 3) {
+                        val connection =
+                            URL(BACKEND_API_CONTRIBUTORS).openConnection() as HttpURLConnection
+                        connection.connectTimeout = 15000
+                        connection.readTimeout = 20000
+                        connection.requestMethod = "GET"
 
-    private fun fetchContributors(context: Context) {
-        progressBar.visibility = View.VISIBLE
-        CoroutineScope(Dispatchers.IO).launch {
-            try {
-                val contributorsConnection =
-                    URL(BACKEND_API_CONTRIBUTORS).openConnection() as HttpURLConnection
-                contributorsConnection.connectTimeout = 5000
-                contributorsConnection.readTimeout = 5000
-                contributorsConnection.requestMethod = "GET"
+                        if (connection.responseCode == HttpURLConnection.HTTP_OK) {
+                            val response =
+                                connection.inputStream.bufferedReader().use { it.readText() }
+                            saveToCache(context, response)
+                            parseContributors(response)
 
-                if (contributorsConnection.responseCode == HttpURLConnection.HTTP_OK) {
-                    val response =
-                        contributorsConnection.inputStream.bufferedReader().use { it.readText() }
-
-                    // Simpan ke cache
-                    saveToCache(context, response)
-                    parseContributorsFromCache(response)
-
+                            withContext(Dispatchers.Main) {
+                                progressBar.visibility = View.GONE
+                                currentPage = 0
+                                totalPages = (contributorsList.size + pageSize - 1) / pageSize
+                                displayPage(context)
+                                updateButtonsVisibility()
+                            }
+                        } else {
+                            val code = connection.responseCode
+                            val errorResponse =
+                                connection.errorStream?.bufferedReader()?.use { it.readText() }
+                            val (errCode, errMsg) = parseError(errorResponse, code, context)
+                            throw Exception("(HTTP $code) [$errCode] $errMsg")
+                        }
+                    }
+                } catch (e: Exception) {
                     withContext(Dispatchers.Main) {
                         progressBar.visibility = View.GONE
-                        currentPage = 0
-                        displayPage(context)
+                        noInternetText.text =
+                            context.getString(R.string.failed_to_load_data, e.localizedMessage)
+                        noInternetText.visibility = View.VISIBLE
                     }
+                }
+            }
+        }
 
-                    if (contributorsModelArrayList.size > pageSize) {
-                        nextButton.visibility = View.VISIBLE
-                        prevButton.visibility = View.VISIBLE
-                    } else {
-                        nextButton.visibility = View.GONE
-                        prevButton.visibility = View.GONE
-                    }
-                } else {
-                    throw Exception(
-                        context.getString(
-                            R.string.failed_to_fetch_data_response_code,
-                            contributorsConnection.responseCode.toString()
-                        )
+        private fun parseContributors(response: String) {
+            val array = JSONArray(response)
+            for (i in 0 until array.length()) {
+                val obj = array.getJSONObject(i)
+                contributorsList.add(
+                    ContributorsModel(
+                        name = obj.optString("name", obj.getString("login")),
+                        username = obj.getString("login"),
+                        avatarUrl = obj.optString("avatar_url", ""),
+                        contributions = obj.optInt("contributions", 0),
+                        htmlUrl = obj.optString("html_url", "")
                     )
-                }
-            } catch (e: Exception) {
-                withContext(Dispatchers.Main) {
-                    progressBar.visibility = View.GONE
-                    noInternetText.text =
-                        context.getString(R.string.failed_to_load_data, e.localizedMessage)
-                    noInternetText.visibility = View.VISIBLE
-                }
-            }
-        }
-    }
-
-    private fun parseContributorsFromCache(response: String) {
-        val contributorsArray = JSONArray(response)
-
-        for (i in 0 until contributorsArray.length()) {
-            val contributor = contributorsArray.getJSONObject(i)
-            val username = contributor.getString("login")
-            val avatarUrl = contributor.optString("avatar_url", "")
-            val contributions = contributor.optInt("contributions", 0)
-            val name = contributor.optString("name", username)
-            val htmlUrl = contributor.optString("html_url", "")
-
-            contributorsModelArrayList.add(
-                ContributorsModel(
-                    name = name,
-                    username = username,
-                    avatarUrl = avatarUrl,
-                    contributions = contributions,
-                    htmlUrl = htmlUrl
                 )
-            )
+            }
+            contributorsList.sortByDescending { it.contributions }
         }
 
-        contributorsModelArrayList.sortByDescending { it.contributions }
-    }
+        private fun displayPage(context: Context) {
+            val start = currentPage * pageSize
+            val end = minOf((currentPage + 1) * pageSize, contributorsList.size)
+            val pageData = contributorsList.subList(start, end)
 
+            recyclerView.adapter = ContributorsAdapter(context, pageData, callback)
+            prevButton.isEnabled = currentPage > 0
+            nextButton.isEnabled = currentPage < totalPages - 1
+        }
 
-    private fun displayPage(context: Context) {
-        val startIndex = currentPage * pageSize
-        val endIndex = minOf((currentPage + 1) * pageSize, contributorsModelArrayList.size)
-        val pageData = contributorsModelArrayList.subList(startIndex, endIndex)
-
-        recyclerView.adapter = ContributorsAdapter(
-            context, pageData,
-            this
-        )
-        recyclerView.layoutManager =
-            LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false)
-
-        prevButton.isEnabled = currentPage > 0
-        nextButton.isEnabled = currentPage < totalPages - 1
-    }
-
-    private fun showNoInternetMessage() {
-        noInternetText.visibility = View.VISIBLE
-        progressBar.visibility = View.GONE
-    }
-
-    private fun isNetworkAvailable(context: Context): Boolean {
-        val connectivityManager =
-            context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-        val network = connectivityManager.activeNetwork ?: return false
-        val activeNetwork = connectivityManager.getNetworkCapabilities(network) ?: return false
-        return activeNetwork.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-    }
-
-
-    private fun getCacheFile(context: Context): File {
-        return File(context.cacheDir, "contributors.json")
-    }
-
-    private fun isCacheExpired(cacheFile: File): Boolean {
-        if (!cacheFile.exists()) return true
-        val lastModified = cacheFile.lastModified()
-        val oneDayInMillis = TimeUnit.DAYS.toMillis(1)
-        return System.currentTimeMillis() - lastModified > oneDayInMillis
-    }
-
-    private fun saveToCache(context: Context, data: String) {
-        val cacheFile = getCacheFile(context)
-        cacheFile.writeText(data)
-    }
-
-    private fun readFromCache(context: Context): String? {
-        val cacheFile = getCacheFile(context)
-        return if (cacheFile.exists()) cacheFile.readText() else null
-    }
-
-    private fun clearCache(context: Context) {
-        // Hapus file cache JSON
-        getCacheFile(context).delete()
-
-        // Bersihkan cache gambar Picasso
-        try {
-            val cacheDir = File(context.cacheDir, "picasso-cache")
-            if (cacheDir.exists()) {
-                cacheDir.deleteRecursively()
+        private fun updateButtonsVisibility() {
+            if (contributorsList.size > pageSize) {
+                nextButton.visibility = View.VISIBLE
+                prevButton.visibility = View.VISIBLE
+            } else {
+                nextButton.visibility = View.GONE
+                prevButton.visibility = View.GONE
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
+        }
+
+        private fun showNoInternetMessage() {
+            noInternetText.visibility = View.VISIBLE
+            progressBar.visibility = View.GONE
+        }
+
+        private fun isNetworkAvailable(context: Context): Boolean {
+            val cm = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+            val network = cm.activeNetwork ?: return false
+            val capabilities = cm.getNetworkCapabilities(network) ?: return false
+            return capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+        }
+
+        private fun getCacheFile(context: Context): File =
+            File(context.cacheDir, "contributors.json")
+
+        private fun isCacheExpired(file: File): Boolean {
+            if (!file.exists()) return true
+            val oneDay = TimeUnit.DAYS.toMillis(1)
+            return System.currentTimeMillis() - file.lastModified() > oneDay
+        }
+
+        private fun saveToCache(context: Context, data: String) {
+            getCacheFile(context).writeText(data)
+        }
+
+        private fun readFromCache(context: Context): String? {
+            val file = getCacheFile(context)
+            return if (file.exists()) file.readText() else null
+        }
+
+        private fun clearCache(context: Context) {
+            getCacheFile(context).delete()
+            try {
+                val picassoCache = File(context.cacheDir, "picasso-cache")
+                if (picassoCache.exists()) picassoCache.deleteRecursively()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
+
+        private suspend fun retry(
+            times: Int = 3,
+            delayMillis: Long = 2000L,
+            block: suspend () -> Unit
+        ) {
+            var attempt = 0
+            while (true) {
+                try {
+                    block()
+                    return
+                } catch (e: Exception) {
+                    if (++attempt >= times) throw e
+                    delay(delayMillis)
+                }
+            }
+        }
+
+        private fun parseError(
+            errorResponse: String?,
+            responseCode: Int,
+            context: Context
+        ): Pair<String, String> {
+            return try {
+                val json = JSONObject(errorResponse ?: "")
+                val code = json.optString("code", "UNKNOWN")
+                val message = json.optString(
+                    "message",
+                    context.getString(
+                        R.string.failed_to_fetch_data_response_code,
+                        responseCode.toString()
+                    )
+                )
+                code to message
+            } catch (_: Exception) {
+                "UNKNOWN" to context.getString(
+                    R.string.failed_to_fetch_data_response_code,
+                    responseCode.toString()
+                )
+            }
         }
     }
 }

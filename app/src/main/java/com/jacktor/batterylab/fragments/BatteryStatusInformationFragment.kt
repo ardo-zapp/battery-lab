@@ -5,6 +5,7 @@ import android.app.Activity
 import android.content.ActivityNotFoundException
 import android.content.DialogInterface
 import android.content.Intent
+import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -17,11 +18,13 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.core.content.ContextCompat
+import androidx.core.content.edit
 import androidx.documentfile.provider.DocumentFile
 import androidx.preference.ListPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceCategory
 import androidx.preference.PreferenceFragmentCompat
+import androidx.preference.PreferenceManager
 import androidx.preference.SeekBarPreference
 import androidx.preference.SwitchPreferenceCompat
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -48,7 +51,6 @@ import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.NOTIFY_FULL_
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.NOTIFY_OVERHEAT_OVERCOOL
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.OVERCOOL_DEGREES
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.OVERHEAT_DEGREES
-import com.jacktor.batterylab.utilities.preferences.Prefs
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -58,7 +60,7 @@ import kotlin.time.Duration.Companion.minutes
 
 class BatteryStatusInformationFragment : PreferenceFragmentCompat() {
 
-    private lateinit var pref: Prefs
+    private lateinit var pref: SharedPreferences
     private lateinit var getResult: ActivityResultLauncher<Intent>
 
     private var batteryStatusInformationSettingsPrefCategory: PreferenceCategory? = null
@@ -81,7 +83,7 @@ class BatteryStatusInformationFragment : PreferenceFragmentCompat() {
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
 
-        pref = Prefs(requireContext())
+        pref = PreferenceManager.getDefaultSharedPreferences(requireContext())
 
         addPreferencesFromResource(R.xml.battery_status_information_settings)
 
@@ -576,10 +578,12 @@ class BatteryStatusInformationFragment : PreferenceFragmentCompat() {
             ) !in
             resources.getStringArray(R.array.full_charge_reminder_frequency_values)
         )
-            pref.setString(
-                FULL_CHARGE_REMINDER_FREQUENCY,
-                "${resources.getInteger(R.integer.full_charge_reminder_frequency_default)}"
-            )
+            pref.edit {
+                putString(
+                    FULL_CHARGE_REMINDER_FREQUENCY,
+                    "${resources.getInteger(R.integer.full_charge_reminder_frequency_default)}"
+                )
+            }
 
         val fullChargeReminderFrequencyPref = pref.getString(
             FULL_CHARGE_REMINDER_FREQUENCY,
@@ -603,12 +607,14 @@ class BatteryStatusInformationFragment : PreferenceFragmentCompat() {
             pref.getInt(OVERHEAT_DEGREES, resources.getInteger(R.integer.overheat_degrees_default))
             < resources.getInteger(R.integer.overheat_degrees_min)
         )
-            pref.setInt(
-                OVERHEAT_DEGREES, resources.getInteger(
-                    R
-                        .integer.overheat_degrees_default
+            pref.edit {
+                putInt(
+                    OVERHEAT_DEGREES, resources.getInteger(
+                        R
+                            .integer.overheat_degrees_default
+                    )
                 )
-            )
+            }
 
         val temperature = pref.getInt(
             OVERHEAT_DEGREES,
@@ -629,12 +635,14 @@ class BatteryStatusInformationFragment : PreferenceFragmentCompat() {
             pref.getInt(OVERCOOL_DEGREES, resources.getInteger(R.integer.overcool_degrees_default))
             < resources.getInteger(R.integer.overcool_degrees_min)
         )
-            pref.setInt(
-                OVERCOOL_DEGREES, resources.getInteger(
-                    R
-                        .integer.overcool_degrees_default
+            pref.edit {
+                putInt(
+                    OVERCOOL_DEGREES, resources.getInteger(
+                        R
+                            .integer.overcool_degrees_default
+                    )
                 )
-            )
+            }
 
         val temperature = pref.getInt(
             OVERCOOL_DEGREES,
@@ -653,7 +661,9 @@ class BatteryStatusInformationFragment : PreferenceFragmentCompat() {
         if (pref.getInt(BATTERY_LEVEL_NOTIFY_CHARGED, 80) > 100 ||
             pref.getInt(BATTERY_LEVEL_NOTIFY_CHARGED, 80) < 1
         )
-            pref.setInt(BATTERY_LEVEL_NOTIFY_CHARGED, 80)
+            pref.edit {
+                putInt(BATTERY_LEVEL_NOTIFY_CHARGED, 80)
+            }
 
         return "${pref.getInt(BATTERY_LEVEL_NOTIFY_CHARGED, 1)}%"
     }
@@ -663,7 +673,9 @@ class BatteryStatusInformationFragment : PreferenceFragmentCompat() {
         if (pref.getInt(BATTERY_LEVEL_NOTIFY_DISCHARGED, 20) > 99 ||
             pref.getInt(BATTERY_LEVEL_NOTIFY_DISCHARGED, 20) < 1
         )
-            pref.setInt(BATTERY_LEVEL_NOTIFY_DISCHARGED, 20)
+            pref.edit {
+                putInt(BATTERY_LEVEL_NOTIFY_DISCHARGED, 20)
+            }
 
         return "${pref.getInt(BATTERY_LEVEL_NOTIFY_DISCHARGED, 20)}%"
     }
@@ -707,10 +719,12 @@ class BatteryStatusInformationFragment : PreferenceFragmentCompat() {
 
         dialog.setPositiveButton(requireContext().getString(R.string.change)) { _, _ ->
 
-            pref.setInt(
-                BATTERY_NOTIFY_DISCHARGED_VOLTAGE,
-                binding.changeBatteryIsChargedDischargedMvEdit.text.toString().toInt()
-            )
+            pref.edit {
+                putInt(
+                    BATTERY_NOTIFY_DISCHARGED_VOLTAGE,
+                    binding.changeBatteryIsChargedDischargedMvEdit.text.toString().toInt()
+                )
+            }
         }
 
         dialog.setNegativeButton(android.R.string.cancel) { d, _ -> d.dismiss() }

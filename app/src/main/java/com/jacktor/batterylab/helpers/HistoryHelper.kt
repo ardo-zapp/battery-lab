@@ -20,7 +20,7 @@ object HistoryHelper {
         val historyDB = HistoryDB(context)
         val history = History(date = date, residualCapacity = residualCapacity)
         removeFirstRowIfHistoryMax(context)
-        historyDB.insertData(history)
+        historyDB.insert(history)
     }
 
     private fun removeFirstRowIfHistoryMax(context: Context) {

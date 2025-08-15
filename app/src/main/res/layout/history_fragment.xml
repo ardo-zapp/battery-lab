@@ -32,7 +32,7 @@
                 android:layout_width="150dp"
                 android:layout_height="150dp"
                 android:layout_marginTop="15dp"
-                app:srcCompat="@mipmap/jacktor_pose_1"
+                app:srcCompat="@mipmap/ardo_zapp_pose_1"
                 tools:ignore="ContentDescription" />
 
         </LinearLayout>

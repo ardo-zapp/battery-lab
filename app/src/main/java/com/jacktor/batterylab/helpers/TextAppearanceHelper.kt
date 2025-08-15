@@ -2,158 +2,143 @@ package com.jacktor.batterylab.helpers
 
 import android.content.Context
 import android.graphics.Typeface
+import android.util.SparseArray
 import android.util.TypedValue
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.content.res.ResourcesCompat
-import androidx.core.graphics.TypefaceCompat
+import com.jacktor.batterylab.MainApp
 import com.jacktor.batterylab.R
-import com.jacktor.batterylab.interfaces.PremiumInterface
 
-object TextAppearanceHelper : PremiumInterface {
+object TextAppearanceHelper {
 
-    fun setTextAppearance(
-        context: Context, textViewArrayList: ArrayList<AppCompatTextView>,
+
+    private val fontCache = SparseArray<Typeface?>()
+    private const val DEFAULT_FONT_INDEX = 6
+    private const val MAX_FONT_INDEX = 39
+    private const val MAX_STYLE_INDEX = 2
+    private const val MAX_SIZE_INDEX = 4
+
+    fun setTextAppearanceArray(
+        context: Context,
+        textViewArrayList: ArrayList<AppCompatTextView>,
         textStylePref: String?,
-        textFontPref: String?, textSizePref: String?
+        textFontPref: String?,
+        textSizePref: String?
     ) {
-        val isPremium = PremiumInterface.isPremium
-        textViewArrayList.forEach {
-            setTextSize(context, it, textSizePref, false)
-            val fontFamily = setTextFont(it.context, if (isPremium) textFontPref else "6")
-            it.typeface = setTextStyle(it, textStylePref, fontFamily)
+        val isPremium = (context.applicationContext as MainApp).billingManager.isPremium.value
+        val sizeIdx = parseIndex(textSizePref, 2, MAX_SIZE_INDEX)
+        val fontIdx = if (isPremium) parseIndex(textFontPref, DEFAULT_FONT_INDEX, MAX_FONT_INDEX)
+        else DEFAULT_FONT_INDEX
+        val styleIdx = parseIndex(textStylePref, 0, MAX_STYLE_INDEX)
+
+        val typeface = resolveTypeface(context, fontIdx, styleIdx)
+
+        textViewArrayList.forEach { tv ->
+            setTextSize(context, tv, sizeIdx, subTitle = false)
+            tv.typeface = typeface
         }
     }
 
     fun setTextAppearance(
-        context: Context, textView: AppCompatTextView, textStylePref: String?,
-        textFontPref: String?, textSizePref: String?, subTitle: Boolean
+        context: Context,
+        textView: AppCompatTextView,
+        textStylePref: String?,
+        textFontPref: String?,
+        textSizePref: String?,
+        subTitle: Boolean
     ) {
+        val isPremium = (context.applicationContext as MainApp).billingManager.isPremium.value
 
-        if (textSizePref != null) setTextSize(context, textView, textSizePref, subTitle)
+        val sizeIdx = parseIndex(textSizePref, if (subTitle) 2 else 2, MAX_SIZE_INDEX)
+        val fontIdx = if (isPremium) parseIndex(textFontPref, DEFAULT_FONT_INDEX, MAX_FONT_INDEX)
+        else DEFAULT_FONT_INDEX
+        val styleIdx = parseIndex(textStylePref, 0, MAX_STYLE_INDEX)
 
-        val isPremium = PremiumInterface.isPremium
-
-        val fontFamily = setTextFont(textView.context, if (isPremium) textFontPref else "6")
-
-        textView.typeface = setTextStyle(textView, textStylePref, fontFamily)
+        setTextSize(context, textView, sizeIdx, subTitle)
+        textView.typeface = resolveTypeface(textView.context, fontIdx, styleIdx)
     }
 
-    private fun setTextFont(context: Context, textFontPref: String?): Typeface? {
+    private fun parseIndex(raw: String?, def: Int, max: Int): Int {
+        val v = raw?.toIntOrNull() ?: def
+        return v.coerceIn(0, max)
+    }
 
-        return when (textFontPref?.toInt()) {
+    private fun resolveTypeface(context: Context, fontIndex: Int, styleIndex: Int): Typeface {
+        val base = getFontByIndex(context, fontIndex) ?: Typeface.DEFAULT
+        val style = when (styleIndex) {
+            1 -> Typeface.BOLD
+            2 -> Typeface.ITALIC
+            else -> Typeface.NORMAL
+        }
+        return Typeface.create(base, style)
+    }
 
+    private fun getFontByIndex(context: Context, idx: Int): Typeface? {
+        fontCache[idx]?.let { return it }
+
+        val tf: Typeface? = when (idx) {
             0 -> Typeface.DEFAULT
-
-            1 -> ResourcesCompat.getFont(context, R.font.roboto)
-
+            1 -> resFont(context, R.font.roboto)
             2 -> Typeface.SERIF
-
             3 -> Typeface.SANS_SERIF
-
             4 -> Typeface.MONOSPACE
-
-            5 -> ResourcesCompat.getFont(context, R.font.inter)
-
-            6 -> ResourcesCompat.getFont(context, R.font.google_sans)
-
-            7 -> ResourcesCompat.getFont(context, R.font.times_new_roman)
-
-            8 -> ResourcesCompat.getFont(context, R.font.ubuntu)
-
-            9 -> ResourcesCompat.getFont(context, R.font.lora)
-
-            10 -> ResourcesCompat.getFont(context, R.font.oswald)
-
-            11 -> ResourcesCompat.getFont(context, R.font.pt_sans)
-
-            12 -> ResourcesCompat.getFont(context, R.font.pt_serif)
-
-            13 -> ResourcesCompat.getFont(context, R.font.open_sans)
-
-            14 -> ResourcesCompat.getFont(context, R.font.noto_sans)
-
-            15 -> ResourcesCompat.getFont(context, R.font.nunito_sans)
-
-            16 -> ResourcesCompat.getFont(context, R.font.work_sans)
-
-            17 -> ResourcesCompat.getFont(context, R.font.merriweather_sans)
-
-            18 -> ResourcesCompat.getFont(context, R.font.sf_pro)
-
-            19 -> ResourcesCompat.getFont(context, R.font.lobster)
-
-            20 -> ResourcesCompat.getFont(context, R.font.moon_dance)
-
-            21 -> ResourcesCompat.getFont(context, R.font.rubik)
-
-            22 -> ResourcesCompat.getFont(context, R.font.playfair_display)
-
-            23 -> ResourcesCompat.getFont(context, R.font.rowdies)
-
-            24 -> ResourcesCompat.getFont(context, R.font.raleway)
-
-            25 -> ResourcesCompat.getFont(context, R.font.montserrat)
-
-            26 -> ResourcesCompat.getFont(context, R.font.sono)
-
-            27 -> ResourcesCompat.getFont(context, R.font.rubik_iso)
-
-            28 -> ResourcesCompat.getFont(context, R.font.roboto_condensed)
-
-            29 -> ResourcesCompat.getFont(context, R.font.poppins)
-
-            30 -> ResourcesCompat.getFont(context, R.font.kanit)
-
-            31 -> ResourcesCompat.getFont(context, R.font.playfair)
-
-            32 -> ResourcesCompat.getFont(context, R.font.mukta)
-
-            33 -> ResourcesCompat.getFont(context, R.font.mooli)
-
-            34 -> ResourcesCompat.getFont(context, R.font.inclusive_sans)
-
-            35 -> ResourcesCompat.getFont(context, R.font.borel)
-
-            36 -> ResourcesCompat.getFont(context, R.font.handjet)
-
-            37 -> ResourcesCompat.getFont(context, R.font.ysabeau_sc)
-
-            38 -> ResourcesCompat.getFont(context, R.font.ysabeau_office)
-
-            39 -> ResourcesCompat.getFont(context, R.font.ysabeau_infant)
-
+            5 -> resFont(context, R.font.inter)
+            6 -> resFont(context, R.font.google_sans)
+            7 -> resFont(context, R.font.times_new_roman)
+            8 -> resFont(context, R.font.ubuntu)
+            9 -> resFont(context, R.font.lora)
+            10 -> resFont(context, R.font.oswald)
+            11 -> resFont(context, R.font.pt_sans)
+            12 -> resFont(context, R.font.pt_serif)
+            13 -> resFont(context, R.font.open_sans)
+            14 -> resFont(context, R.font.noto_sans)
+            15 -> resFont(context, R.font.nunito_sans)
+            16 -> resFont(context, R.font.work_sans)
+            17 -> resFont(context, R.font.merriweather_sans)
+            18 -> resFont(context, R.font.sf_pro)
+            19 -> resFont(context, R.font.lobster)
+            20 -> resFont(context, R.font.moon_dance)
+            21 -> resFont(context, R.font.rubik)
+            22 -> resFont(context, R.font.playfair_display)
+            23 -> resFont(context, R.font.rowdies)
+            24 -> resFont(context, R.font.raleway)
+            25 -> resFont(context, R.font.montserrat)
+            26 -> resFont(context, R.font.sono)
+            27 -> resFont(context, R.font.rubik_iso)
+            28 -> resFont(context, R.font.roboto_condensed)
+            29 -> resFont(context, R.font.poppins)
+            30 -> resFont(context, R.font.kanit)
+            31 -> resFont(context, R.font.playfair)
+            32 -> resFont(context, R.font.mukta)
+            33 -> resFont(context, R.font.mooli)
+            34 -> resFont(context, R.font.inclusive_sans)
+            35 -> resFont(context, R.font.borel)
+            36 -> resFont(context, R.font.handjet)
+            37 -> resFont(context, R.font.ysabeau_sc)
+            38 -> resFont(context, R.font.ysabeau_office)
+            39 -> resFont(context, R.font.ysabeau_infant)
             else -> null
         }
+
+        fontCache.put(idx, tf)
+        return tf
     }
 
-
-    private fun setTextStyle(
-        textView: AppCompatTextView, textStylePref: String?,
-        fontFamily: Typeface?
-    ): Typeface? {
-
-        return when (textStylePref?.toInt()) {
-
-            0 -> TypefaceCompat.create(textView.context, fontFamily, Typeface.NORMAL)
-
-            1 -> TypefaceCompat.create(textView.context, fontFamily, Typeface.BOLD)
-
-            2 -> TypefaceCompat.create(textView.context, fontFamily, Typeface.ITALIC)
-
-            else -> null
+    private fun resFont(context: Context, resId: Int): Typeface? =
+        try {
+            ResourcesCompat.getFont(context, resId)
+        } catch (_: Throwable) {
+            null
         }
-    }
 
     private fun setTextSize(
         context: Context,
         textView: AppCompatTextView,
-        textSizePref: String?,
+        sizeIndex: Int,
         subTitle: Boolean
     ) {
-
         if (!subTitle) {
-            when (textSizePref?.toInt()) {
-
+            when (sizeIndex) {
                 0 -> textView.setTextSize(
                     TypedValue.COMPLEX_UNIT_PX,
                     context.resources.getDimension(R.dimen.very_small_text_size)
@@ -180,36 +165,13 @@ object TextAppearanceHelper : PremiumInterface {
                 )
             }
         } else {
-            when (textSizePref?.toInt()) {
-                0 -> textView.setTextSize(
-                    TypedValue.COMPLEX_UNIT_SP,
-                    6F
-                )
-
-                1 -> textView.setTextSize(
-                    TypedValue.COMPLEX_UNIT_SP,
-                    8F
-                )
-
-                2 -> textView.setTextSize(
-                    TypedValue.COMPLEX_UNIT_SP,
-                    12F
-                )
-
-                3 -> textView.setTextSize(
-                    TypedValue.COMPLEX_UNIT_SP,
-                    16F
-                )
-
-                4 -> textView.setTextSize(
-                    TypedValue.COMPLEX_UNIT_SP,
-                    22F
-                )
+            when (sizeIndex) {
+                0 -> textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 6f)
+                1 -> textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 8f)
+                2 -> textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 12f)
+                3 -> textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 16f)
+                4 -> textView.setTextSize(TypedValue.COMPLEX_UNIT_SP, 22f)
             }
         }
     }
-
-    override var premiumContext: Context?
-        get() = null
-        set(_) {}
 }
