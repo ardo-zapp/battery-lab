@@ -63,7 +63,6 @@
             app:icon="@drawable/ic_power_connection_24dp"
             app:singleLineTitle="false" />
 
-
     </PreferenceCategory>
 
     <PreferenceCategory
@@ -89,33 +88,34 @@
             app:singleLineTitle="false" />
 
         <ListPreference
-            android:title="@string/text_size"
-            app:singleLineTitle="false"
-            app:icon="@drawable/ic_text_size_24dp"
-            app:dialogIcon="@drawable/ic_text_size_24dp"
             android:entries="@array/text_size_list"
             android:entryValues="@array/text_size_values"
-            android:key="text_size"/>
+            android:key="text_size"
+            android:title="@string/text_size"
+            app:defaultValue="2"
+            app:dialogIcon="@drawable/ic_text_size_24dp"
+            app:icon="@drawable/ic_text_size_24dp"
+            app:singleLineTitle="false" />
 
         <ListPreference
-            android:title="@string/text_font"
-            app:singleLineTitle="false"
-            app:icon="@drawable/ic_text_font"
-            app:dialogIcon="@drawable/ic_text_font"
             android:entries="@array/fonts_list"
             android:entryValues="@array/fonts_values"
+            android:key="text_font"
+            android:title="@string/text_font"
             app:defaultValue="6"
-            android:key="text_font"/>
+            app:dialogIcon="@drawable/ic_text_font"
+            app:icon="@drawable/ic_text_font"
+            app:singleLineTitle="false" />
 
         <ListPreference
-            android:title="@string/text_style"
-            app:singleLineTitle="false"
-            app:icon="@drawable/ic_text_style"
-            app:dialogIcon="@drawable/ic_text_style"
             android:entries="@array/text_style_list"
             android:entryValues="@array/text_style_values"
+            android:key="text_style"
+            android:title="@string/text_style"
             app:defaultValue="0"
-            android:key="text_style"/>
+            app:dialogIcon="@drawable/ic_text_style"
+            app:icon="@drawable/ic_text_style"
+            app:singleLineTitle="false" />
 
     </PreferenceCategory>
 
@@ -127,10 +127,10 @@
         app:singleLineTitle="false">
 
         <SwitchPreferenceCompat
-            android:title="@string/fast_charge"
             android:defaultValue="@bool/fast_charge_setting"
-            app:singleLineTitle="false"
-            android:key="is_fast_charge_setting"/>
+            android:key="is_fast_charge_setting"
+            android:title="@string/fast_charge"
+            app:singleLineTitle="false" />
 
         <SwitchPreferenceCompat
             android:key="capacity_in_wh"
@@ -158,10 +158,10 @@
             app:singleLineTitle="false" />
 
         <Preference
+            android:key="more_other"
             android:title="@string/more"
             app:icon="@drawable/ic_more_24dp"
-            app:singleLineTitle="false"
-            android:key="more_other"/>
+            app:singleLineTitle="false" />
 
         <ListPreference
             android:dialogIcon="@drawable/ic_tab_on_application_launch"
@@ -169,9 +169,9 @@
             android:entryValues="@array/tab_on_application_launch_values"
             android:key="tab_on_application_launch"
             android:title="@string/tab_on_application_launch"
-            app:isPreferenceVisible="false"
             app:defaultValue="0"
             app:icon="@drawable/ic_tab_on_application_launch"
+            app:isPreferenceVisible="false"
             app:singleLineTitle="false" />
 
         <ListPreference
