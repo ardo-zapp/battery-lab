@@ -238,7 +238,6 @@
     <string name="pref_power_disconnected_sound_title">Select sound for power is disconnected</string>
     <string name="pref_sound_delay_title">Sound delay</string>
     <string name="reset_sound">Reset Sound</string>
-    <string name="audio_permission_not_granted">Audio permission not granted</string>
     <string name="pref_enable_vibration_title">Enable vibration</string>
     <string name="pref_enable_vibration_smry">Vibrate when power is connected or disconnected</string>
     <string name="pref_vibration_duration_title">Vibration duration</string>
@@ -292,8 +291,6 @@
     <string name="full_charge_reminder">Full Charge Reminder</string>
     <string name="full_charge_reminder_summary">Full charge reminder every 30 minutes</string>
     <string name="full_charge_reminder_frequency">Full Charge Reminder Frequency</string>
-    <string name="storage_permission_not_granted">Storage permission not granted</string>
-    <string name="open_settings">Open Settings</string>
     <string name="request_notification_message">For the application to work correctly, you need to enable notifications. This is necessary for the service that is responsible for most of the application\'s operation, including calculating the residual battery capacity</string>
     <string name="auto_start_xiaomi_dialog">In order for the application to work correctly, allow autostart in the next window</string>
     <string name="background_activity_control_xiaomi_dialog">In order for the application to work correctly in the background, go to the next window and select \"No restrictions\"</string>
@@ -361,7 +358,6 @@
     <string name="health_title">Health</string>
     <string name="power_monitor_title">Power Monitor</string>
     <string name="reset">RESET</string>
-    <string name="dialog_button_close">Close</string>
     <string name="change_design_capacity">Change Design Capacity</string>
     <string name="change">Change</string>
     <string name="battery_technology">Technology: %1$s</string>
@@ -427,8 +423,6 @@
     <string name="thermal_critical">Very hot</string>
     <string name="thermal_emergency">Emergency</string>
     <string name="thermal_shutdown">Shutdown imminent</string>
-    <string name="charge_current_label">Charge Current</string>
-    <string name="discharge_current_label">Discharge Current</string>
     <string name="peak_charge_power_verbose">Peak: %1$s W (%2$d mA @ %3$s V)</string>
 
     <string name="premium_purchase_success">Yay! Premium is active</string>

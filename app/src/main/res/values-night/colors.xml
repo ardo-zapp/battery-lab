@@ -34,14 +34,6 @@
     <color name="icons">@android:color/white</color>
     <color name="service_notification_text">@android:color/darker_gray</color>
     <color name="swipe_refresh_layout_progress_background">@color/dark</color>
-    <color name="battery_health">@color/md_pink_400</color>
-    <color name="battery_power">@color/md_yellow_400</color>
-    <color name="battery_temp_cold">@color/md_blue_400</color>
-    <color name="battery_temp_hot">@color/md_red_500</color>
-    <color name="battery_temp_normal">@color/md_blue_600</color>
-    <color name="battery_temp_very_hot">@color/md_pink_700</color>
-    <color name="battery_temp_warm">@color/md_yellow_600</color>
-    <color name="battery_unknown">@color/md_purple_400</color>
 
     <color name="battery_info_level_normal">#05BA7D</color>
     <color name="battery_info_level_charging">#ADC6FF</color>

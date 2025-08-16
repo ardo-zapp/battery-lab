@@ -199,7 +199,6 @@
     <string name="pref_power_disconnected_sound_title">Pilih suara untuk daya terputus</string>
     <string name="pref_sound_delay_title">Penundaan suara</string>
     <string name="reset_sound">Atur Ulang Suara</string>
-    <string name="audio_permission_not_granted">Izin audio belum diberikan</string>
     <string name="pref_enable_vibration_title">Aktifkan getaran</string>
     <string name="pref_enable_vibration_smry">Getar saat daya tersambung atau terputus</string>
     <string name="pref_vibration_duration_title">Durasi getaran</string>
@@ -253,8 +252,6 @@
     <string name="full_charge_reminder">Pengingat Pengisian Penuh</string>
     <string name="full_charge_reminder_summary">Pengingat pengisian penuh setiap 30 menit</string>
     <string name="full_charge_reminder_frequency">Frekuensi Pengingat Pengisian Penuh</string>
-    <string name="storage_permission_not_granted">Izin penyimpanan belum diberikan</string>
-    <string name="open_settings">Buka Pengaturan</string>
     <string name="request_notification_message">Untuk aplikasi dapat bekerja dengan benar, Anda perlu mengaktifkan notifikasi. Ini diperlukan untuk layanan yang bertanggung jawab atas sebagian besar operasi aplikasi, termasuk menghitung kapasitas baterai yang tersisa</string>
     <string name="auto_start_xiaomi_dialog">Agar aplikasi dapat berjalan dengan benar, izinkan mulai otomatis di jendela berikutnya</string>
     <string name="background_activity_control_xiaomi_dialog"><string name="background_activity_control_xiaomi_dialog">Agar aplikasi dapat berjalan dengan baik di latar belakang, buka jendela berikutnya dan pilih \"Tidak ada pembatasan\"</string>
@@ -318,7 +315,6 @@
     <string name="health_title">Kesehatan</string>
     <string name="power_monitor_title">Pemantau Daya</string>
     <string name="reset">RESET</string>
-    <string name="dialog_button_close">Tutup</string>
     <string name="change_design_capacity">Ubah Kapasitas Desain</string>
     <string name="change">Ubah</string>
     <string name="battery_technology">Teknologi: %1$s</string>
@@ -380,8 +376,6 @@
     <string name="thermal_critical">Sangat panas</string>
     <string name="thermal_emergency">Darurat</string>
     <string name="thermal_shutdown">Segera mati</string>
-    <string name="charge_current_label">Arus Pengisian</string>
-    <string name="discharge_current_label">Arus Pemakaian</string>
     <string name="peak_charge_power_verbose">Puncak: %1$s W (%2$d mA @ %3$s V)</string>
 
     <string name="premium_purchase_success">Mantap! Premium aktif</string>

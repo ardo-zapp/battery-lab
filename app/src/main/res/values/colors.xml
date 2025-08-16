@@ -34,28 +34,7 @@
     <color name="subtitle_text">@color/dark_white</color>
     <color name="menu_text">@color/dark_white</color>
 
-    <color name="battery_health">@color/md_pink_700</color>
-    <color name="battery_power">@color/md_yellow_700</color>
-    <color name="battery_temp_cold">@color/md_blue_300</color>
-    <color name="battery_temp_hot">@color/md_red_700</color>
-    <color name="battery_temp_normal">@color/md_blue_400</color>
-    <color name="battery_temp_very_hot">@color/md_pink_900</color>
-    <color name="battery_temp_warm">@color/md_yellow_700</color>
-    <color name="battery_unknown">@color/md_purple_700</color>
-
-    <color name="md_blue_300">#64b5f6</color>
-    <color name="md_blue_400">#42a5f5</color>
     <color name="md_blue_600">#1e88e5</color>
-    <color name="md_pink_400">#ec407a</color>
-    <color name="md_pink_700">#c2185b</color>
-    <color name="md_pink_900">#880e4f</color>
-    <color name="md_purple_400">#ab47bc</color>
-    <color name="md_purple_700">#7b1fa2</color>
-    <color name="md_red_500">#f44336</color>
-    <color name="md_red_700">#d32f2f</color>
-    <color name="md_yellow_400">#ffee58</color>
-    <color name="md_yellow_600">#fdd835</color>
-    <color name="md_yellow_700">#fbc02d</color>
 
     <color name="white">#FFFFFF</color>
     <color name="blue">#2196F3</color>

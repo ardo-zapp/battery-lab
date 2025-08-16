@@ -199,7 +199,6 @@
     <string name="pref_power_disconnected_sound_title">Выбрать звук при отключении питания</string>
     <string name="pref_sound_delay_title">Задержка звука</string>
     <string name="reset_sound">Сбросить звук</string>
-    <string name="audio_permission_not_granted">Разрешение на аудио не предоставлено</string>
     <string name="pref_enable_vibration_title">Включить вибрацию</string>
     <string name="pref_enable_vibration_smry">Вибрация при подключении/отключении питания</string>
     <string name="pref_vibration_duration_title">Длительность вибрации</string>
@@ -253,8 +252,6 @@
     <string name="full_charge_reminder">Напоминание о полном заряде</string>
     <string name="full_charge_reminder_summary">Напоминание каждые 30 минут</string>
     <string name="full_charge_reminder_frequency">Частота напоминаний о полном заряде</string>
-    <string name="storage_permission_not_granted">Разрешение на память не предоставлено</string>
-    <string name="open_settings">Открыть настройки</string>
     <string name="request_notification_message">Для корректной работы приложения необходимо включить уведомления. Это нужно для сервиса, отвечающего за основную работу приложения, включая расчёт остаточной ёмкости</string>
     <string name="auto_start_xiaomi_dialog">Для корректной работы приложения разрешите автозапуск в следующем окне</string>
     <string name="background_activity_control_xiaomi_dialog">Для корректной работы в фоне перейдите в следующее окно и выберите «Без ограничений»</string>
@@ -316,7 +313,6 @@
     <string name="health_title">Состояние</string>
     <string name="power_monitor_title">Монитор питания</string>
     <string name="reset">СБРОС</string>
-    <string name="dialog_button_close">Закрыть</string>
     <string name="change_design_capacity">Изменить проектную ёмкость</string>
     <string name="change">Изменить</string>
     <string name="battery_technology">Технология: %1$s</string>
@@ -380,8 +376,6 @@
     <string name="thermal_critical">Очень горячий</string>
     <string name="thermal_emergency">Аварийный</string>
     <string name="thermal_shutdown">Скоро выключение</string>
-    <string name="charge_current_label">Ток зарядки</string>
-    <string name="discharge_current_label">Ток разряда</string>
     <string name="peak_charge_power_verbose">Пик: %1$s Вт (%2$d мА @ %3$s В)</string>
 
     <string name="premium_purchase_success">Ура! Premium активирован</string>

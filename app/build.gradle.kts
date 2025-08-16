@@ -97,15 +97,6 @@ android {
         ignoreAssetsPattern = "*.md"
     }
 
-    packaging {
-        jniLibs {
-            keepDebugSymbols += setOf(
-                "**/libconscrypt_jni.so",
-                "**/libdatastore_shared_counter.so"
-            )
-        }
-    }
-
     firebaseCrashlytics {
         mappingFileUploadEnabled = true
         nativeSymbolUploadEnabled = false
@@ -114,7 +105,6 @@ android {
 
 dependencies {
     implementation(project(":premium"))
-    coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.1.5")
 
     // Firebase / Google
     implementation(platform("com.google.firebase:firebase-bom:34.1.0"))
@@ -122,8 +112,6 @@ dependencies {
     implementation("com.google.firebase:firebase-analytics-ktx:22.5.0")
     implementation("com.google.android.gms:play-services-ads:24.5.0")
     implementation("com.google.android.play:app-update-ktx:2.1.0")
-
-    // Material
     implementation("com.google.android.material:material:1.12.0")
 
     // AndroidX
