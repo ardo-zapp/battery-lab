@@ -10,22 +10,17 @@ import android.os.Build
 import com.jacktor.batterylab.helpers.ThemeHelper
 import com.jacktor.batterylab.interfaces.NavigationInterface.Companion.mainActivityRef
 import com.jacktor.batterylab.utilities.Constants
-import com.jacktor.premium.billing.BillingManager
-import com.jacktor.premium.utilities.PremiumConfig
+import com.jacktor.premium.Premium
 import java.io.Serializable
 import kotlin.system.exitProcess
 
 class MainApp : Application() {
 
-    lateinit var billingManager: BillingManager
-
     override fun onCreate() {
         super.onCreate()
 
-        // Jacktor Premium - Billing Manager
-        PremiumConfig.premiumProductId = "premium"
-        billingManager = BillingManager(applicationContext)
-        billingManager.startBillingClient()
+        // Jacktor Premium
+        Premium.init(this, "premium")
 
         initializeTheme()
         isInstalledGooglePlay = checkIfGooglePlayInstalled()

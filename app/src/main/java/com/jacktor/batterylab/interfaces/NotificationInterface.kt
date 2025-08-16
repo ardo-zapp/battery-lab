@@ -24,7 +24,6 @@ import androidx.core.content.ContextCompat
 import androidx.core.net.toUri
 import androidx.preference.PreferenceManager
 import com.jacktor.batterylab.MainActivity
-import com.jacktor.batterylab.MainApp
 import com.jacktor.batterylab.MainApp.Companion.batteryIntent
 import com.jacktor.batterylab.R
 import com.jacktor.batterylab.helpers.StatusBarHelper
@@ -53,6 +52,7 @@ import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.SERVICE_TIME
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.SHOW_BATTERY_INFORMATION
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.SHOW_EXPANDED_NOTIFICATION
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.SHOW_STOP_SERVICE
+import com.jacktor.premium.Premium
 import java.text.DecimalFormat
 
 @SuppressLint("StaticFieldLeak")
@@ -125,7 +125,7 @@ interface NotificationInterface : BatteryInfoInterface {
 
             setContentIntent(openApp)
 
-            if ((context.applicationContext as MainApp).billingManager.isPremium.value) {
+            if (Premium.isPremium().value) {
                 if (pref.getBoolean(
                         SHOW_STOP_SERVICE, context.resources.getBoolean(
                             R.bool.show_stop_service
@@ -280,7 +280,7 @@ interface NotificationInterface : BatteryInfoInterface {
             setOnlyAlertOnce(true)
             setSilent(true)
 
-            if ((context.applicationContext as MainApp).billingManager.isPremium.value) {
+            if (Premium.isPremium().value) {
                 if (pref.getBoolean(
                         SHOW_STOP_SERVICE, context.resources.getBoolean(
                             R.bool.show_stop_service

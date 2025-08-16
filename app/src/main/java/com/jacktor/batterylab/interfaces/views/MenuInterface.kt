@@ -1,17 +1,15 @@
 package com.jacktor.batterylab.interfaces.views
 
 
-import android.content.Intent
 import android.os.Build
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.jacktor.batterylab.MainActivity
-import com.jacktor.batterylab.MainApp
 import com.jacktor.batterylab.R
 import com.jacktor.batterylab.fragments.BatteryInfoFragment
 import com.jacktor.batterylab.fragments.HistoryFragment
 import com.jacktor.batterylab.fragments.ToolsFragment
 import com.jacktor.batterylab.helpers.HistoryHelper
-import com.jacktor.premium.ui.PremiumActivity
+import com.jacktor.premium.Premium
 
 
 interface MenuInterface {
@@ -25,10 +23,9 @@ interface MenuInterface {
 
                 toolbar.menu.findItem(R.id.clear_history).apply {
 
-                    isVisible =
-                        (this@inflateMenu.applicationContext as MainApp).billingManager.isPremium.value && HistoryHelper.isHistoryNotEmpty(
-                            this@inflateMenu
-                        )
+                    isVisible = Premium.isPremium().value && HistoryHelper.isHistoryNotEmpty(
+                        this@inflateMenu
+                    )
 
                     setOnMenuItemClickListener {
 
@@ -39,19 +36,10 @@ interface MenuInterface {
                 }
 
                 toolbar.menu.findItem(R.id.history_premium).apply {
-                    isVisible =
-                        !(this@inflateMenu.applicationContext as MainApp).billingManager.isPremium.value
+                    isVisible = !Premium.isPremium().value
 
                     setOnMenuItemClickListener {
-                        //val intent = Intent(applicationContext, PremiumActivity::class.java)
-                        //startActivity(intent)
-
-                        premiumLauncher.launch(
-                            Intent(
-                                this@inflateMenu,
-                                PremiumActivity::class.java
-                            )
-                        )
+                        premiumLauncher.launch(Premium.intentForPremium(this@inflateMenu))
                         true
                     }
                 }
@@ -217,10 +205,7 @@ interface MenuInterface {
         }
 
         toolbar.menu.findItem(R.id.premium).setOnMenuItemClickListener {
-            /*val intent = Intent(applicationContext, PremiumActivity::class.java)
-            startActivity(intent)*/
-
-            premiumLauncher.launch(Intent(this, PremiumActivity::class.java))
+            premiumLauncher.launch(Premium.intentForPremium(this@defaultMenu))
             true
         }
     }

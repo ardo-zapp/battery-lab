@@ -52,7 +52,7 @@
         <activity android:name=".OnboardingActivity" />
 
         <activity
-            android:name="com.jacktor.premium.ui.PremiumActivity"
+            android:name="com.jacktor.premium.PremiumActivity"
             android:parentActivityName=".MainActivity"
             tools:node="merge" />
 

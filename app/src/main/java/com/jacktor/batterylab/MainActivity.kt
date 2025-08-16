@@ -78,6 +78,7 @@ import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.NUMBER_OF_FU
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.PERCENT_ADDED
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.RESIDUAL_CAPACITY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.TAB_ON_APPLICATION_LAUNCH
+import com.jacktor.premium.Premium
 import com.jacktor.premium.utilities.Constants.BILLING_RESULT_CANCELLED
 import com.jacktor.premium.utilities.Constants.BILLING_RESULT_FAILED
 import com.jacktor.premium.utilities.Constants.BILLING_RESULT_RESTORE_FAILED
@@ -257,9 +258,8 @@ class MainActivity : AppCompatActivity(),
     }
 
     private fun loadAdsIfNeeded() {
-        val premiumManager = (applicationContext as MainApp).billingManager
         lifecycleScope.launch {
-            premiumManager.isPremium.combine(premiumManager.premiumStatusReady) { premium, ready ->
+            Premium.isPremium().combine(Premium.premiumStatusReady()) { premium, ready ->
                 Pair(premium, ready)
             }.collectLatest { _ ->
                 loadInterstitialAd()
@@ -717,9 +717,8 @@ class MainActivity : AppCompatActivity(),
     }
 
     fun showInterstitialAd(force: Boolean = false) {
-        val premiumManager = (applicationContext as MainApp).billingManager
-        val isPremiumUser = premiumManager.isPremium.value
-        val premiumReady = premiumManager.premiumStatusReady.value
+        val isPremiumUser = Premium.isPremium().value
+        val premiumReady = Premium.premiumStatusReady().value
         if (isPremiumUser && premiumReady) return
         adsCounter++
         if ((adsCounter >= 3 || force) && !isPremiumUser && premiumReady && interstitialAd != null) {

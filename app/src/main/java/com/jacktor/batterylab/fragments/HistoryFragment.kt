@@ -12,7 +12,6 @@ import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
-import com.jacktor.batterylab.MainApp
 import com.jacktor.batterylab.R
 import com.jacktor.batterylab.adapters.HistoryAdapter
 import com.jacktor.batterylab.databases.History
@@ -21,6 +20,7 @@ import com.jacktor.batterylab.databinding.HistoryFragmentBinding
 import com.jacktor.batterylab.helpers.HistoryHelper
 import com.jacktor.batterylab.interfaces.NavigationInterface.Companion.mainActivityRef
 import com.jacktor.batterylab.interfaces.views.MenuInterface
+import com.jacktor.premium.Premium
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -46,8 +46,7 @@ class HistoryFragment : Fragment(R.layout.history_fragment), MenuInterface {
         savedInstanceState: Bundle?
     ): View? {
 
-        isPremium =
-            ((requireContext().applicationContext as MainApp).billingManager.isPremium.value)
+        isPremium = Premium.isPremium().value
 
         binding = HistoryFragmentBinding.inflate(inflater, container, false)
 

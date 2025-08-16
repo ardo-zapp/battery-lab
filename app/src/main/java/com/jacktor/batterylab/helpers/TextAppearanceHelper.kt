@@ -6,8 +6,8 @@ import android.util.SparseArray
 import android.util.TypedValue
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.content.res.ResourcesCompat
-import com.jacktor.batterylab.MainApp
 import com.jacktor.batterylab.R
+import com.jacktor.premium.Premium
 
 object TextAppearanceHelper {
 
@@ -25,7 +25,7 @@ object TextAppearanceHelper {
         textFontPref: String?,
         textSizePref: String?
     ) {
-        val isPremium = (context.applicationContext as MainApp).billingManager.isPremium.value
+        val isPremium = Premium.isPremium().value
         val sizeIdx = parseIndex(textSizePref, 2, MAX_SIZE_INDEX)
         val fontIdx = if (isPremium) parseIndex(textFontPref, DEFAULT_FONT_INDEX, MAX_FONT_INDEX)
         else DEFAULT_FONT_INDEX
@@ -47,7 +47,7 @@ object TextAppearanceHelper {
         textSizePref: String?,
         subTitle: Boolean
     ) {
-        val isPremium = (context.applicationContext as MainApp).billingManager.isPremium.value
+        val isPremium = Premium.isPremium().value
 
         val sizeIdx = parseIndex(textSizePref, if (subTitle) 2 else 2, MAX_SIZE_INDEX)
         val fontIdx = if (isPremium) parseIndex(textFontPref, DEFAULT_FONT_INDEX, MAX_FONT_INDEX)

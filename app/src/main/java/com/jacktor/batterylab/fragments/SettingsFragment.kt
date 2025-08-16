@@ -1,6 +1,5 @@
 package com.jacktor.batterylab.fragments
 
-import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Build
 import android.os.Bundle
@@ -14,7 +13,6 @@ import androidx.preference.PreferenceManager
 import androidx.preference.SwitchPreferenceCompat
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.jacktor.batterylab.MainActivity
-import com.jacktor.batterylab.MainApp
 import com.jacktor.batterylab.R
 import com.jacktor.batterylab.helpers.ServiceHelper
 import com.jacktor.batterylab.helpers.ThemeHelper.setTheme
@@ -47,7 +45,7 @@ import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.TEXT_STYLE
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.UNIT_OF_CHARGE_DISCHARGE_CURRENT
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.UNIT_OF_MEASUREMENT_OF_CURRENT_CAPACITY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.VOLTAGE_UNIT
-import com.jacktor.premium.ui.PremiumActivity
+import com.jacktor.premium.Premium
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -104,7 +102,7 @@ class SettingsFragment() : PreferenceFragmentCompat(),
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
 
-        isPremium = (requireContext().applicationContext as MainApp).billingManager.isPremium.value
+        isPremium = Premium.isPremium().value
 
         pref = PreferenceManager.getDefaultSharedPreferences(requireContext())
 
@@ -116,12 +114,13 @@ class SettingsFragment() : PreferenceFragmentCompat(),
 
         premium?.apply {
             isVisible = !isPremium
-
             if (isVisible)
                 setOnPreferenceClickListener {
-                    val intent = Intent(context, PremiumActivity::class.java)
-                    startActivity(intent)
-
+                    (requireContext() as MainActivity).premiumLauncher.launch(
+                        Premium.intentForPremium(
+                            context
+                        )
+                    )
                     true
                 }
         }

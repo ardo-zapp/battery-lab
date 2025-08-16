@@ -76,6 +76,7 @@ import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.POWER_CONNEC
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.RESIDUAL_CAPACITY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.UNIT_OF_MEASUREMENT_OF_CURRENT_CAPACITY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.UPDATE_TEMP_SCREEN_TIME
+import com.jacktor.premium.Premium
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -218,8 +219,8 @@ class BatteryLabService : Service(), NotificationInterface, BatteryInfoInterface
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         // Premium
-        isPremium = ((this.applicationContext as MainApp).billingManager.isPremium.value)
-        ((this.applicationContext as MainApp).billingManager.reValidate(this)) //Revalidate
+        isPremium = Premium.isPremium().value
+        Premium.revalidate(this) //Revalidate
 
         // PowerConnectionReceiver on/off
         val powerConnectionService = pref.getBoolean(POWER_CONNECTION_SERVICE, false)

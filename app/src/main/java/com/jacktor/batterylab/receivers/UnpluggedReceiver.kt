@@ -8,7 +8,6 @@ import android.os.Handler
 import android.os.Looper
 import androidx.core.content.edit
 import androidx.preference.PreferenceManager
-import com.jacktor.batterylab.MainApp
 import com.jacktor.batterylab.MainApp.Companion.batteryIntent
 import com.jacktor.batterylab.MainApp.Companion.isPowerConnected
 import com.jacktor.batterylab.R
@@ -29,6 +28,7 @@ import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.NUMBER_OF_CY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.PERCENT_ADDED
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.RESET_SCREEN_TIME_AT_ANY_CHARGE_LEVEL
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.STOP_THE_SERVICE_WHEN_THE_CD
+import com.jacktor.premium.Premium
 
 class UnpluggedReceiver : BroadcastReceiver() {
 
@@ -41,7 +41,7 @@ class UnpluggedReceiver : BroadcastReceiver() {
         if (!isPowerConnected) return
 
         val pref = PreferenceManager.getDefaultSharedPreferences(context)
-        val isPremium = (context.applicationContext as MainApp).billingManager.isPremium.value
+        val isPremium = Premium.isPremium().value
 
         val pr = goAsync()
 

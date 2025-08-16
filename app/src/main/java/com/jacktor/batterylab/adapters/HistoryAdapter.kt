@@ -7,7 +7,6 @@ import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.RecyclerView
-import com.jacktor.batterylab.MainApp
 import com.jacktor.batterylab.R
 import com.jacktor.batterylab.databases.History
 import com.jacktor.batterylab.databases.HistoryDB
@@ -17,6 +16,7 @@ import com.jacktor.batterylab.helpers.HistoryHelper
 import com.jacktor.batterylab.helpers.TextAppearanceHelper
 import com.jacktor.batterylab.interfaces.BatteryInfoInterface
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys
+import com.jacktor.premium.Premium
 import java.text.DecimalFormat
 
 class HistoryAdapter(private var historyList: MutableList<History>) :
@@ -49,8 +49,8 @@ class HistoryAdapter(private var historyList: MutableList<History>) :
     override fun onBindViewHolder(holderHistory: HistoryViewHolder, position: Int) {
         updateTextAppearance(holderHistory)
 
-        val context = holderHistory.itemView.context
-        if ((context.applicationContext as MainApp).billingManager.isPremium.value) {
+        //val context = holderHistory.itemView.context
+        if (Premium.isPremium().value) {
             binding.apply {
                 historyDate.text = historyList[itemCount - 1 - position].date
                 historyResidualCapacity.text = getResidualCapacity(

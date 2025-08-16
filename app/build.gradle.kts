@@ -142,7 +142,6 @@ dependencies {
 
     // Another Lib
     implementation(fileTree(mapOf("dir" to "libs", "include" to listOf("*.jar"))))
-    implementation("com.android.billingclient:billing-ktx:8.0.0")
     //noinspection NewerVersionAvailable
     implementation("com.squareup.picasso:picasso:2.8")
     implementation("com.jaredrummler:colorpicker:1.1.0")
@@ -152,7 +151,4 @@ dependencies {
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.3.0")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.7.0")
-
-    // Runtime
-    runtimeOnly("org.conscrypt:conscrypt-android:2.5.3")
 }

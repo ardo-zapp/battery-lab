@@ -10,10 +10,6 @@
 -dontwarn kotlin.**
 -dontwarn kotlinx.coroutines.**
 
-# --- Google Play Billing ---
--keep class com.android.billingclient.** { *; }
--dontwarn com.android.billingclient.**
-
 # --- MIUI Autostart ---
 -keep class xyz.kumaraswamy.autostart.** { *; }
 -dontwarn xyz.kumaraswamy.autostart.**
@@ -31,3 +27,6 @@
 # --- App Fragments/Services ---
 -keep class com.jacktor.batterylab.fragments.** { *; }
 -keep class com.jacktor.batterylab.services.** { *; }
+
+# --- Ignore ---
+-dontwarn org.conscrypt.**
