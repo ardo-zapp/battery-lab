@@ -270,7 +270,10 @@ class BatteryInfoFragment : Fragment(R.layout.battery_info_fragment), SettingsIn
                 R.string.number_of_cycles,
                 DecimalFormat("#.##").format(pref.getFloat(Keys.NUMBER_OF_CYCLES, 0f))
             ),
-            cyclesAndroid = getNumberOfCyclesAndroid().toString(),
+            cyclesAndroid = getString(
+                R.string.number_of_cycles_android,
+                getNumberOfCyclesAndroid()
+            ),
             showCyclesAndroid = getNumberOfCyclesAndroid() != null
         )
 
