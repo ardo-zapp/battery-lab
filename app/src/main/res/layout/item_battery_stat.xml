@@ -30,7 +30,7 @@
             android:id="@+id/tvPrimary"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="4dp"
+            android:layout_marginBottom="5dp"
             android:textAppearance="@style/TextAppearance.Material3.TitleMedium" />
 
         <androidx.appcompat.widget.AppCompatTextView
@@ -56,6 +56,13 @@
 
         <androidx.appcompat.widget.AppCompatTextView
             android:id="@+id/tvSecondary4"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="@style/TextAppearance.Material3.BodySmall"
+            android:visibility="gone" />
+
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/tvSecondary5"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:textAppearance="@style/TextAppearance.Material3.BodySmall"

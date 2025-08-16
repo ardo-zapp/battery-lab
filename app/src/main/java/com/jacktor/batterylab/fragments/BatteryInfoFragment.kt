@@ -513,23 +513,11 @@ class BatteryInfoFragment : Fragment(R.layout.battery_info_fragment), SettingsIn
         }
 
         // ===== POWER MONITOR =====
-        val curr = getChargeDischargeCurrent(requireContext())
-        val chargeDischargePrimary = if (isChargingDischargeCurrentInWatt) {
-            if (status == BatteryManager.BATTERY_STATUS_CHARGING) {
-                val value =
-                    DecimalFormat("#.##").format(getChargeDischargeCurrentInWatt(curr, true))
-                "$value W - ${getString(R.string.charge_current_label)}"
-            } else {
-                val value = DecimalFormat("#.##").format(getChargeDischargeCurrentInWatt(curr))
-                "$value W - ${getString(R.string.discharge_current_label)}"
-            }
-        } else {
-            if (status == BatteryManager.BATTERY_STATUS_CHARGING) {
-                "$curr mA - ${getString(R.string.charge_current_label)}"
-            } else {
-                "$curr mA - ${getString(R.string.discharge_current_label)}"
-            }
-        }
+        val voltagePrimary = getString(
+            R.string.voltage, DecimalFormat("#.#").format(
+                getVoltage(requireContext())
+            )
+        )
 
         val chargingCurrentLimit = getChargingCurrentLimit(requireContext())?.toIntOrNull()
         val currentLimitText = chargingCurrentLimit?.let {
@@ -542,12 +530,49 @@ class BatteryInfoFragment : Fragment(R.layout.battery_info_fragment), SettingsIn
                 getString(R.string.charging_current_limit, it.toString())
         }
 
+        val curr = getChargeDischargeCurrent(requireContext())
         val currentStats = mutableListOf<String>().apply {
             add(
-                getString(
-                    R.string.voltage,
-                    DecimalFormat("#.#").format(getVoltage(requireContext()))
-                )
+                if (isChargingDischargeCurrentInWatt) {
+                    if (status == BatteryManager.BATTERY_STATUS_CHARGING) {
+                        getString(
+                            R.string.charge_current_watt,
+                            DecimalFormat("#.##").format(
+                                getChargeDischargeCurrentInWatt(
+                                    curr,
+                                    true
+                                )
+                            )
+                        )
+
+                    } else {
+                        getString(
+                            R.string.discharge_current_watt,
+                            DecimalFormat("#.##").format(
+                                getChargeDischargeCurrentInWatt(curr)
+                            )
+                        )
+                    }
+                } else {
+                    if (status == BatteryManager.BATTERY_STATUS_CHARGING) {
+                        getString(
+                            R.string.charge_current,
+                            DecimalFormat("#.##").format(
+                                getChargeDischargeCurrentInWatt(
+                                    curr,
+                                    true
+                                )
+                            )
+                        )
+                    } else {
+                        getString(
+                            R.string.discharge_current,
+                            DecimalFormat("#.##").format(
+                                getChargeDischargeCurrentInWatt(curr)
+                            )
+                        )
+                    }
+                }
             )
             currentLimitText?.let { add(it) }
             if (status == BatteryManager.BATTERY_STATUS_CHARGING || status == BatteryManager.BATTERY_STATUS_FULL) {
@@ -633,7 +658,7 @@ class BatteryInfoFragment : Fragment(R.layout.battery_info_fragment), SettingsIn
             icon = R.drawable.ic_voltage_24,
             iconTint = R.color.battery_info_power_monitor,
             title = getString(R.string.power_monitor_title),
-            primary = chargeDischargePrimary,
+            primary = voltagePrimary,
             secondary = currentStats
         )
 

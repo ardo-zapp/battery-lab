@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.jacktor.batterylab.databinding.ItemBatteryCountsBinding
@@ -14,7 +15,6 @@ import com.jacktor.batterylab.databinding.ItemBatteryHeaderBinding
 import com.jacktor.batterylab.databinding.ItemBatteryStatBinding
 import com.jacktor.batterylab.helpers.TextAppearanceHelper
 import com.jacktor.batterylab.models.BatteryInfoRow
-import androidx.core.view.isVisible
 
 class BatteryInfoAdapter(
     private val textStyle: () -> Triple<String, String, String>,
@@ -157,7 +157,13 @@ class BatteryInfoAdapter(
             b.tvPrimary.text = data.primary
 
             val secondaryViews =
-                listOf(b.tvSecondary1, b.tvSecondary2, b.tvSecondary3, b.tvSecondary4)
+                listOf(
+                    b.tvSecondary1,
+                    b.tvSecondary2,
+                    b.tvSecondary3,
+                    b.tvSecondary4,
+                    b.tvSecondary5
+                )
             secondaryViews.forEach { it.visibility = View.GONE }
 
             data.secondary.take(secondaryViews.size).forEachIndexed { i, value ->
