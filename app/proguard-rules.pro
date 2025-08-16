@@ -1,40 +1,32 @@
 # =========================
-# Battery Lab - proguard-rules.pro (app)
+# Battery Lab - proguard-rules.pro
 # =========================
+
+# --- Crashlytics ---
+-keepattributes SourceFile,LineNumberTable
+-keepattributes *Annotation*, Signature
+
+# --- Kotlin / Coroutines ---
+-dontwarn kotlin.**
+-dontwarn kotlinx.coroutines.**
 
 # --- Google Play Billing ---
 -keep class com.android.billingclient.** { *; }
 -dontwarn com.android.billingclient.**
 
-# --- DataStore Proto (protobuf-lite) ---
--keep class com.google.protobuf.** { *; }
--dontwarn com.google.protobuf.**
-
-# --- Tink (Crypto) ---
--keep class com.google.crypto.tink.** { *; }
--dontwarn com.google.crypto.tink.**
-
-# --- Kotlin Coroutines ---
--dontwarn kotlinx.coroutines.**
-
-# --- Okio/Picasso ---
--dontwarn okio.**
-
-# --- MIUI Autostart lib ---
+# --- MIUI Autostart ---
 -keep class xyz.kumaraswamy.autostart.** { *; }
 -dontwarn xyz.kumaraswamy.autostart.**
 
-# --- Room/Annotation-friendly keeps ---
--keepattributes *Annotation*, Signature
+# --- WorkManager ---
+-keep class * extends androidx.work.ListenableWorker { <init>(...); }
+-keep class * extends androidx.work.Worker { <init>(...); }
+-keep class * extends androidx.work.CoroutineWorker { <init>(...); }
 
 # --- Parcelable CREATOR ---
 -keepclassmembers class ** implements android.os.Parcelable {
     public static final android.os.Parcelable$Creator *;
 }
-
-# -- OkHttp optional Conscrypt support --
--keep class org.conscrypt.** { *; }
--dontwarn org.conscrypt.**
 
 # --- App Fragments/Services ---
 -keep class com.jacktor.batterylab.fragments.** { *; }
