@@ -28,6 +28,7 @@ import java.io.File
 import java.io.FileReader
 import java.io.IOException
 import java.text.DecimalFormat
+import java.util.Locale
 import kotlin.math.abs
 import kotlin.math.max
 
@@ -61,6 +62,17 @@ interface BatteryInfoInterface {
         var peakChargeWatt = 0.0
         var peakChargeCurrentmA = 0
         var peakVoltageV = 0.0
+
+        private val CURRENT_NOW_CANDIDATE_PATHS = listOf(
+            "/sys/class/power_supply/battery/current_now",
+            "/sys/class/power_supply/battery/current_avg",
+            "/sys/class/power_supply/battery/charge_current",
+            "/sys/class/power_supply/battery/charging_current",
+            "/sys/class/power_supply/battery/constant_charge_current",
+            "/sys/class/power_supply/battery/input_current_now",
+            "/sys/class/power_supply/main/current_now",
+            "/sys/class/power_supply/usb/current_now"
+        )
 
         object Smooth {
             private const val DEFAULT_ALPHA = 0.2
@@ -122,8 +134,6 @@ interface BatteryInfoInterface {
     fun getChargeDischargeCurrent(context: Context): Int {
         return try {
             val bm = context.getSystemService(Context.BATTERY_SERVICE) as BatteryManager
-            val raw = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW) // µA
-            var currentMa = abs(raw) / 1000.0
 
             batteryIntent = batteryIntent ?: context.registerReceiver(
                 null,
@@ -133,6 +143,33 @@ interface BatteryInfoInterface {
                 BatteryManager.EXTRA_STATUS,
                 BatteryManager.BATTERY_STATUS_UNKNOWN
             )
+            val level = batteryIntent?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1)?.coerceIn(0, 100)
+                ?: -1
+            val isPluggedIn = isPlugged(
+                batteryIntent?.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0)
+                    ?: 0
+            )
+
+            val propertyCurrent = normalizeBatteryManagerCurrent(
+                runCatching { bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW) }
+                    .getOrNull(),
+                status,
+                level,
+                isPluggedIn
+            )
+
+            var currentMa = propertyCurrent ?: 0.0
+
+            if (!currentMa.isFinite() || isSuspiciouslyLowCurrent(status, isPluggedIn, level, currentMa)) {
+                val fallback = readCurrentFromSysfs(status)
+                if (fallback != null && fallback.isFinite() && fallback > currentMa) {
+                    currentMa = fallback
+                }
+            }
+
+            if ((!currentMa.isFinite() || currentMa <= 0.0) && propertyCurrent != null) {
+                currentMa = propertyCurrent.coerceAtLeast(0.0)
+            }
 
             when (status) {
                 BatteryManager.BATTERY_STATUS_CHARGING -> {
@@ -167,6 +204,118 @@ interface BatteryInfoInterface {
             getMaxAverageMinChargeDischargeCurrent(status, 0)
             0
         }
+    }
+
+    private fun normalizeBatteryManagerCurrent(
+        raw: Int?,
+        status: Int?,
+        level: Int,
+        isPluggedIn: Boolean
+    ): Double? {
+        if (raw == null || raw == Int.MIN_VALUE) return null
+        val absRaw = abs(raw.toDouble())
+        if (absRaw == 0.0) return 0.0
+
+        val microCandidate = absRaw / 1000.0
+        val milliCandidate = absRaw
+
+        val microValid = isPlausibleCurrent(microCandidate, status)
+        val milliValid = isPlausibleCurrent(milliCandidate, status)
+        val isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING
+
+        if (!isPluggedIn) {
+            return when {
+                microValid -> microCandidate
+                milliValid -> milliCandidate
+                else -> microCandidate
+            }
+        }
+
+        if (isCharging) {
+            val levelIsHigh = level >= 96
+            if (milliValid && (microCandidate < 8.0 || !microValid) && !levelIsHigh && milliCandidate >= 750.0) {
+                return milliCandidate
+            }
+            if (microValid) return microCandidate
+            if (milliValid) return milliCandidate
+        }
+
+        if (status == BatteryManager.BATTERY_STATUS_DISCHARGING) {
+            if (microValid) return microCandidate
+            if (milliValid) return milliCandidate
+        }
+
+        return when {
+            microValid -> microCandidate
+            milliValid -> milliCandidate
+            else -> microCandidate
+        }
+    }
+
+    private fun isSuspiciouslyLowCurrent(
+        status: Int?,
+        isPluggedIn: Boolean,
+        level: Int,
+        currentMa: Double
+    ): Boolean {
+        if (!currentMa.isFinite() || currentMa <= 0.0) return true
+        if (!isPluggedIn) return false
+        if (status == BatteryManager.BATTERY_STATUS_CHARGING) {
+            if (level in 0..95 && currentMa < 15.0) return true
+            if (level in 96..100 && currentMa < 5.0) return true
+        }
+        return false
+    }
+
+    private fun readCurrentFromSysfs(status: Int?): Double? {
+        for (path in CURRENT_NOW_CANDIDATE_PATHS) {
+            try {
+                val f = File(path)
+                if (!f.exists() || !f.canRead()) continue
+                val raw = f.bufferedReader().use { it.readLine() }?.trim().orEmpty()
+                if (raw.isEmpty()) continue
+                val parsed = parseCurrentString(raw)
+                if (parsed != null && isPlausibleCurrent(parsed, status)) return parsed
+            } catch (_: Exception) {
+                // ignore and try next path
+            }
+        }
+        return null
+    }
+
+    private fun parseCurrentString(raw: String): Double? {
+        val trimmed = raw.trim()
+        if (trimmed.isEmpty()) return null
+
+        val numericBuilder = StringBuilder()
+        for (c in trimmed) {
+            if (c.isDigit() || c == '-' || c == '+' || c == '.' || c == 'e' || c == 'E') {
+                numericBuilder.append(c)
+            }
+        }
+        if (numericBuilder.isEmpty()) return null
+        val numeric = numericBuilder.toString().toDoubleOrNull() ?: return null
+
+        val lower = trimmed.lowercase(Locale.ROOT)
+        val absValue = abs(numeric)
+
+        return when {
+            lower.contains("µa") || lower.contains("ua") -> absValue / 1000.0
+            lower.contains("ma") -> absValue
+            lower.endsWith(" a") || (lower.endsWith("a") && !lower.endsWith("ma")) -> absValue * 1000.0
+            absValue >= 100_000.0 -> absValue / 1000.0
+            lower.contains('.') && absValue < 10.0 -> absValue * 1000.0
+            else -> absValue
+        }
+    }
+
+    private fun isPlausibleCurrent(value: Double, status: Int?): Boolean {
+        if (!value.isFinite() || value < 0.0) return false
+        val max = when (status) {
+            BatteryManager.BATTERY_STATUS_DISCHARGING -> 15_000.0
+            else -> 20_000.0
+        }
+        return value <= max
     }
 
     fun getChargeDischargeCurrentInWatt(
