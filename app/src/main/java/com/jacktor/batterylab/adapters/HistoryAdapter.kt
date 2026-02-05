@@ -96,7 +96,7 @@ class HistoryAdapter(private var historyList: MutableList<History>) :
 
         var newResidualCapacity = residualCapacity / if (pref.getString(
                 PreferencesKeys
-                    .UNIT_OF_MEASUREMENT_OF_CURRENT_CAPACITY, "μAh"
+                    .UNIT_OF_MEASUREMENT_OF_available_capacity, "μAh"
             ) == "μAh"
         ) 1000.0
         else 100.0
@@ -140,7 +140,7 @@ class HistoryAdapter(private var historyList: MutableList<History>) :
 
         var newResidualCapacity = residualCapacity / if (pref.getString(
                 PreferencesKeys
-                    .UNIT_OF_MEASUREMENT_OF_CURRENT_CAPACITY, "μAh"
+                    .UNIT_OF_MEASUREMENT_OF_available_capacity, "μAh"
             ) == "μAh"
         ) 1000.0
         else 100.0

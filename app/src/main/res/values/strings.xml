@@ -68,12 +68,15 @@
     <string name="battery_level_with_title">Battery Level: %1$s</string>
     <string name="capacity_title">Capacity</string>
     <string name="design_capacity">%1$s mAh</string>
-    <string name="current_capacity">Current: %1$s mAh</string>
+    <string name="available_capacity">Available: %1$s mAh</string>
+    <string name="available_capacity_notification">Available Capacity: %1$s mAh</string>
+    <string name="available_capacity_overlay_wh">Available Capacity: %1$s Wh</string>
     <string name="residual_capacity">Residual: %1$s mAh (%2$s)</string>
     <string name="battery_wear">Wear: %1$s (%2$s mAh)</string>
     <string name="capacity_in_wh">Capacity in Wh</string>
     <string name="design_capacity_wh" translatable="false">%1$s Wh</string>
-    <string name="current_capacity_wh">Current: %1$s Wh</string>
+    <string name="available_capacity_wh">Available: %1$s Wh</string>
+    <string name="available_capacity_notification_wh">Available Capacity: %1$s Wh</string>
     <string name="residual_capacity_wh">Residual: %1$s Wh (%2$s)</string>
     <string name="battery_wear_wh">Wear: %1$s (%2$s Wh)</string>
     <string name="charge_current">Charging Current: %1$s mA</string>
@@ -135,8 +138,8 @@
     <string name="charging_time_remaining_overlay_only_values" translatable="false">%1$s</string>
     <string name="remaining_battery_time_overlay">Remaining Battery Time</string>
     <string name="remaining_battery_time_overlay_only_values" translatable="false">%1$s</string>
-    <string name="current_capacity_overlay">Current Capacity</string>
-    <string name="current_capacity_overlay_only_values" translatable="false">%1$s mAh</string>
+    <string name="available_capacity_overlay">Available Capacity</string>
+    <string name="available_capacity_overlay_only_values" translatable="false">%1$s mAh</string>
     <string name="capacity_added_overlay">Capacity Added</string>
     <string name="capacity_added_overlay_only_values" translatable="false">%1$s mAh (%2$s)</string>
     <string name="battery_health_android_overlay">Battery Health (Android)</string>
@@ -165,7 +168,7 @@
     <string name="battery_wear_overlay_only_values" translatable="false">%1$s (%2$s mAh)</string>
     <string name="charging_current_limit_overlay">Charging Current Limit</string>
     <string name="charging_current_limit_overlay_only_values" translatable="false">%1$s mA</string>
-    <string name="current_capacity_wh_overlay_only_values" translatable="false">%1$s Wh</string>
+    <string name="available_capacity_wh_overlay_only_values" translatable="false">%1$s Wh</string>
     <string name="residual_capacity_wh_overlay_only_values" translatable="false">%1$s Wh (%2$s)</string>
     <string name="battery_wear_wh_overlay_only_values" translatable="false">%1$s (%2$s Wh)</string>
     <string name="capacity_added_wh_overlay_only_values" translatable="false">%1$s Wh (%2$s)</string>
@@ -302,7 +305,7 @@
     <string name="faq_why_is_ccl_not_displayed">Question: Why is \"Charging Current Limit\" not displayed?\nAnswer: The display \"Charging Current Limit\" depends on whether the file \"constant_charge_current_max\" is readable or not. Not all kernels allow \"reading\" this file, and also not all kernels have this file.\n\n</string>
     <string name="faq_i_have_everything_in_zeros" formatted="false">Question: I have everything (or almost everything) in zeros. Why?\nAnswer: Because the manufacturer of your device has saved on various sensors.  And since the kernel cannot get the value, it returns 0.\n\n</string>
     <string name="faq_units">Question: Very large or small numbers are shown in the current capacity, charge/discharge current, voltage.\nAnswer: Go to the settings, in the \"Misc\" section, expand all the settings and change the unit of measurement.\n\n</string>
-    <string name="faq_current_capacity">Question: The current capacity has ceased to be displayed, although it was previously displayed (or is displayed, but not always).\nAnswer: This means that the battery is coming or has already come to an end. If everything is in order with the battery, then the firmware kernel or the controller, which gives the current capacity, may be buggy.\n\n</string>
+    <string name="faq_available_capacity">Question: The available capacity has ceased to be displayed, although it was previously displayed (or is displayed, but not always).\nAnswer: This means that the battery is coming or has already come to an end. If everything is in order with the battery, then the firmware kernel or the controller, which gives the current capacity, may be buggy.\n\n</string>
     <string name="faq_residual_capacity_is_higher" formatted="false">Question: Residual capacity is higher than the design capacity\nAnswer: If the battery is new, this is normal. The capacity of a battery, especially a new one, is never equal to the design capacity, it is either 2–3% less, or higher, but most often lower. If the capacity of the new battery is higher than the design one, then consider yourself lucky with the battery. If the battery is not new, you can try to calibrate the kernel by discharging the battery to 10% or lower and charging it to full 100%. If this does not help, then unfortunately either the kernel developers made a mistake somewhere that incorrectly reads the current capacity from the battery, or the matter is in the battery itself\n\n</string>
     <string name="faq_battery_wear_changes_when_charger_is_disconnected">Question: Battery wear changes when the charger is disconnected\nAnswer: The fact is that when the charger is disconnected, sometimes the current capacity differs from what it was when fully charged, thus, when the charger is disconnected, the battery wear is more true than before the charger was disconnected\n\n</string>
     <string name="faq_battery_wear_not_change" formatted="false">Question: Battery wear does not change even after several months\nAnswer: Sometimes the current capacity may not be displayed correctly and due to this the battery wear will be incorrect. In order to avoid this, calibrate the current capacity once a month or two. In order to calibrate the current capacity, you need to discharge the battery to 10% or lower and charge to 100% (status: \"Fully Charged\")\n\n</string>
@@ -366,7 +369,7 @@
     <string name="service_time">Service Time</string>
     <string name="change_design_summary" translatable="false">%1$d mAh</string>
     <string name="unit_of_charge_discharge_current">Unit of Charge/Discharge Current</string>
-    <string name="unit_of_measurement_of_current_capacity">Unit of measurement of current capacity</string>
+    <string name="unit_of_measurement_of_available_capacity">Unit of measurement of available capacity</string>
     <string name="battery_health_android" translatable="false">%1$s (Android)</string>
     <string name="battery_health_good_android">Good</string>
     <string name="battery_health_dead_android">Dead</string>

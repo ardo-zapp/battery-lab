@@ -42,7 +42,7 @@ import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGE_DISCH
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGING_CURRENT_LIMIT_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGING_TIME_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGING_TIME_REMAINING_OVERLAY
-import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CURRENT_CAPACITY_OVERLAY
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.available_capacity_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.ENABLED_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.FAST_CHARGE_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.LAST_CHARGE_TIME_OVERLAY
@@ -131,8 +131,8 @@ interface OverlayInterface : BatteryInfoInterface {
                             R.bool.screen_time_overlay
                         )
                     ), getBoolean(
-                        CURRENT_CAPACITY_OVERLAY, context.resources.getBoolean(
-                            R.bool.current_capacity_overlay
+                        available_capacity_OVERLAY, context.resources.getBoolean(
+                            R.bool.available_capacity_overlay
                         )
                     ), getBoolean(
                         CAPACITY_ADDED_OVERLAY, context.resources.getBoolean(
@@ -338,7 +338,7 @@ interface OverlayInterface : BatteryInfoInterface {
             onUpdateChargingTimeRemainingOverlay(status)
             onUpdateRemainingBatteryTimeOverlay(status)
             onUpdateScreenTimeOverlay()
-            onUpdateCurrentCapacityOverlay()
+            onUpdateAvailableCapacityOverlay()
             onUpdateCapacityAddedOverlay()
             onUpdateBatteryHealthOverlay()
             onUpdateResidualCapacityOverlay()
@@ -747,15 +747,15 @@ interface OverlayInterface : BatteryInfoInterface {
             }
     }
 
-    private fun onUpdateCurrentCapacityOverlay() {
+    private fun onUpdateAvailableCapacityOverlay() {
 
         if ((pref.getBoolean(
-                CURRENT_CAPACITY_OVERLAY, binding.currentCapacityOverlay.context
-                    .resources.getBoolean(R.bool.current_capacity_overlay)
+                available_capacity_OVERLAY, binding.availableCapacityOverlay.context
+                    .resources.getBoolean(R.bool.available_capacity_overlay)
             )) ||
-            binding.currentCapacityOverlay.isVisible
+            binding.availableCapacityOverlay.isVisible
         )
-            binding.currentCapacityOverlay.apply {
+            binding.availableCapacityOverlay.apply {
 
                 TextAppearanceHelper.setTextAppearance(
                     context, this,
@@ -778,10 +778,10 @@ interface OverlayInterface : BatteryInfoInterface {
                                 R.bool.only_values_overlay
                             )
                         )
-                    ) R.string.current_capacity_wh
-                    else R.string.current_capacity_wh_overlay_only_values,
+                    ) R.string.available_capacity_overlay_wh
+                    else R.string.available_capacity_wh_overlay_only_values,
                     DecimalFormat("#.#").format(
-                        getCapacityInWh(getCurrentCapacity(context))
+                        getCapacityInWh(getAvailableCapacity(context))
                     )
                 )
                 else context.getString(
@@ -790,13 +790,13 @@ interface OverlayInterface : BatteryInfoInterface {
                                 .resources.getBoolean(R.bool.only_values_overlay)
                         )
                     )
-                        R.string.current_capacity else R.string.current_capacity_overlay_only_values,
-                    DecimalFormat("#.#").format(getCurrentCapacity(context))
+                        R.string.available_capacity_overlay else R.string.available_capacity_overlay_only_values,
+                    DecimalFormat("#.#").format(getAvailableCapacity(context))
                 )
 
                 visibility = if (pref.getBoolean(
-                        CURRENT_CAPACITY_OVERLAY,
-                        context.resources.getBoolean(R.bool.current_capacity_overlay)
+                        available_capacity_OVERLAY,
+                        context.resources.getBoolean(R.bool.available_capacity_overlay)
                     )
                 )
                     View.VISIBLE else View.GONE

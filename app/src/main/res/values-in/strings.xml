@@ -58,11 +58,14 @@
     <string name="battery_level_with_title">Level Baterai: %1$s</string>
     <string name="capacity_title">Kapasitas</string>
     <string name="design_capacity">%1$s mAh</string>
-    <string name="current_capacity">Saat Ini: %1$s mAh</string>
+    <string name="available_capacity">Tersedia: %1$s mAh</string>
+    <string name="available_capacity_notification">Kapasitas Tersedia: %1$s mAh</string>
+    <string name="available_capacity_overlay_wh">Kapasitas Tersedia: %1$s Wh</string>
     <string name="residual_capacity">Sisa: %1$s mAh (%2$s)</string>
     <string name="battery_wear">Keausan: %1$s (%2$s mAh)</string>
     <string name="capacity_in_wh">Kapasitas dalam Wh</string>
-    <string name="current_capacity_wh">Saat Ini: %1$s Wh</string>
+    <string name="available_capacity_wh">Kapasitas Tersedia: %1$s Wh</string>
+    <string name="available_capacity_notification_wh">Kapasitas Tersedia: %1$s Wh</string>
     <string name="residual_capacity_wh">Sisa: %1$s Wh (%2$s)</string>
     <string name="battery_wear_wh">Keausan: %1$s (%2$s Wh)</string>
     <string name="charge_current">Arus Pengisian: %1$s mA</string>
@@ -118,7 +121,7 @@
     <string name="charging_time_overlay">Waktu Pengisian</string>
     <string name="charging_time_remaining_overlay">Sisa Waktu Pengisian</string>
     <string name="remaining_battery_time_overlay">Sisa Waktu Baterai</string>
-    <string name="current_capacity_overlay">Kapasitas Saat Ini</string>
+    <string name="available_capacity_overlay">Kapasitas Tersedia</string>
     <string name="capacity_added_overlay">Kapasitas Ditambahkan</string>
     <string name="battery_health_android_overlay">Kesehatan Baterai (Android)</string>
     <string name="residual_capacity_overlay">Kapasitas Sisa</string>
@@ -264,7 +267,7 @@
     <string name="faq_why_is_ccl_not_displayed">Pertanyaan: Mengapa "Batas Arus Pengisian" tidak ditampilkan?\nJawaban: Penampilan nilai "Batas Arus Pengisian" tergantung apakah file "constant_charge_current_max" dapat dibaca atau tidak. Tidak semua kernel memungkinkan file ini dibaca, dan tidak semua perangkat memiliki file tersebut.\n\n</string>
     <string name="faq_i_have_everything_in_zeros" formatted="false">Pertanyaan: Kenapa semua nilai (atau hampir semua) muncul nol?\nJawaban: Karena produsen perangkatmu mungkin menghemat penggunaan sensor tertentu. Akibatnya, kernel tidak bisa mengambil nilai dan hanya mengembalikan 0.\n\n</string>
     <string name="faq_units">Pertanyaan: Kenapa angka yang ditampilkan sangat besar atau sangat kecil pada kapasitas, arus isi/kosong, atau tegangan?\nJawaban: Buka pengaturan, masuk ke bagian "Lain-lain", tampilkan semua pengaturan, lalu ubah satuan pengukuran sesuai kebutuhanmu.\n\n</string>
-    <string name="faq_current_capacity">Pertanyaan: Kenapa kapasitas saat ini tidak ditampilkan, padahal sebelumnya muncul (atau muncul tapi tidak selalu)?\nJawaban: Ini bisa berarti baterai kamu mulai rusak atau sudah tidak optimal. Jika kondisi baterai baik, bisa jadi masalah ada pada kernel firmware atau pengontrol baterai yang error.\n\n</string>
+    <string name="faq_available_capacity">Pertanyaan: Kenapa kapasitas tersedia tidak ditampilkan, padahal sebelumnya muncul (atau muncul tapi tidak selalu)?\nJawaban: Ini bisa berarti baterai kamu mulai rusak atau sudah tidak optimal. Jika kondisi baterai baik, bisa jadi masalah ada pada kernel firmware atau pengontrol baterai yang error.\n\n</string>
     <string name="faq_residual_capacity_is_higher" formatted="false">Pertanyaan: Kenapa kapasitas sisa lebih tinggi dari kapasitas desain?\nJawaban: Jika baterai masih baru, ini wajar. Kapasitas baterai baru biasanya tidak persis sama dengan kapasitas desain — bisa 2–3% lebih rendah atau lebih tinggi, tapi umumnya lebih rendah. Kalau lebih tinggi, berarti kamu beruntung. Jika baterai tidak baru, coba kalibrasi dengan mengosongkan baterai hingga 10% atau lebih rendah lalu isi hingga 100%. Jika tidak berhasil, kemungkinan kernel tidak membaca kapasitas dengan benar, atau baterainya memang bermasalah.\n\n</string>
     <string name="faq_battery_wear_changes_when_charger_is_disconnected">Pertanyaan: Kenapa keausan baterai berubah saat charger dicabut?\nJawaban: Karena kadang kapasitas saat ini berubah setelah charger dilepas, berbeda dari saat pengisian penuh. Jadi, setelah charger dilepas, nilai keausan baterai bisa menjadi lebih akurat.\n\n</string>
     <string name="faq_battery_wear_not_change" formatted="false">Pertanyaan: Kenapa keausan baterai tidak berubah meskipun sudah berbulan-bulan?\nJawaban: Kadang kapasitas saat ini tidak terbaca dengan akurat, sehingga perhitungan keausan pun keliru. Untuk mengatasinya, lakukan kalibrasi kapasitas sekitar sebulan atau dua bulan sekali dengan cara mengosongkan baterai hingga 10% atau kurang, lalu isi hingga 100% (status: "Terisi Penuh").\n\n</string>
@@ -321,7 +324,7 @@
     <string name="service">Layanan</string>
     <string name="service_time">Waktu Layanan</string>
     <string name="unit_of_charge_discharge_current">Satuan Arus Pengisian/Penggunaan</string>
-    <string name="unit_of_measurement_of_current_capacity">Satuan Kapasitas Saat Ini</string>
+    <string name="unit_of_measurement_of_available_capacity">Satuan Kapasitas Tersedia</string>
     <string name="battery_health_good_android">Baik</string>
     <string name="battery_health_dead_android">Mati</string>
     <string name="battery_health_cold_android">Dingin</string>

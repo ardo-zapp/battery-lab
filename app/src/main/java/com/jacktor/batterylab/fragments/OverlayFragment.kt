@@ -32,7 +32,7 @@ import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGE_DISCH
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGING_CURRENT_LIMIT_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGING_TIME_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGING_TIME_REMAINING_OVERLAY
-import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CURRENT_CAPACITY_OVERLAY
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.available_capacity_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.ENABLED_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.FAST_CHARGE_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.LAST_CHARGE_TIME_OVERLAY
@@ -90,7 +90,7 @@ class OverlayFragment : PreferenceFragmentCompat(), BatteryInfoInterface {
     private var remainingBatteryTimeOverlay: SwitchPreferenceCompat? = null
     private var screenTimeOverlay: SwitchPreferenceCompat? = null
     private var batteryLevelOverlay: SwitchPreferenceCompat? = null
-    private var currentCapacityOverlay: SwitchPreferenceCompat? = null
+    private var availableCapacityOverlay: SwitchPreferenceCompat? = null
     private var capacityAddedOverlay: SwitchPreferenceCompat? = null
     private var batteryHealthAndroidOverlay: SwitchPreferenceCompat? = null
     private var batteryHealthOverlay: SwitchPreferenceCompat? = null
@@ -245,7 +245,7 @@ class OverlayFragment : PreferenceFragmentCompat(), BatteryInfoInterface {
         chargingTimeRemainingOverlay = findPreference(CHARGING_TIME_REMAINING_OVERLAY)
         remainingBatteryTimeOverlay = findPreference(REMAINING_BATTERY_TIME_OVERLAY)
         screenTimeOverlay = findPreference(SCREEN_TIME_OVERLAY)
-        currentCapacityOverlay = findPreference(CURRENT_CAPACITY_OVERLAY)
+        availableCapacityOverlay = findPreference(available_capacity_OVERLAY)
         capacityAddedOverlay = findPreference(CAPACITY_ADDED_OVERLAY)
         batteryHealthAndroidOverlay = findPreference(BATTERY_HEALTH_ANDROID_OVERLAY)
         batteryHealthOverlay = findPreference(BATTERY_HEALTH_ANDROID_OVERLAY)
@@ -351,7 +351,7 @@ class OverlayFragment : PreferenceFragmentCompat(), BatteryInfoInterface {
             true
         }
 
-        currentCapacityOverlay?.setOnPreferenceChangeListener { _, newValue ->
+        availableCapacityOverlay?.setOnPreferenceChangeListener { _, newValue ->
 
             if (newValue as? Boolean == true && OverlayService.instance == null)
                 ServiceHelper.startService(requireContext(), OverlayService::class.java)

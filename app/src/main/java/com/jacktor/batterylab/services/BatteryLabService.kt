@@ -33,7 +33,7 @@ import com.jacktor.batterylab.interfaces.BatteryInfoInterface.Companion.capacity
 import com.jacktor.batterylab.interfaces.BatteryInfoInterface.Companion.maxChargeCurrent
 import com.jacktor.batterylab.interfaces.BatteryInfoInterface.Companion.percentAdded
 import com.jacktor.batterylab.interfaces.BatteryInfoInterface.Companion.tempBatteryLevelWith
-import com.jacktor.batterylab.interfaces.BatteryInfoInterface.Companion.tempCurrentCapacity
+import com.jacktor.batterylab.interfaces.BatteryInfoInterface.Companion.tempAvailableCapacity
 import com.jacktor.batterylab.interfaces.NavigationInterface.Companion.mainActivityRef
 import com.jacktor.batterylab.interfaces.NotificationInterface
 import com.jacktor.batterylab.interfaces.NotificationInterface.Companion.isBatteryCharged
@@ -74,7 +74,7 @@ import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.OVERHEAT_DEG
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.PERCENT_ADDED
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.POWER_CONNECTION_SERVICE
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.RESIDUAL_CAPACITY
-import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.UNIT_OF_MEASUREMENT_OF_CURRENT_CAPACITY
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.UNIT_OF_MEASUREMENT_OF_available_capacity
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.UPDATE_TEMP_SCREEN_TIME
 import com.jacktor.premium.Premium
 import kotlinx.coroutines.CoroutineScope
@@ -97,7 +97,7 @@ class BatteryLabService : Service(), NotificationInterface, BatteryInfoInterface
     private var wakeLock: PowerManager.WakeLock? = null
     private var isScreenTimeJob = false
     private var isJob = false
-    private var currentCapacity = 0
+    private var availableCapacity = 0
     private var isReceiverRegistered = false
 
     var isFull = false
@@ -169,7 +169,7 @@ class BatteryLabService : Service(), NotificationInterface, BatteryInfoInterface
                     isPowerConnected = true
                     batteryLevelWith = getBatteryLevel(applicationContext) ?: 0
                     tempBatteryLevelWith = batteryLevelWith
-                    tempCurrentCapacity = getCurrentCapacity(applicationContext)
+                    tempAvailableCapacity = getAvailableCapacity(applicationContext)
 
                     val status = batteryIntent?.getIntExtra(
                         BatteryManager.EXTRA_STATUS, BatteryManager.BATTERY_STATUS_UNKNOWN
@@ -422,18 +422,18 @@ class BatteryLabService : Service(), NotificationInterface, BatteryInfoInterface
 
         if (BatteryInfoInterface.residualCapacity > 0 && isFull) {
             pref.apply {
-                if (pref.getString(UNIT_OF_MEASUREMENT_OF_CURRENT_CAPACITY, "μAh") == "μAh")
+                if (pref.getString(UNIT_OF_MEASUREMENT_OF_available_capacity, "μAh") == "μAh")
                     edit {
                         putInt(
                             RESIDUAL_CAPACITY,
-                            (getCurrentCapacity(applicationContext) * 1000.0).toInt()
+                            (getAvailableCapacity(applicationContext) * 1000.0).toInt()
                         )
                     }
                 else
                     edit {
                         putInt(
                             RESIDUAL_CAPACITY,
-                            (getCurrentCapacity(applicationContext) * 100.0).toInt()
+                            (getAvailableCapacity(applicationContext) * 100.0).toInt()
                         )
                     }
             }
@@ -467,9 +467,9 @@ class BatteryLabService : Service(), NotificationInterface, BatteryInfoInterface
 
         if (batteryLevel == 100) {
             if (secondsFullCharge >= 3600) batteryCharged()
-            currentCapacity = (getCurrentCapacity(applicationContext) *
+            availableCapacity = (getAvailableCapacity(applicationContext) *
                     if (pref.getString(
-                            UNIT_OF_MEASUREMENT_OF_CURRENT_CAPACITY,
+                            UNIT_OF_MEASUREMENT_OF_available_capacity,
                             "μAh"
                         ) == "μAh"
                     ) 1000.0 else 100.0
@@ -519,10 +519,10 @@ class BatteryLabService : Service(), NotificationInterface, BatteryInfoInterface
 
         isFull = true
 
-        if (currentCapacity == 0) {
-            currentCapacity = (getCurrentCapacity(applicationContext) *
+        if (availableCapacity == 0) {
+            availableCapacity = (getAvailableCapacity(applicationContext) *
                     if (pref.getString(
-                            UNIT_OF_MEASUREMENT_OF_CURRENT_CAPACITY,
+                            UNIT_OF_MEASUREMENT_OF_available_capacity,
                             "μAh"
                         ) == "μAh"
                     ) 1000.0 else 100.0
@@ -533,13 +533,13 @@ class BatteryLabService : Service(), NotificationInterface, BatteryInfoInterface
             pref.getInt(DESIGN_CAPACITY, resources.getInteger(R.integer.min_design_capacity))
                 .toDouble() *
                     if (pref.getString(
-                            UNIT_OF_MEASUREMENT_OF_CURRENT_CAPACITY,
+                            UNIT_OF_MEASUREMENT_OF_available_capacity,
                             "μAh"
                         ) == "μAh"
                     ) 1000.0 else 100.0
 
         val residualCapacityCurrent =
-            if (pref.getString(UNIT_OF_MEASUREMENT_OF_CURRENT_CAPACITY, "μAh") == "μAh")
+            if (pref.getString(UNIT_OF_MEASUREMENT_OF_available_capacity, "μAh") == "μAh")
                 pref.getInt(RESIDUAL_CAPACITY, 0) / 1000 else pref.getInt(
                 RESIDUAL_CAPACITY,
                 0
@@ -551,8 +551,8 @@ class BatteryLabService : Service(), NotificationInterface, BatteryInfoInterface
                     FAST_CHARGE_SETTING,
                     resources.getBoolean(R.bool.fast_charge_setting)
                 )
-            ) (currentCapacity.toDouble() + ((NOMINAL_BATTERY_VOLTAGE / 100.0) * designCapacity)).toInt()
-            else currentCapacity
+            ) (availableCapacity.toDouble() + ((NOMINAL_BATTERY_VOLTAGE / 100.0) * designCapacity)).toInt()
+            else availableCapacity
 
         val currentDate = DateHelper.getDate(
             DateHelper.getCurrentDay(),

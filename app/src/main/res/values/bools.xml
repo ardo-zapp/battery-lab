@@ -46,7 +46,7 @@
     <bool name="charging_time_remaining_overlay">false</bool>
     <bool name="remaining_battery_time_overlay">false</bool>
     <bool name="screen_time_overlay">false</bool>
-    <bool name="current_capacity_overlay">false</bool>
+    <bool name="available_capacity_overlay">false</bool>
     <bool name="capacity_added_overlay">false</bool>
     <bool name="battery_health_android_overlay">false</bool>
     <bool name="residual_capacity_overlay">false</bool>

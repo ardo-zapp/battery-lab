@@ -40,7 +40,7 @@ object PreferencesKeys {
     const val RESET_SCREEN_TIME_AT_ANY_CHARGE_LEVEL = "reset_screen_time_at_any_charge_level"
     const val TAB_ON_APPLICATION_LAUNCH = "tab_on_application_launch"
     const val UNIT_OF_CHARGE_DISCHARGE_CURRENT = "unit_of_charge_discharge_current"
-    const val UNIT_OF_MEASUREMENT_OF_CURRENT_CAPACITY = "unit_of_measurement_of_current_capacity"
+    const val UNIT_OF_MEASUREMENT_OF_available_capacity = "unit_of_measurement_of_available_capacity"
     const val VOLTAGE_UNIT = "voltage_unit"
     const val DESIGN_CAPACITY = "design_capacity"
 
@@ -66,7 +66,7 @@ object PreferencesKeys {
     const val CHARGING_TIME_REMAINING_OVERLAY = "charging_time_remaining_overlay"
     const val REMAINING_BATTERY_TIME_OVERLAY = "remaining_battery_time_overlay"
     const val SCREEN_TIME_OVERLAY = "screen_time_overlay"
-    const val CURRENT_CAPACITY_OVERLAY = "current_capacity_overlay"
+    const val available_capacity_OVERLAY = "available_capacity_overlay"
     const val CAPACITY_ADDED_OVERLAY = "capacity_added_overlay"
     const val BATTERY_HEALTH_ANDROID_OVERLAY = "battery_health_android_overlay"
     const val RESIDUAL_CAPACITY_OVERLAY = "residual_capacity_overlay"

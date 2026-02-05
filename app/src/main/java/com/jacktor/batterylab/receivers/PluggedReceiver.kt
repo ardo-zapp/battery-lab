@@ -14,7 +14,7 @@ import com.jacktor.batterylab.R
 import com.jacktor.batterylab.helpers.BatteryLevelHelper
 import com.jacktor.batterylab.interfaces.BatteryInfoInterface
 import com.jacktor.batterylab.interfaces.BatteryInfoInterface.Companion.tempBatteryLevelWith
-import com.jacktor.batterylab.interfaces.BatteryInfoInterface.Companion.tempCurrentCapacity
+import com.jacktor.batterylab.interfaces.BatteryInfoInterface.Companion.tempAvailableCapacity
 import com.jacktor.batterylab.interfaces.NavigationInterface.Companion.mainActivityRef
 import com.jacktor.batterylab.interfaces.NotificationInterface
 import com.jacktor.batterylab.services.BatteryLabService
@@ -41,7 +41,7 @@ class PluggedReceiver : BroadcastReceiver(), BatteryInfoInterface {
 
         service.batteryLevelWith = service.getBatteryLevel(context) ?: 0
         tempBatteryLevelWith = service.batteryLevelWith
-        tempCurrentCapacity = service.getCurrentCapacity(context)
+        tempAvailableCapacity = service.getAvailableCapacity(context)
 
         BatteryInfoInterface.maxChargeCurrent = 0
         BatteryInfoInterface.averageChargeCurrent = 0

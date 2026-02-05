@@ -177,7 +177,7 @@ interface MenuInterface {
         toolbar.inflateMenu(R.menu.main_menu)
 
         toolbar.menu.findItem(R.id.instruction).apply {
-            isVisible = getCurrentCapacity(this@defaultMenu) > 0.0 &&
+            isVisible = getAvailableCapacity(this@defaultMenu) > 0.0 &&
                     (fragment is BatteryInfoFragment /*|| fragment is KernelFragment*/)
             setOnMenuItemClickListener {
                 showInstruction()
@@ -245,7 +245,7 @@ interface MenuInterface {
                         R.string.faq_where_does_the_app_get_the_ccl
                     ) + getString(R.string.faq_why_is_ccl_not_displayed) + getString(R.string.faq_i_have_everything_in_zeros) + getString(
                         R.string.faq_units
-                    ) + getString(R.string.faq_current_capacity) + getString(R.string.faq_residual_capacity_is_higher) + getString(
+                    ) + getString(R.string.faq_available_capacity) + getString(R.string.faq_residual_capacity_is_higher) + getString(
                         R.string.faq_battery_wear_changes_when_charger_is_disconnected
                     ) + getString(R.string.faq_battery_wear_not_change) + getString(R.string.faq_with_each_charge_battery_wear_changes)
                 )
@@ -254,7 +254,7 @@ interface MenuInterface {
                         R.string.faq_where_does_the_app_get_the_ccl
                     ) + getString(R.string.faq_why_is_ccl_not_displayed) + getString(R.string.faq_i_have_everything_in_zeros) + getString(
                         R.string.faq_units
-                    ) + getString(R.string.faq_current_capacity) + getString(R.string.faq_residual_capacity_is_higher) + getString(
+                    ) + getString(R.string.faq_available_capacity) + getString(R.string.faq_residual_capacity_is_higher) + getString(
                         R.string.faq_battery_wear_changes_when_charger_is_disconnected
                     ) + getString(R.string.faq_battery_wear_not_change) + getString(R.string.faq_with_each_charge_battery_wear_changes) + getString(
                         R.string.faq_where_does_the_app_get_the_number_of_cycles_android

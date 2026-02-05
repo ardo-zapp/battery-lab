@@ -157,7 +157,7 @@ interface NotificationInterface : BatteryInfoInterface {
             if (isShowBatteryInformation) {
                 remoteViewsServiceContent.setTextViewText(
                     R.id.notification_content_text,
-                    if (getCurrentCapacity(context) > 0.0) {
+                    if (getAvailableCapacity(context) > 0.0) {
 
                         val isCapacityInWh = pref.getBoolean(
                             CAPACITY_IN_WH,
@@ -165,14 +165,14 @@ interface NotificationInterface : BatteryInfoInterface {
                         )
 
                         if (isCapacityInWh) context.getString(
-                            R.string.current_capacity_wh,
+                            R.string.available_capacity_notification_wh,
                             DecimalFormat("#.#").format(
-                                getCapacityInWh(getCurrentCapacity(context))
+                                getCapacityInWh(getAvailableCapacity(context))
                             )
                         )
                         else context.getString(
-                            R.string.current_capacity,
-                            DecimalFormat("#.#").format(getCurrentCapacity(context))
+                            R.string.available_capacity_notification,
+                            DecimalFormat("#.#").format(getAvailableCapacity(context))
                         )
                     } else "${
                         context.getString(
@@ -199,7 +199,7 @@ interface NotificationInterface : BatteryInfoInterface {
 
                 remoteViewsServiceBigContent.setViewVisibility(
                     R.id
-                        .voltage_service_notification, if (getCurrentCapacity(context) == 0.0
+                        .voltage_service_notification, if (getAvailableCapacity(context) == 0.0
                         || mActions.isNullOrEmpty()
                     ) View.VISIBLE else View.GONE
                 )
@@ -314,7 +314,7 @@ interface NotificationInterface : BatteryInfoInterface {
             if (isShowBatteryInformation) {
                 remoteViewsServiceContent.setTextViewText(
                     R.id.notification_content_text,
-                    if (getCurrentCapacity(context) > 0.0) {
+                    if (getAvailableCapacity(context) > 0.0) {
 
                         val isCapacityInWh = pref.getBoolean(
                             CAPACITY_IN_WH,
@@ -322,14 +322,14 @@ interface NotificationInterface : BatteryInfoInterface {
                         )
 
                         if (isCapacityInWh) context.getString(
-                            R.string.current_capacity_wh,
+                            R.string.available_capacity_notification_wh,
                             DecimalFormat("#.#").format(
-                                getCapacityInWh(getCurrentCapacity(context))
+                                getCapacityInWh(getAvailableCapacity(context))
                             )
                         )
                         else context.getString(
-                            R.string.current_capacity,
-                            DecimalFormat("#.#").format(getCurrentCapacity(context))
+                            R.string.available_capacity_notification,
+                            DecimalFormat("#.#").format(getAvailableCapacity(context))
                         )
                     } else "${
                         context.getString(
@@ -368,7 +368,7 @@ interface NotificationInterface : BatteryInfoInterface {
 
                 remoteViewsServiceBigContent.setViewVisibility(
                     R.id
-                        .voltage_service_notification, if (getCurrentCapacity(context) == 0.0
+                        .voltage_service_notification, if (getAvailableCapacity(context) == 0.0
                         || mActions.isNullOrEmpty()
                     ) View.VISIBLE else View.GONE
                 )
@@ -1099,18 +1099,18 @@ interface NotificationInterface : BatteryInfoInterface {
             setViewVisibility(R.id.source_of_power_service_notification, View.VISIBLE)
 
             setViewVisibility(
-                R.id.current_capacity_service_notification,
-                if (getCurrentCapacity(context) > 0.0) View.VISIBLE else View.GONE
+                R.id.available_capacity_service_notification,
+                if (getAvailableCapacity(context) > 0.0) View.VISIBLE else View.GONE
             )
 
             setViewVisibility(
                 R.id.residual_capacity_service_notification,
-                if (getCurrentCapacity(context) > 0.0) View.VISIBLE else View.GONE
+                if (getAvailableCapacity(context) > 0.0) View.VISIBLE else View.GONE
             )
 
             setViewVisibility(
                 R.id.battery_wear_service_notification,
-                if (getCurrentCapacity(context) > 0.0) View.VISIBLE else View.GONE
+                if (getAvailableCapacity(context) > 0.0) View.VISIBLE else View.GONE
             )
 
             setTextViewText(
@@ -1148,12 +1148,12 @@ interface NotificationInterface : BatteryInfoInterface {
             )
 
             setTextViewText(
-                R.id.current_capacity_service_notification, context.getString(
-                    if (isCapacityInWh) R.string.current_capacity_wh else R.string.current_capacity,
+                R.id.available_capacity_service_notification, context.getString(
+                    if (isCapacityInWh) R.string.available_capacity_notification_wh else R.string.available_capacity,
                     DecimalFormat("#.#").format(
                         if (isCapacityInWh) getCapacityInWh(
-                            getCurrentCapacity(context)
-                        ) else getCurrentCapacity(context)
+                            getAvailableCapacity(context)
+                        ) else getAvailableCapacity(context)
                     )
                 )
             )
@@ -1235,18 +1235,18 @@ interface NotificationInterface : BatteryInfoInterface {
             setViewVisibility(R.id.charging_time_service_notification, View.VISIBLE)
 
             setViewVisibility(
-                R.id.current_capacity_service_notification,
-                if (getCurrentCapacity(context) > 0.0) View.VISIBLE else View.GONE
+                R.id.available_capacity_service_notification,
+                if (getAvailableCapacity(context) > 0.0) View.VISIBLE else View.GONE
             )
 
             setViewVisibility(
                 R.id.residual_capacity_service_notification,
-                if (getCurrentCapacity(context) > 0.0) View.VISIBLE else View.GONE
+                if (getAvailableCapacity(context) > 0.0) View.VISIBLE else View.GONE
             )
 
             setViewVisibility(
                 R.id.battery_wear_service_notification,
-                if (getCurrentCapacity(context) > 0.0) View.VISIBLE else View.GONE
+                if (getAvailableCapacity(context) > 0.0) View.VISIBLE else View.GONE
             )
 
             setTextViewText(
@@ -1283,12 +1283,12 @@ interface NotificationInterface : BatteryInfoInterface {
             )
 
             setTextViewText(
-                R.id.current_capacity_service_notification, context.getString(
-                    if (isCapacityInWh) R.string.current_capacity_wh else R.string.current_capacity,
+                R.id.available_capacity_service_notification, context.getString(
+                    if (isCapacityInWh) R.string.available_capacity_notification_wh else R.string.available_capacity,
                     DecimalFormat("#.#").format(
                         if (isCapacityInWh) getCapacityInWh(
-                            getCurrentCapacity(context)
-                        ) else getCurrentCapacity(context)
+                            getAvailableCapacity(context)
+                        ) else getAvailableCapacity(context)
                     )
                 )
             )
@@ -1370,18 +1370,18 @@ interface NotificationInterface : BatteryInfoInterface {
             setViewVisibility(R.id.charging_time_service_notification, View.VISIBLE)
 
             setViewVisibility(
-                R.id.current_capacity_service_notification,
-                if (getCurrentCapacity(context) > 0.0) View.VISIBLE else View.GONE
+                R.id.available_capacity_service_notification,
+                if (getAvailableCapacity(context) > 0.0) View.VISIBLE else View.GONE
             )
 
             setViewVisibility(
                 R.id.residual_capacity_service_notification,
-                if (getCurrentCapacity(context) > 0.0) View.VISIBLE else View.GONE
+                if (getAvailableCapacity(context) > 0.0) View.VISIBLE else View.GONE
             )
 
             setViewVisibility(
                 R.id.battery_wear_service_notification,
-                if (getCurrentCapacity(context) > 0.0) View.VISIBLE else View.GONE
+                if (getAvailableCapacity(context) > 0.0) View.VISIBLE else View.GONE
             )
 
             setTextViewText(
@@ -1418,12 +1418,12 @@ interface NotificationInterface : BatteryInfoInterface {
             )
 
             setTextViewText(
-                R.id.current_capacity_service_notification, context.getString(
-                    if (isCapacityInWh) R.string.current_capacity_wh else R.string.current_capacity,
+                R.id.available_capacity_service_notification, context.getString(
+                    if (isCapacityInWh) R.string.available_capacity_notification_wh else R.string.available_capacity_notification,
                     DecimalFormat("#.#").format(
                         if (isCapacityInWh) getCapacityInWh(
-                            getCurrentCapacity(context)
-                        ) else getCurrentCapacity(context)
+                            getAvailableCapacity(context)
+                        ) else getAvailableCapacity(context)
                     )
                 )
             )
@@ -1501,18 +1501,18 @@ interface NotificationInterface : BatteryInfoInterface {
         remoteViews.apply {
 
             setViewVisibility(
-                R.id.current_capacity_service_notification,
-                if (getCurrentCapacity(context) > 0.0) View.VISIBLE else View.GONE
+                R.id.available_capacity_service_notification,
+                if (getAvailableCapacity(context) > 0.0) View.VISIBLE else View.GONE
             )
 
             setViewVisibility(
                 R.id.residual_capacity_service_notification,
-                if (getCurrentCapacity(context) > 0.0) View.VISIBLE else View.GONE
+                if (getAvailableCapacity(context) > 0.0) View.VISIBLE else View.GONE
             )
 
             setViewVisibility(
                 R.id.battery_wear_service_notification,
-                if (getCurrentCapacity(context) > 0.0) View.VISIBLE else View.GONE
+                if (getAvailableCapacity(context) > 0.0) View.VISIBLE else View.GONE
             )
 
             setTextViewText(
@@ -1542,12 +1542,12 @@ interface NotificationInterface : BatteryInfoInterface {
             )
 
             setTextViewText(
-                R.id.current_capacity_service_notification, context.getString(
-                    if (isCapacityInWh) R.string.current_capacity_wh else R.string.current_capacity,
+                R.id.available_capacity_service_notification, context.getString(
+                    if (isCapacityInWh) R.string.available_capacity_notification_wh else R.string.available_capacity_notification,
                     DecimalFormat("#.#").format(
                         if (isCapacityInWh) getCapacityInWh(
-                            getCurrentCapacity(context)
-                        ) else getCurrentCapacity(context)
+                            getAvailableCapacity(context)
+                        ) else getAvailableCapacity(context)
                     )
                 )
             )
@@ -1623,18 +1623,18 @@ interface NotificationInterface : BatteryInfoInterface {
             setViewVisibility(R.id.charging_time_service_notification, View.VISIBLE)
 
             setViewVisibility(
-                R.id.current_capacity_service_notification,
-                if (getCurrentCapacity(context) > 0.0) View.VISIBLE else View.GONE
+                R.id.available_capacity_service_notification,
+                if (getAvailableCapacity(context) > 0.0) View.VISIBLE else View.GONE
             )
 
             setViewVisibility(
                 R.id.residual_capacity_service_notification,
-                if (getCurrentCapacity(context) > 0.0) View.VISIBLE else View.GONE
+                if (getAvailableCapacity(context) > 0.0) View.VISIBLE else View.GONE
             )
 
             setViewVisibility(
                 R.id.battery_wear_service_notification,
-                if (getCurrentCapacity(context) > 0.0) View.VISIBLE else View.GONE
+                if (getAvailableCapacity(context) > 0.0) View.VISIBLE else View.GONE
             )
 
             setTextViewText(
@@ -1671,9 +1671,9 @@ interface NotificationInterface : BatteryInfoInterface {
             )
 
             setTextViewText(
-                R.id.current_capacity_service_notification, context.getString(
-                    R.string.current_capacity, DecimalFormat("#.#").format(
-                        getCurrentCapacity(
+                R.id.available_capacity_service_notification, context.getString(
+                    R.string.available_capacity, DecimalFormat("#.#").format(
+                        getAvailableCapacity(
                             context
                         )
                     )

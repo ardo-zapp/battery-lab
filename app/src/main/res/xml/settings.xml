@@ -187,10 +187,10 @@
 
         <ListPreference
             android:dialogIcon="@drawable/ic_unit_of_measurement_of_cc_24dp"
-            android:entries="@array/unit_of_measurement_of_current_capacity_list"
-            android:entryValues="@array/unit_of_measurement_of_current_capacity_values"
-            android:key="unit_of_measurement_of_current_capacity"
-            android:title="@string/unit_of_measurement_of_current_capacity"
+            android:entries="@array/unit_of_measurement_of_available_capacity_list"
+            android:entryValues="@array/unit_of_measurement_of_available_capacity_values"
+            android:key="unit_of_measurement_of_available_capacity"
+            android:title="@string/unit_of_measurement_of_available_capacity"
             app:defaultValue="μAh"
             app:icon="@drawable/ic_unit_of_measurement_of_cc_24dp"
             app:isPreferenceVisible="false"

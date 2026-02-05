@@ -22,7 +22,7 @@ import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.TEXT_FONT
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.TEXT_SIZE
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.TEXT_STYLE
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.UNIT_OF_CHARGE_DISCHARGE_CURRENT
-import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.UNIT_OF_MEASUREMENT_OF_CURRENT_CAPACITY
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.UNIT_OF_MEASUREMENT_OF_available_capacity
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.VOLTAGE_UNIT
 
 interface SettingsInterface {
@@ -102,28 +102,28 @@ interface SettingsInterface {
         }
     }
 
-    fun SettingsFragment.getUnitOfMeasurementOfCurrentCapacitySummary(): String? {
+    fun SettingsFragment.getUnitOfMeasurementOfAvailableCapacitySummary(): String? {
 
         val pref = PreferenceManager.getDefaultSharedPreferences(requireContext())
 
-        if (pref.getString(UNIT_OF_MEASUREMENT_OF_CURRENT_CAPACITY, "μAh")
+        if (pref.getString(UNIT_OF_MEASUREMENT_OF_available_capacity, "μAh")
             !in resources.getStringArray(
-                R.array.unit_of_measurement_of_current_capacity_values
+                R.array.unit_of_measurement_of_available_capacity_values
             )
         )
-            pref.edit { putString(UNIT_OF_MEASUREMENT_OF_CURRENT_CAPACITY, "μAh") }
+            pref.edit { putString(UNIT_OF_MEASUREMENT_OF_available_capacity, "μAh") }
 
-        return when (pref.getString(UNIT_OF_MEASUREMENT_OF_CURRENT_CAPACITY, "μAh")) {
+        return when (pref.getString(UNIT_OF_MEASUREMENT_OF_available_capacity, "μAh")) {
 
             "μAh" -> resources.getStringArray(
-                R.array.unit_of_measurement_of_current_capacity_list
+                R.array.unit_of_measurement_of_available_capacity_list
             )[0]
 
             "mAh" -> resources.getStringArray(
-                R.array.unit_of_measurement_of_current_capacity_list
+                R.array.unit_of_measurement_of_available_capacity_list
             )[1]
 
-            else -> pref.getString(UNIT_OF_MEASUREMENT_OF_CURRENT_CAPACITY, "μAh")
+            else -> pref.getString(UNIT_OF_MEASUREMENT_OF_available_capacity, "μAh")
         }
     }
 

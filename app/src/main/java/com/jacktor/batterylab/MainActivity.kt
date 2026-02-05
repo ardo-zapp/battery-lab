@@ -462,7 +462,7 @@ class MainActivity : AppCompatActivity(),
 
     private fun updateToolbarMenuIfNeeded() {
         if (fragment is BatteryInfoFragment) {
-            toolbar.menu.findItem(R.id.instruction).isVisible = getCurrentCapacity(this) > 0.0
+            toolbar.menu.findItem(R.id.instruction).isVisible = getAvailableCapacity(this) > 0.0
         }
     }
 

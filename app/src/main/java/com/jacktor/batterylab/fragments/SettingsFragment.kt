@@ -43,7 +43,7 @@ import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.TEXT_FONT
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.TEXT_SIZE
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.TEXT_STYLE
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.UNIT_OF_CHARGE_DISCHARGE_CURRENT
-import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.UNIT_OF_MEASUREMENT_OF_CURRENT_CAPACITY
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.UNIT_OF_MEASUREMENT_OF_available_capacity
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.VOLTAGE_UNIT
 import com.jacktor.premium.Premium
 import kotlinx.coroutines.CoroutineScope
@@ -85,7 +85,7 @@ class SettingsFragment() : PreferenceFragmentCompat(),
     private var resetScreenTime: SwitchPreferenceCompat? = null
     private var tabOnApplicationLaunch: ListPreference? = null
     private var unitOfChargeDischargeCurrent: ListPreference? = null
-    private var unitOfMeasurementOfCurrentCapacity: ListPreference? = null
+    private var unitOfMeasurementOfAvailableCapacity: ListPreference? = null
     private var voltageUnit: ListPreference? = null
     private var backupSettings: Preference? = null
     private var moreOther: Preference? = null
@@ -338,8 +338,8 @@ class SettingsFragment() : PreferenceFragmentCompat(),
 
         unitOfChargeDischargeCurrent = findPreference(UNIT_OF_CHARGE_DISCHARGE_CURRENT)
 
-        unitOfMeasurementOfCurrentCapacity =
-            findPreference(UNIT_OF_MEASUREMENT_OF_CURRENT_CAPACITY)
+        unitOfMeasurementOfAvailableCapacity =
+            findPreference(UNIT_OF_MEASUREMENT_OF_available_capacity)
 
         voltageUnit = findPreference(VOLTAGE_UNIT)
 
@@ -434,9 +434,9 @@ class SettingsFragment() : PreferenceFragmentCompat(),
                     summary = getUnitOfChargeDischargeCurrentSummary()
                 }
 
-                unitOfMeasurementOfCurrentCapacity?.apply {
+                unitOfMeasurementOfAvailableCapacity?.apply {
                     isVisible = true
-                    summary = getUnitOfMeasurementOfCurrentCapacitySummary()
+                    summary = getUnitOfMeasurementOfAvailableCapacitySummary()
                 }
 
                 voltageUnit?.apply {
@@ -448,9 +448,9 @@ class SettingsFragment() : PreferenceFragmentCompat(),
                     isVisible = true
                     summary = getUnitOfChargeDischargeCurrentSummary()
                 }
-                unitOfMeasurementOfCurrentCapacity?.apply {
+                unitOfMeasurementOfAvailableCapacity?.apply {
                     isVisible = true
-                    summary = getUnitOfMeasurementOfCurrentCapacitySummary()
+                    summary = getUnitOfMeasurementOfAvailableCapacitySummary()
                 }
                 changeDesignCapacity?.apply {
                     isVisible = true
@@ -466,9 +466,9 @@ class SettingsFragment() : PreferenceFragmentCompat(),
                     isVisible = true
                     summary = getUnitOfChargeDischargeCurrentSummary()
                 }
-                unitOfMeasurementOfCurrentCapacity?.apply {
+                unitOfMeasurementOfAvailableCapacity?.apply {
                     isVisible = true
-                    summary = getUnitOfMeasurementOfCurrentCapacitySummary()
+                    summary = getUnitOfMeasurementOfAvailableCapacitySummary()
                 }
                 changeDesignCapacity?.apply {
                     isVisible = true
@@ -513,7 +513,7 @@ class SettingsFragment() : PreferenceFragmentCompat(),
 
                 tabOnApplicationLaunch?.isVisible = false
                 unitOfChargeDischargeCurrent?.isVisible = false
-                unitOfMeasurementOfCurrentCapacity?.isVisible = false
+                unitOfMeasurementOfAvailableCapacity?.isVisible = false
                 voltageUnit?.isVisible = false
                 changeDesignCapacity?.isVisible = false
                 overlay?.isVisible = false
@@ -582,7 +582,7 @@ class SettingsFragment() : PreferenceFragmentCompat(),
             }
         }
 
-        unitOfMeasurementOfCurrentCapacity?.apply {
+        unitOfMeasurementOfAvailableCapacity?.apply {
 
             setOnPreferenceClickListener {
 
@@ -605,11 +605,11 @@ class SettingsFragment() : PreferenceFragmentCompat(),
                 if ((newValue as? String) == "μAh")
                     preference.summary = resources.getStringArray(
                         R.array
-                            .unit_of_measurement_of_current_capacity_list
+                            .unit_of_measurement_of_available_capacity_list
                     )[0]
                 else preference.summary = resources.getStringArray(
                     R.array
-                        .unit_of_measurement_of_current_capacity_list
+                        .unit_of_measurement_of_available_capacity_list
                 )[1]
 
                 true
@@ -915,8 +915,8 @@ class SettingsFragment() : PreferenceFragmentCompat(),
             if (isVisible) summary = getUnitOfChargeDischargeCurrentSummary()
         }
 
-        unitOfMeasurementOfCurrentCapacity?.apply {
-            if (isVisible) summary = getUnitOfMeasurementOfCurrentCapacitySummary()
+        unitOfMeasurementOfAvailableCapacity?.apply {
+            if (isVisible) summary = getUnitOfMeasurementOfAvailableCapacitySummary()
         }
 
         voltageUnit?.apply {

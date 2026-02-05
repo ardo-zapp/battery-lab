@@ -63,7 +63,7 @@ import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.TEXT_FONT
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.TEXT_SIZE
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.TEXT_STYLE
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.UNIT_OF_CHARGE_DISCHARGE_CURRENT
-import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.UNIT_OF_MEASUREMENT_OF_CURRENT_CAPACITY
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.UNIT_OF_MEASUREMENT_OF_available_capacity
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.UPDATE_TEMP_SCREEN_TIME
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.VOLTAGE_UNIT
 import kotlinx.coroutines.CoroutineScope
@@ -378,7 +378,7 @@ interface DebugOptionsInterface {
 
         try {
             when (key) {
-                UNIT_OF_MEASUREMENT_OF_CURRENT_CAPACITY, UNIT_OF_CHARGE_DISCHARGE_CURRENT,
+                UNIT_OF_MEASUREMENT_OF_available_capacity, UNIT_OF_CHARGE_DISCHARGE_CURRENT,
                 VOLTAGE_UNIT, OVERLAY_LOCATION, OVERLAY_SIZE, OVERLAY_FONT, TEXT_SIZE, TEXT_FONT,
                 OVERLAY_TEXT_STYLE, TEXT_STYLE, TAB_ON_APPLICATION_LAUNCH,
                 FULL_CHARGE_REMINDER_FREQUENCY -> addChangeSetting(pref, key, value.toString())
@@ -439,7 +439,7 @@ interface DebugOptionsInterface {
 
                     when (key) {
 
-                        UNIT_OF_MEASUREMENT_OF_CURRENT_CAPACITY,
+                        UNIT_OF_MEASUREMENT_OF_available_capacity,
                         UNIT_OF_CHARGE_DISCHARGE_CURRENT, VOLTAGE_UNIT, OVERLAY_LOCATION,
                         OVERLAY_SIZE, OVERLAY_TEXT_STYLE, TEXT_SIZE, TEXT_STYLE,
                         TAB_ON_APPLICATION_LAUNCH, FULL_CHARGE_REMINDER_FREQUENCY ->
@@ -599,11 +599,11 @@ interface DebugOptionsInterface {
 
                         when (key) {
 
-                            UNIT_OF_MEASUREMENT_OF_CURRENT_CAPACITY ->
+                            UNIT_OF_MEASUREMENT_OF_available_capacity ->
                                 s.toString() != pref.getString(key, "μAh") &&
                                         s.toString() in context.resources.getStringArray(
                                     R.array
-                                        .unit_of_measurement_of_current_capacity_values
+                                        .unit_of_measurement_of_available_capacity_values
                                 )
 
                             UNIT_OF_CHARGE_DISCHARGE_CURRENT ->
@@ -904,7 +904,7 @@ interface DebugOptionsInterface {
                         DateHelper.getCurrentYear()
                     )
                     val residualCapacity = if (pref.getString(
-                            UNIT_OF_MEASUREMENT_OF_CURRENT_CAPACITY, "μAh"
+                            UNIT_OF_MEASUREMENT_OF_available_capacity, "μAh"
                         ) == "μAh"
                     ) ((
                             designCapacity * 0.01).toInt() * 1000..(designCapacity + (

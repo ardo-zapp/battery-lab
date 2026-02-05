@@ -58,11 +58,14 @@
     <string name="battery_level_with_title">Уровень батареи: %1$s</string>
     <string name="capacity_title">Ёмкость</string>
     <string name="design_capacity">%1$s мА·ч</string>
-    <string name="current_capacity">Текущая: %1$s мА·ч</string>
+    <string name="available_capacity">Доступно: %1$s мА·ч</string>
+    <string name="available_capacity_notification">Доступная ёмкость: %1$s мА·ч</string>
+    <string name="available_capacity_overlay_wh">Доступная ёмкость: %1$s Wh</string>
     <string name="residual_capacity">Остаток: %1$s мА·ч (%2$s)</string>
     <string name="battery_wear">Износ: %1$s (%2$s мА·ч)</string>
     <string name="capacity_in_wh">Ёмкость в Вт·ч</string>
-    <string name="current_capacity_wh">Текущая: %1$s Вт·ч</string>
+    <string name="available_capacity_wh">Доступно: %1$s Вт·ч</string>
+    <string name="available_capacity_notification_wh">Доступная ёмкость: %1$s Wh</string>
     <string name="residual_capacity_wh">Остаток: %1$s Вт·ч (%2$s)</string>
     <string name="battery_wear_wh">Износ: %1$s (%2$s Вт·ч)</string>
     <string name="charge_current">Ток зарядки: %1$s мА</string>
@@ -118,7 +121,7 @@
     <string name="charging_time_overlay">Время зарядки</string>
     <string name="charging_time_remaining_overlay">Оставшееся время зарядки</string>
     <string name="remaining_battery_time_overlay">Оставшееся время работы</string>
-    <string name="current_capacity_overlay">Текущая ёмкость</string>
+    <string name="available_capacity_overlay">Доступная ёмкость</string>
     <string name="capacity_added_overlay">Добавленная ёмкость</string>
     <string name="battery_health_android_overlay">Состояние батареи (Android)</string>
     <string name="residual_capacity_overlay">Остаточная ёмкость</string>
@@ -263,7 +266,7 @@
     <string name="faq_why_is_ccl_not_displayed">Вопрос: Почему «Ограничение тока зарядки» не отображается?\nОтвет: Отображение зависит от того, читается ли файл «constant_charge_current_max». Не все ядра позволяют читать этот файл, и он есть не во всех ядрах.\n\n</string>
     <string name="faq_i_have_everything_in_zeros" formatted="false">Вопрос: У меня всё (или почти всё) нули. Почему?\nОтвет: Потому что производитель вашего устройства сэкономил на различных датчиках. Так как ядро не может получить значение, оно возвращает 0.\n\n</string>
     <string name="faq_units">Вопрос: В текущей ёмкости, токе зарядки/разряда, напряжении отображаются слишком большие или маленькие числа.\nОтвет: Откройте настройки, в разделе «Прочее» разверните все параметры и измените единицы измерения.\n\n</string>
-    <string name="faq_current_capacity">Вопрос: Текущая ёмкость перестала отображаться, хотя раньше показывалась (или показывается не всегда).\nОтвет: Это может означать, что батарея подходит к концу ресурса. Если с батареей всё в порядке, возможно, сбоит ядро прошивки или контроллер, отдающий текущее значение.\n\n</string>
+    <string name="faq_available_capacity">Вопрос: Доступная ёмкость перестала отображаться, хотя раньше показывалась (или отображается не всегда).\nОтвет: Это может означать, что батарея приближается к концу своего ресурса. Если с батареей всё в порядке, возможно, возникают сбои в ядре прошивки или в контроллере, который передаёт значение доступной ёмкости.\n\n</string>
     <string name="faq_residual_capacity_is_higher" formatted="false">Вопрос: Остаточная ёмкость выше проектной\nОтвет: Если батарея новая — это нормально. Ёмкость новой батареи редко равна проектной: бывает на 2–3% меньше или больше, чаще меньше. Если у новой батареи ёмкость выше проектной — вам повезло. Если батарея не новая, можно попробовать «калибровку» ядра: разрядить до 10% или ниже и зарядить до 100%. Если не помогает, значит либо ядро неверно считывает текущее значение, либо дело в самой батарее.\n\n</string>
     <string name="faq_battery_wear_changes_when_charger_is_disconnected">Вопрос: Износ батареи меняется при отключении зарядного устройства\nОтвет: При отключении зарядки текущая ёмкость иногда отличается от значения при полном заряде, поэтому износ после отключения зачастую точнее.\n\n</string>
     <string name="faq_battery_wear_not_change" formatted="false">Вопрос: Износ батареи не меняется даже спустя месяцы\nОтвет: Иногда текущая ёмкость отображается неверно, из-за чего неверно считается износ. Чтобы этого избежать, раз в месяц-два выполняйте «калибровку»: разряд до 10% или ниже и заряд до 100% (статус: «Полностью заряжена»).\n\n</string>
@@ -320,7 +323,7 @@
     <string name="service">Сервис</string>
     <string name="service_time">Время работы сервиса</string>
     <string name="unit_of_charge_discharge_current">Единица тока зарядки/разряда</string>
-    <string name="unit_of_measurement_of_current_capacity">Единица измерения текущей ёмкости</string>
+    <string name="unit_of_measurement_of_available_capacity">Единица измерения доступной ёмкости</string>
     <string name="battery_health_android">%1$s (Android)</string>
     <string name="battery_health_good_android">Хорошо</string>
     <string name="battery_health_dead_android">Неисправна</string>

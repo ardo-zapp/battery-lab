@@ -52,10 +52,10 @@
     <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            tools:text="@string/current_capacity"
+            tools:text="@string/available_capacity"
             android:fontFamily="@font/google_sans"
             android:textColor="@color/service_notification_text"
-            android:id="@+id/current_capacity_service_notification"/>
+            android:id="@+id/available_capacity_service_notification"/>
 
     <TextView
             android:layout_width="match_parent"

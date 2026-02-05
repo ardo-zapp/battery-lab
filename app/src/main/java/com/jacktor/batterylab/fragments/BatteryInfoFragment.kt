@@ -227,7 +227,7 @@ class BatteryInfoFragment : Fragment(R.layout.battery_info_fragment), SettingsIn
                 )
             else null
         val remainingBatteryTime =
-            if (sourceOfPower != BatteryManager.BATTERY_PLUGGED_AC && getCurrentCapacity(
+            if (sourceOfPower != BatteryManager.BATTERY_PLUGGED_AC && getAvailableCapacity(
                     requireContext()
                 ) > 0.0
             )
@@ -432,15 +432,15 @@ class BatteryInfoFragment : Fragment(R.layout.battery_info_fragment), SettingsIn
             getString(R.string.design_capacity, "$designCapacityMah")
 
         val capSecondary = mutableListOf<String>()
-        val currentCap = getCurrentCapacity(requireContext())
+        val currentCap = getAvailableCapacity(requireContext())
         if (currentCap > 0.0) {
             val currentText = if (isCapacityInWh)
                 getString(
-                    R.string.current_capacity_wh,
+                    R.string.available_capacity_wh,
                     DecimalFormat("#.#").format(getCapacityInWh(currentCap))
                 )
             else
-                getString(R.string.current_capacity, DecimalFormat("#.#").format(currentCap))
+                getString(R.string.available_capacity, DecimalFormat("#.#").format(currentCap))
             capSecondary += currentText
             capSecondary += getCapacityAdded(requireContext())
         }

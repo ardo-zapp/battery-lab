@@ -94,8 +94,8 @@
             android:layout_height="wrap_content"
             android:fontFamily="@font/google_sans"
             android:textColor="@android:color/white"
-            android:id="@+id/current_capacity_overlay"
-            android:text="@string/current_capacity"
+            android:id="@+id/available_capacity_overlay"
+            android:text="@string/available_capacity_overlay"
             android:textSize="@dimen/medium_text_size"/>
 
     <androidx.appcompat.widget.AppCompatTextView

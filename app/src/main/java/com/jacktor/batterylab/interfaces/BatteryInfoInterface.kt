@@ -21,7 +21,7 @@ import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.ONLY_VALUES_
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.PERCENT_ADDED
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.RESIDUAL_CAPACITY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.UNIT_OF_CHARGE_DISCHARGE_CURRENT
-import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.UNIT_OF_MEASUREMENT_OF_CURRENT_CAPACITY
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.UNIT_OF_MEASUREMENT_OF_available_capacity
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.VOLTAGE_UNIT
 import java.io.BufferedReader
 import java.io.File
@@ -35,7 +35,7 @@ import kotlin.math.max
 interface BatteryInfoInterface {
 
     companion object {
-        var tempCurrentCapacity = 0.0
+        var tempAvailableCapacity = 0.0
         var capacityAdded = 0.0
         var tempBatteryLevelWith = 0
         var percentAdded = 0
@@ -339,7 +339,7 @@ interface BatteryInfoInterface {
         return if (c <= temperature || temperature == 0.0) c else temperature
     }
 
-    fun getCurrentCapacity(context: Context) =
+    fun getAvailableCapacity(context: Context) =
         try {
             val pref = PreferenceManager.getDefaultSharedPreferences(context)
             val bm = context.getSystemService(Context.BATTERY_SERVICE) as BatteryManager
@@ -347,7 +347,7 @@ interface BatteryInfoInterface {
             when {
                 cc < 0 -> 0.001
                 pref.getString(
-                    UNIT_OF_MEASUREMENT_OF_CURRENT_CAPACITY,
+                    UNIT_OF_MEASUREMENT_OF_available_capacity,
                     "μAh"
                 ) == "μAh" -> cc / 1000.0
 
@@ -379,7 +379,7 @@ interface BatteryInfoInterface {
                 percentAdded = (getBatteryLevel(context) ?: 0) - tempBatteryLevelWith
                 if (percentAdded < 0) percentAdded = 0
 
-                capacityAdded = getCurrentCapacity(context) - tempCurrentCapacity
+                capacityAdded = getAvailableCapacity(context) - tempAvailableCapacity
                 if (capacityAdded < 0) capacityAdded = abs(capacityAdded)
 
                 if (isWh) context.getString(
@@ -422,7 +422,7 @@ interface BatteryInfoInterface {
         ).toDouble()
         val residual = pref.getInt(RESIDUAL_CAPACITY, 0).toDouble() /
                 if (pref.getString(
-                        UNIT_OF_MEASUREMENT_OF_CURRENT_CAPACITY,
+                        UNIT_OF_MEASUREMENT_OF_available_capacity,
                         "μAh"
                     ) == "μAh"
                 ) 1000.0 else 100.0
@@ -470,7 +470,7 @@ interface BatteryInfoInterface {
 
         residualCapacity = pref.getInt(RESIDUAL_CAPACITY, 0).toDouble()
         residualCapacity /= if (pref.getString(
-                UNIT_OF_MEASUREMENT_OF_CURRENT_CAPACITY,
+                UNIT_OF_MEASUREMENT_OF_available_capacity,
                 "μAh"
             ) == "μAh"
         ) 1000.0 else 100.0
@@ -589,7 +589,7 @@ interface BatteryInfoInterface {
         if (!isCharging) return context.getString(R.string.unknown)
 
         val pref = PreferenceManager.getDefaultSharedPreferences(context)
-        val unitIsuAh = pref.getString(UNIT_OF_MEASUREMENT_OF_CURRENT_CAPACITY, "μAh") == "μAh"
+        val unitIsuAh = pref.getString(UNIT_OF_MEASUREMENT_OF_available_capacity, "μAh") == "μAh"
         val residualRaw = pref.getInt(RESIDUAL_CAPACITY, 0).toDouble()
         val residualMah = if (residualRaw > 0) {
             if (unitIsuAh) residualRaw / 1000.0 else residualRaw / 100.0
@@ -604,7 +604,7 @@ interface BatteryInfoInterface {
             else -> designMah
         }.coerceAtLeast(100.0)
 
-        val currentMah = getCurrentCapacity(context).coerceAtLeast(0.0)
+        val currentMah = getAvailableCapacity(context).coerceAtLeast(0.0)
         val capacityToGoMah = if (currentMah in 1.0..(fullMah * 1.5)) {
             (fullMah - currentMah).coerceAtLeast(0.0)
         } else {
@@ -638,7 +638,7 @@ interface BatteryInfoInterface {
     }
 
     fun getRemainingBatteryTime(context: Context): String {
-        val currentMah = getCurrentCapacity(context)
+        val currentMah = getAvailableCapacity(context)
         val discharge = when {
             Smooth.emaDischargeCurrentMa > 0 -> Smooth.emaDischargeCurrentMa
             averageDischargeCurrent > 0 -> averageDischargeCurrent.toDouble()
