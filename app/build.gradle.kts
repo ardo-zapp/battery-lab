@@ -96,10 +96,10 @@ configure<ApplicationExtension> {
 dependencies {
     implementation(project(":premium"))
 
-    implementation(platform("com.google.firebase:firebase-bom:34.8.0"))
+    implementation(platform("com.google.firebase:firebase-bom:34.9.0"))
     implementation("com.google.firebase:firebase-crashlytics-ktx:19.4.4")
     implementation("com.google.firebase:firebase-analytics-ktx:22.5.0")
-    implementation("com.google.android.gms:play-services-ads:24.9.0")
+    implementation("com.google.android.gms:play-services-ads:25.0.0")
     implementation("com.google.android.play:app-update-ktx:2.1.0")
     implementation("com.google.android.material:material:1.13.0")
 
