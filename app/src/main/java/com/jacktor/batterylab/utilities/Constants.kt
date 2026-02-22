@@ -9,7 +9,7 @@ object Constants {
     const val GITHUB_LINK = "https://github.com/ardo-zapp/battery-lab"
     const val GITHUB_LINK_BATTERY_CAPCITY = "https://github.com/Ph03niX-X/CapacityInfo"
     const val BACKEND_API_CONTRIBUTORS =
-        "https://jacktor.com/api/get/github-contributors?repo=ardo-zapp/battery-lab"
+        "https://jacktor.com/api/github-contributors?repo=ardo-zapp/battery-lab"
     const val GOOGLE_PLAY_PACKAGE_NAME = "com.android.vending"
     const val SERVICE_CHANNEL_ID = "service_channel"
     const val OVERHEAT_OVERCOOL_CHANNEL_ID = "overheat_overcool"
