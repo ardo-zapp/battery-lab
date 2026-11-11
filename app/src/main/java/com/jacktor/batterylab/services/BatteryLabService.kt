@@ -397,10 +397,11 @@ class BatteryLabService : Service(), NotificationInterface, BatteryInfoInterface
         val batteryLevel = getBatteryLevel(applicationContext) ?: 0
         if (!isStopService) MainApp.tempScreenTime = screenTime
 
-        val numberOfCycles = if (batteryLevel == batteryLevelWith)
-            pref.getFloat(NUMBER_OF_CYCLES, 0f) + 0.01f
-        else
-            pref.getFloat(NUMBER_OF_CYCLES, 0f) + (batteryLevel / 100f) - (batteryLevelWith / 100f)
+        val numberOfCycles = if (batteryLevel > batteryLevelWith && batteryLevelWith >= 0) {
+            pref.getFloat(NUMBER_OF_CYCLES, 0f) + ((batteryLevel - batteryLevelWith) / 100f)
+        } else {
+            pref.getFloat(NUMBER_OF_CYCLES, 0f)
+        }
 
         notificationManager?.cancelAll()
 
@@ -422,20 +423,14 @@ class BatteryLabService : Service(), NotificationInterface, BatteryInfoInterface
 
         if (BatteryInfoInterface.residualCapacity > 0 && isFull) {
             pref.apply {
-                if (pref.getString(UNIT_OF_MEASUREMENT_OF_available_capacity, "μAh") == "μAh")
-                    edit {
-                        putInt(
-                            RESIDUAL_CAPACITY,
-                            (getAvailableCapacity(applicationContext) * 1000.0).toInt()
-                        )
-                    }
-                else
-                    edit {
-                        putInt(
-                            RESIDUAL_CAPACITY,
-                            (getAvailableCapacity(applicationContext) * 100.0).toInt()
-                        )
-                    }
+                val isMicroAh = pref.getString(UNIT_OF_MEASUREMENT_OF_available_capacity, "μAh") == "μAh"
+                val factor = if (isMicroAh) 1000.0 else 1.0
+                edit {
+                    putInt(
+                        RESIDUAL_CAPACITY,
+                        (getAvailableCapacity(applicationContext) * factor).toInt()
+                    )
+                }
             }
             HistoryHelper.addHistory(
                 applicationContext,
@@ -519,40 +514,18 @@ class BatteryLabService : Service(), NotificationInterface, BatteryInfoInterface
 
         isFull = true
 
+        val isMicroAh = pref.getString(UNIT_OF_MEASUREMENT_OF_available_capacity, "μAh") == "μAh"
+        val factor = if (isMicroAh) 1000.0 else 1.0
+
         if (availableCapacity == 0) {
-            availableCapacity = (getAvailableCapacity(applicationContext) *
-                    if (pref.getString(
-                            UNIT_OF_MEASUREMENT_OF_available_capacity,
-                            "μAh"
-                        ) == "μAh"
-                    ) 1000.0 else 100.0
-                    ).toInt()
+            availableCapacity = (getAvailableCapacity(applicationContext) * factor).toInt()
         }
 
         val designCapacity =
             pref.getInt(DESIGN_CAPACITY, resources.getInteger(R.integer.min_design_capacity))
-                .toDouble() *
-                    if (pref.getString(
-                            UNIT_OF_MEASUREMENT_OF_available_capacity,
-                            "μAh"
-                        ) == "μAh"
-                    ) 1000.0 else 100.0
+                .toDouble() * factor
 
-        val residualCapacityCurrent =
-            if (pref.getString(UNIT_OF_MEASUREMENT_OF_available_capacity, "μAh") == "μAh")
-                pref.getInt(RESIDUAL_CAPACITY, 0) / 1000 else pref.getInt(
-                RESIDUAL_CAPACITY,
-                0
-            ) / 100
-
-        val residualCapacity =
-            if (residualCapacityCurrent in 1..maxChargeCurrent || isTurboCharge(applicationContext) ||
-                pref.getBoolean(
-                    FAST_CHARGE_SETTING,
-                    resources.getBoolean(R.bool.fast_charge_setting)
-                )
-            ) (availableCapacity.toDouble() + ((NOMINAL_BATTERY_VOLTAGE / 100.0) * designCapacity)).toInt()
-            else availableCapacity
+        val residualCapacity = if (availableCapacity > 0) availableCapacity else designCapacity.toInt()
 
         val currentDate = DateHelper.getDate(
             DateHelper.getCurrentDay(),
@@ -569,10 +542,11 @@ class BatteryLabService : Service(), NotificationInterface, BatteryInfoInterface
         }
 
         val batteryLevel = getBatteryLevel(applicationContext) ?: 0
-        val numberOfCycles = if (batteryLevel == batteryLevelWith)
-            pref.getFloat(NUMBER_OF_CYCLES, 0f) + 0.01f
-        else
-            pref.getFloat(NUMBER_OF_CYCLES, 0f) + (batteryLevel / 100f) - (batteryLevelWith / 100f)
+        val numberOfCycles = if (batteryLevel > batteryLevelWith && batteryLevelWith >= 0) {
+            pref.getFloat(NUMBER_OF_CYCLES, 0f) + ((batteryLevel - batteryLevelWith) / 100f)
+        } else {
+            pref.getFloat(NUMBER_OF_CYCLES, 0f)
+        }
 
         pref.apply {
             val numberOfCharges = getLong(NUMBER_OF_CHARGES, 0)
@@ -591,71 +565,16 @@ class BatteryLabService : Service(), NotificationInterface, BatteryInfoInterface
         }
 
         withContext(Dispatchers.Main) {
-            if (isPremium) {
-                if (residualCapacity > 0 && seconds >= 10) {
-                    withContext(Dispatchers.IO) {
-                        HistoryHelper.addHistory(
-                            applicationContext,
-                            currentDate,
-                            residualCapacity
-                        )
-                    }
-                    if (HistoryHelper.isHistoryNotEmpty(applicationContext)) {
-                        val historyFragment = HistoryFragment.instance
-                        historyFragment?.binding?.refreshEmptyHistory?.visibility = View.GONE
-                        historyFragment?.binding?.emptyHistoryLayout?.visibility = View.GONE
-                        historyFragment?.binding?.historyRecyclerView?.visibility = View.VISIBLE
-                        historyFragment?.binding?.refreshHistory?.visibility = View.VISIBLE
-
-                        mainActivityRef?.get()?.toolbar?.menu?.findItem(R.id.history_premium)?.isVisible =
-                            true
-                        mainActivityRef?.get()?.toolbar?.menu?.findItem(R.id.clear_history)?.isVisible =
-                            true
-
-                        if (HistoryHelper.getHistoryCount(applicationContext) == 1L) {
-                            val historyDB =
-                                withContext(Dispatchers.IO) { HistoryDB(applicationContext) }
-                            historyFragment?.historyAdapter =
-                                HistoryAdapter((withContext(Dispatchers.IO) { historyDB.readAll() } as MutableList<History>))
-                            historyFragment?.historyAdapter?.itemCount?.let {
-                                historyFragment.binding?.historyRecyclerView?.setItemViewCacheSize(
-                                    it
-                                )
-                            }
-                            historyFragment?.binding?.historyRecyclerView?.adapter =
-                                historyFragment.historyAdapter
-                        } else {
-                            HistoryAdapter.instance?.update(applicationContext)
-                        }
-                    } else {
-                        HistoryFragment.instance?.binding?.historyRecyclerView?.visibility =
-                            View.GONE
-                        HistoryFragment.instance?.binding?.refreshHistory?.visibility = View.GONE
-                        HistoryFragment.instance?.binding?.emptyHistoryLayout?.visibility =
-                            View.VISIBLE
-                        HistoryFragment.instance?.binding?.refreshEmptyHistory?.visibility =
-                            View.VISIBLE
-                        HistoryFragment.instance?.binding?.emptyHistoryText?.text =
-                            resources.getText(R.string.empty_history_text)
-                        mainActivityRef?.get()?.toolbar?.menu?.findItem(R.id.history_premium)?.isVisible =
-                            true
-                        mainActivityRef?.get()?.toolbar?.menu?.findItem(R.id.clear_history)?.isVisible =
-                            false
-                    }
-                } else {
-                    HistoryFragment.instance?.binding?.historyRecyclerView?.visibility = View.GONE
-                    HistoryFragment.instance?.binding?.refreshHistory?.visibility = View.GONE
-                    HistoryFragment.instance?.binding?.emptyHistoryLayout?.visibility = View.VISIBLE
-                    HistoryFragment.instance?.binding?.refreshEmptyHistory?.visibility =
-                        View.VISIBLE
-                    HistoryFragment.instance?.binding?.emptyHistoryText?.text =
-                        resources.getText(R.string.history_premium_feature)
-                    mainActivityRef?.get()?.toolbar?.menu?.findItem(R.id.history_premium)?.isVisible =
-                        true
-                    mainActivityRef?.get()?.toolbar?.menu?.findItem(R.id.clear_history)?.isVisible =
-                        false
+            if (residualCapacity > 0 && seconds >= 10) {
+                withContext(Dispatchers.IO) {
+                    HistoryHelper.addHistory(
+                        applicationContext,
+                        currentDate,
+                        residualCapacity
+                    )
                 }
             }
+            HistoryFragment.instance?.updateHistoryUI()
         }
 
         isSaveNumberOfCharges = false

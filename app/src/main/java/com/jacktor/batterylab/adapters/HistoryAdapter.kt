@@ -49,19 +49,17 @@ class HistoryAdapter(private var historyList: MutableList<History>) :
     override fun onBindViewHolder(holderHistory: HistoryViewHolder, position: Int) {
         updateTextAppearance(holderHistory)
 
-        //val context = holderHistory.itemView.context
-        if (Premium.isPremium().value) {
-            binding.apply {
-                historyDate.text = historyList[itemCount - 1 - position].date
-                historyResidualCapacity.text = getResidualCapacity(
-                    holderHistory.itemView.context,
-                    historyList[itemCount - 1 - position].residualCapacity
-                )
-                historyBatteryWear.text = getBatteryWear(
-                    holderHistory.itemView.context,
-                    historyList[itemCount - 1 - position].residualCapacity
-                )
-            }
+        binding.apply {
+            val historyItem = historyList[itemCount - 1 - position]
+            historyDate.text = historyItem.date
+            historyResidualCapacity.text = getResidualCapacity(
+                holderHistory.itemView.context,
+                historyItem.residualCapacity
+            )
+            historyBatteryWear.text = getBatteryWear(
+                holderHistory.itemView.context,
+                historyItem.residualCapacity
+            )
         }
     }
 
@@ -94,14 +92,13 @@ class HistoryAdapter(private var historyList: MutableList<History>) :
             context.resources.getInteger(R.integer.min_design_capacity)
         )
 
-        var newResidualCapacity = residualCapacity / if (pref.getString(
-                PreferencesKeys
-                    .UNIT_OF_MEASUREMENT_OF_available_capacity, "μAh"
-            ) == "μAh"
-        ) 1000.0
-        else 100.0
-
-        if (newResidualCapacity < 0.0) newResidualCapacity /= -1.0
+        var newResidualCapacity = kotlin.math.abs(
+            if (residualCapacity > 50_000) residualCapacity / 1000.0
+            else residualCapacity / if (pref.getString(
+                    PreferencesKeys.UNIT_OF_MEASUREMENT_OF_available_capacity, "μAh"
+                ) == "μAh"
+            ) 1000.0 else 1.0
+        )
 
         return if (isCapacityInWh) context.getString(
             R.string.residual_capacity_wh,
@@ -138,14 +135,13 @@ class HistoryAdapter(private var historyList: MutableList<History>) :
             context.resources.getBoolean(R.bool.capacity_in_wh)
         )
 
-        var newResidualCapacity = residualCapacity / if (pref.getString(
-                PreferencesKeys
-                    .UNIT_OF_MEASUREMENT_OF_available_capacity, "μAh"
-            ) == "μAh"
-        ) 1000.0
-        else 100.0
-
-        if (newResidualCapacity < 0.0) newResidualCapacity /= -1.0
+        var newResidualCapacity = kotlin.math.abs(
+            if (residualCapacity > 50_000) residualCapacity / 1000.0
+            else residualCapacity / if (pref.getString(
+                    PreferencesKeys.UNIT_OF_MEASUREMENT_OF_available_capacity, "μAh"
+                ) == "μAh"
+            ) 1000.0 else 1.0
+        )
 
         return if (isCapacityInWh) context.getString(
             R.string.battery_wear_wh,
@@ -175,25 +171,18 @@ class HistoryAdapter(private var historyList: MutableList<History>) :
     }
 
     fun update(context: Context) {
-
         pref = PreferenceManager.getDefaultSharedPreferences(context)
-
-        if (HistoryHelper.getHistoryCount(context) > historyList.count()) {
-            historyList = HistoryDB(context).readAll() as MutableList<History>
-            notifyItemInserted(0)
-        } else if (HistoryHelper.isHistoryEmpty(context) ||
-            HistoryHelper.getHistoryCount(context) < historyList.count()
-        ) {
-            historyList = HistoryDB(context).readAll() as MutableList<History>
-            notifyItemRangeChanged(0, itemCount - 1)
-        }
+        val rawList = HistoryDB(context).readAll() as MutableList<History>
+        val isPrem = Premium.isPremium().value
+        historyList = if (isPrem) rawList else rawList.takeLast(10).toMutableList()
+        notifyDataSetChanged()
     }
 
     fun remove(context: Context, position: Int) {
-        if (position >= 0) {
+        if (position >= 0 && position < historyList.size) {
             historyList.removeAt(itemCount - 1 - position)
             notifyItemRemoved(position)
-            if (HistoryHelper.isHistoryEmpty(context)) {
+            if (HistoryHelper.isHistoryEmpty(context) || historyList.isEmpty()) {
                 HistoryFragment.instance?.emptyHistory()
             }
         }
@@ -201,7 +190,9 @@ class HistoryAdapter(private var historyList: MutableList<History>) :
 
     fun undoRemoving(context: Context, position: Int) {
         if (position >= 0) {
-            historyList = HistoryDB(context).readAll() as MutableList<History>
+            val rawList = HistoryDB(context).readAll() as MutableList<History>
+            val isPrem = Premium.isPremium().value
+            historyList = if (isPrem) rawList else rawList.takeLast(10).toMutableList()
             notifyItemInserted(position)
         }
     }

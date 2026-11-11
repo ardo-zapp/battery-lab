@@ -557,19 +557,12 @@ class BatteryInfoFragment : Fragment(R.layout.battery_info_fragment), SettingsIn
                     if (status == BatteryManager.BATTERY_STATUS_CHARGING) {
                         getString(
                             R.string.charge_current,
-                            DecimalFormat("#.##").format(
-                                getChargeDischargeCurrentInWatt(
-                                    curr,
-                                    true
-                                )
-                            )
+                            curr.toString()
                         )
                     } else {
                         getString(
                             R.string.discharge_current,
-                            DecimalFormat("#.##").format(
-                                getChargeDischargeCurrentInWatt(curr)
-                            )
+                            curr.toString()
                         )
                     }
                 }

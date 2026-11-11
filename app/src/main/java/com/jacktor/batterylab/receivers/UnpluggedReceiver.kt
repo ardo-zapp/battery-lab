@@ -55,11 +55,11 @@ class UnpluggedReceiver : BroadcastReceiver() {
         val batteryLevel = service.getBatteryLevel(context) ?: 0
         val batteryLevelWith = service.batteryLevelWith
 
-        val numberOfCycles = if (batteryLevel == batteryLevelWith)
-            pref.getFloat(NUMBER_OF_CYCLES, 0f) + 0.01f
-        else
-            pref.getFloat(NUMBER_OF_CYCLES, 0f) +
-                    (batteryLevel / 100f) - (batteryLevelWith / 100f)
+        val numberOfCycles = if (batteryLevel > batteryLevelWith && batteryLevelWith >= 0) {
+            pref.getFloat(NUMBER_OF_CYCLES, 0f) + ((batteryLevel - batteryLevelWith) / 100f)
+        } else {
+            pref.getFloat(NUMBER_OF_CYCLES, 0f)
+        }
 
         if (!service.isFull && service.seconds > 1) {
             val numberOfCharges = pref.getLong(NUMBER_OF_CHARGES, 0)
@@ -86,27 +86,18 @@ class UnpluggedReceiver : BroadcastReceiver() {
 
         service.seconds = 0
 
-        if (isPremium && (batteryLevel >= 90 ||
-                    pref.getBoolean(
-                        RESET_SCREEN_TIME_AT_ANY_CHARGE_LEVEL,
-                        context.resources.getBoolean(R.bool.reset_screen_time_at_any_charge_level)
-                    ))
+        if (batteryLevel >= 90 || (isPremium && pref.getBoolean(
+                    RESET_SCREEN_TIME_AT_ANY_CHARGE_LEVEL,
+                    context.resources.getBoolean(R.bool.reset_screen_time_at_any_charge_level)
+                ))
         ) {
             service.screenTime = 0L
         }
 
         BatteryInfoInterface.batteryLevel = 0
-        BatteryInfoInterface.maxChargeCurrent = 0
-        BatteryInfoInterface.averageChargeCurrent = 0
-        BatteryInfoInterface.minChargeCurrent = 0
-        BatteryInfoInterface.maxDischargeCurrent = 0
-        BatteryInfoInterface.averageDischargeCurrent = 0
-        BatteryInfoInterface.minDischargeCurrent = 0
-        BatteryInfoInterface.maximumTemperature = 0.0
-        BatteryInfoInterface.averageTemperature = 0.0
-        BatteryInfoInterface.minimumTemperature = 0.0
-
-        BatteryInfoInterface.resetPeakChargingPower()
+        BatteryInfoInterface.resetChargeStats()
+        BatteryInfoInterface.resetDischargeStats()
+        BatteryInfoInterface.resetTemperatureStats()
 
         service.secondsFullCharge = 0
         service.isFull = false

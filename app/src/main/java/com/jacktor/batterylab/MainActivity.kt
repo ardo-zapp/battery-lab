@@ -129,6 +129,8 @@ class MainActivity : AppCompatActivity(),
 
     private var interstitialAd: InterstitialAd? = null
     private var adsCounter = 0
+    private var appLaunchTimestamp: Long = 0L
+    private var lastInterstitialAdShownTime: Long = 0L
 
     var isBatteryOptDialogVisible = false
     var hasBatteryOptJustGranted = false
@@ -144,6 +146,9 @@ class MainActivity : AppCompatActivity(),
     ) { _ -> }
 
     companion object {
+        private const val AD_COOLDOWN_MS = 60_000L
+        private const val AD_LAUNCH_GRACE_PERIOD_MS = 45_000L
+        private const val AD_COUNTER_THRESHOLD = 4
         var tempFragment: Fragment? = null
         var isLoadChargeDischarge = false
         var isLoadTools = false
@@ -157,6 +162,7 @@ class MainActivity : AppCompatActivity(),
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        appLaunchTimestamp = android.os.SystemClock.elapsedRealtime()
 
         val prefs = PreferenceManager.getDefaultSharedPreferences(this)
         val isFirstLaunch = prefs.getBoolean("is_first_launch", true)
@@ -707,7 +713,6 @@ class MainActivity : AppCompatActivity(),
         return object : InterstitialAdLoadCallback() {
             override fun onAdLoaded(ad: InterstitialAd) {
                 interstitialAd = ad
-                if (adsCounter >= 3) showInterstitialAd()
             }
 
             override fun onAdFailedToLoad(adError: LoadAdError) {
@@ -720,10 +725,23 @@ class MainActivity : AppCompatActivity(),
         val isPremiumUser = Premium.isPremium().value
         val premiumReady = Premium.premiumStatusReady().value
         if (isPremiumUser && premiumReady) return
+
         adsCounter++
-        if ((adsCounter >= 3 || force) && !isPremiumUser && premiumReady && interstitialAd != null) {
+        val now = android.os.SystemClock.elapsedRealtime()
+        val isGracePassed = (now - appLaunchTimestamp) >= AD_LAUNCH_GRACE_PERIOD_MS
+        val isCooldownPassed = (now - lastInterstitialAdShownTime) >= AD_COOLDOWN_MS
+
+        if ((adsCounter >= AD_COUNTER_THRESHOLD || force) &&
+            (isGracePassed || force) &&
+            (isCooldownPassed || force) &&
+            !isPremiumUser &&
+            premiumReady &&
+            interstitialAd != null
+        ) {
             interstitialAd?.fullScreenContentCallback = adContentCallback()
             interstitialAd?.show(this)
+            lastInterstitialAdShownTime = now
+            adsCounter = 0
         }
     }
 
@@ -733,7 +751,11 @@ class MainActivity : AppCompatActivity(),
                 loadInterstitialAd()
             }
 
-            override fun onAdFailedToShowFullScreenContent(adError: AdError) {}
+            override fun onAdFailedToShowFullScreenContent(adError: AdError) {
+                interstitialAd = null
+                loadInterstitialAd()
+            }
+
             override fun onAdShowedFullScreenContent() {
                 adsCounter = 0
                 interstitialAd = null

@@ -45,94 +45,75 @@ class HistoryFragment : Fragment(R.layout.history_fragment), MenuInterface {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-
         isPremium = Premium.isPremium().value
-
         binding = HistoryFragmentBinding.inflate(inflater, container, false)
-
         pref = PreferenceManager.getDefaultSharedPreferences(requireContext())
-
         return binding?.root?.rootView
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-
         super.onViewCreated(view, savedInstanceState)
-
         instance = this
+        isPremium = Premium.isPremium().value
 
-        val historyDB = HistoryDB(requireContext())
-
-        if (isPremium && historyDB.getCount() > 0) {
-            binding?.emptyHistoryLayout?.visibility = View.GONE
-            binding?.refreshEmptyHistory?.visibility = View.GONE
-            binding?.historyRecyclerView?.visibility = View.VISIBLE
-            binding?.refreshHistory?.visibility = View.VISIBLE
-            historyAdapter = HistoryAdapter(historyDB.readAll() as MutableList<History>)
-            binding?.historyRecyclerView?.setItemViewCacheSize(historyAdapter.itemCount)
-            binding?.historyRecyclerView?.adapter = historyAdapter
-
-        } else if (isPremium) {
-            binding?.historyRecyclerView?.visibility = View.GONE
-            binding?.refreshEmptyHistory?.visibility = View.VISIBLE
-            binding?.emptyHistoryLayout?.visibility = View.VISIBLE
-            binding?.refreshHistory?.visibility = View.GONE
-            binding?.emptyHistoryText?.text = resources.getText(R.string.empty_history_text)
-
-        } else {
-            binding?.historyRecyclerView?.visibility = View.GONE
-            binding?.refreshEmptyHistory?.visibility = View.VISIBLE
-            binding?.emptyHistoryLayout?.visibility = View.VISIBLE
-            binding?.refreshHistory?.visibility = View.GONE
-            binding?.emptyHistoryText?.text = resources.getText(R.string.history_premium_feature)
-        }
+        updateHistoryUI()
 
         if (isPremium) swipeToRemoveHistory()
 
         refreshEmptyHistory()
-
         refreshHistory()
     }
 
     override fun onResume() {
         super.onResume()
-        val historyDB = HistoryDB(requireContext())
-        if (isPremium && HistoryHelper.getHistoryCount(requireContext()) > 0) {
-            historyAdapter.update(requireContext())
-            binding?.refreshEmptyHistory?.visibility = View.GONE
-            binding?.emptyHistoryLayout?.visibility = View.GONE
-            binding?.historyRecyclerView?.visibility = View.VISIBLE
-            binding?.refreshHistory?.visibility = View.VISIBLE
-            mainActivityRef?.get()?.toolbar?.menu?.findItem(R.id.history_premium)
-                ?.isVisible = true
-            mainActivityRef?.get()?.toolbar?.menu?.findItem(R.id.clear_history)
-                ?.isVisible = true
-            if (HistoryHelper.getHistoryCount(requireContext()) == 1L) {
-                historyAdapter = HistoryAdapter(historyDB.readAll() as MutableList<History>)
-                binding?.historyRecyclerView?.setItemViewCacheSize(historyAdapter.itemCount)
-                binding?.historyRecyclerView?.adapter = historyAdapter
-            } else historyAdapter.update(requireContext())
-        } else if (isPremium) {
-            mainActivityRef?.get()?.toolbar?.menu?.findItem(R.id.history_premium)
-                ?.isVisible = true
-            binding?.historyRecyclerView?.visibility = View.GONE
-            binding?.refreshEmptyHistory?.visibility = View.VISIBLE
-            binding?.emptyHistoryLayout?.visibility = View.VISIBLE
-            binding?.refreshHistory?.visibility = View.GONE
-            binding?.emptyHistoryText?.text = resources.getText(R.string.empty_history_text)
-        } else {
-            binding?.historyRecyclerView?.visibility = View.GONE
-            binding?.refreshEmptyHistory?.visibility = View.VISIBLE
-            binding?.emptyHistoryLayout?.visibility = View.VISIBLE
-            binding?.refreshHistory?.visibility = View.GONE
-            binding?.emptyHistoryText?.text = resources.getText(R.string.history_premium_feature)
-        }
+        isPremium = Premium.isPremium().value
+        updateHistoryUI()
     }
 
     override fun onDestroy() {
         instance = null
         HistoryAdapter.instance = null
         super.onDestroy()
+    }
+
+    fun updateHistoryUI() {
+        val ctx = context ?: return
+        val historyDB = HistoryDB(ctx)
+        val historyCount = historyDB.getCount()
+
+        if (historyCount > 0) {
+            val rawList = historyDB.readAll() as MutableList<History>
+            val displayList = if (isPremium) rawList else rawList.takeLast(10).toMutableList()
+
+            binding?.emptyHistoryLayout?.visibility = View.GONE
+            binding?.refreshEmptyHistory?.visibility = View.GONE
+            binding?.historyRecyclerView?.visibility = View.VISIBLE
+            binding?.refreshHistory?.visibility = View.VISIBLE
+
+            if (!::historyAdapter.isInitialized || binding?.historyRecyclerView?.adapter == null) {
+                historyAdapter = HistoryAdapter(displayList)
+                binding?.historyRecyclerView?.setItemViewCacheSize(historyAdapter.itemCount)
+                binding?.historyRecyclerView?.adapter = historyAdapter
+            } else {
+                historyAdapter.update(ctx)
+            }
+
+            mainActivityRef?.get()?.toolbar?.menu?.findItem(R.id.history_premium)?.isVisible = !isPremium
+            mainActivityRef?.get()?.toolbar?.menu?.findItem(R.id.clear_history)?.isVisible = isPremium
+        } else {
+            emptyHistory()
+        }
+    }
+
+    fun emptyHistory() {
+        mainActivityRef?.get()?.toolbar?.menu?.findItem(R.id.history_premium)?.isVisible = !isPremium
+        mainActivityRef?.get()?.toolbar?.menu?.findItem(R.id.clear_history)?.isVisible = false
+
+        binding?.historyRecyclerView?.visibility = View.GONE
+        binding?.refreshHistory?.visibility = View.GONE
+        binding?.refreshEmptyHistory?.visibility = View.VISIBLE
+        binding?.emptyHistoryLayout?.visibility = View.VISIBLE
+        binding?.emptyHistoryText?.text = resources.getText(R.string.empty_history_text)
     }
 
     private fun swipeToRemoveHistory() =
@@ -143,41 +124,29 @@ class HistoryFragment : Fragment(R.layout.history_fragment), MenuInterface {
             ) = false
 
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-
                 var isRemoving = true
-
                 val position = viewHolder.bindingAdapterPosition
 
                 historyAdapter.remove(requireContext(), position)
-
                 binding?.historyRecyclerView?.setItemViewCacheSize(historyAdapter.itemCount)
-
                 binding?.refreshHistory?.isEnabled = false
 
                 Snackbar.make(
                     binding?.historyRecyclerView!!, getString(R.string.history_removed),
                     Snackbar.LENGTH_LONG
                 ).apply {
-
                     setAction(getString(R.string.undo)) {
-
                         isRemoving = false
-
                         historyAdapter.undoRemoving(requireContext(), position)
-
                         binding?.historyRecyclerView?.setItemViewCacheSize(historyAdapter.itemCount)
-
                     }
-
                     show()
                 }
 
                 CoroutineScope(Dispatchers.Main).launch {
-
                     delay(3.seconds)
                     if (isRemoving) {
                         val historyList = HistoryDB(requireContext()).readAll()
-
                         try {
                             HistoryHelper.remove(
                                 requireContext(),
@@ -186,14 +155,11 @@ class HistoryFragment : Fragment(R.layout.history_fragment), MenuInterface {
                         } catch (_: ArrayIndexOutOfBoundsException) {
                         } finally {
                             binding?.refreshHistory?.isEnabled = true
-
                             if (HistoryHelper.isHistoryEmpty(requireContext())) emptyHistory()
                         }
                     }
                 }
-
             }
-
         }).attachToRecyclerView(binding?.historyRecyclerView)
 
     private fun refreshEmptyHistory() {
@@ -212,35 +178,7 @@ class HistoryFragment : Fragment(R.layout.history_fragment), MenuInterface {
             )
             setOnRefreshListener {
                 isRefreshing = true
-                if (isPremium && HistoryHelper.isHistoryNotEmpty(requireContext())) {
-                    historyAdapter.update(requireContext())
-                    visibility = View.GONE
-                    binding?.refreshHistory?.visibility = View.VISIBLE
-                    binding?.emptyHistoryLayout?.visibility = View.GONE
-                    binding?.historyRecyclerView?.visibility = View.VISIBLE
-                    mainActivityRef?.get()?.toolbar?.menu?.findItem(R.id.history_premium)
-                        ?.isVisible = true
-                    mainActivityRef?.get()?.toolbar?.menu?.findItem(R.id.clear_history)
-                        ?.isVisible = true
-                } else if (isPremium) {
-                    binding?.historyRecyclerView?.visibility = View.GONE
-                    binding?.refreshHistory?.visibility = View.GONE
-                    visibility = View.VISIBLE
-                    binding?.emptyHistoryLayout?.visibility = View.VISIBLE
-                    binding?.emptyHistoryText?.text = resources.getText(R.string.empty_history_text)
-                    mainActivityRef?.get()?.clearMenu()
-                } else {
-                    binding?.historyRecyclerView?.visibility = View.GONE
-                    binding?.refreshHistory?.visibility = View.GONE
-                    visibility = View.VISIBLE
-                    binding?.emptyHistoryLayout?.visibility = View.VISIBLE
-                    binding?.emptyHistoryText?.text =
-                        resources.getText(R.string.history_premium_feature)
-                    mainActivityRef?.get()?.toolbar?.menu?.findItem(R.id.history_premium)
-                        ?.isVisible = true
-                    mainActivityRef?.get()?.toolbar?.menu?.findItem(R.id.clear_history)
-                        ?.isVisible = false
-                }
+                updateHistoryUI()
                 isRefreshing = false
             }
         }
@@ -262,35 +200,9 @@ class HistoryFragment : Fragment(R.layout.history_fragment), MenuInterface {
             )
             setOnRefreshListener {
                 isRefreshing = true
-                if (isPremium && HistoryHelper.isHistoryNotEmpty(requireContext())) {
-                    historyAdapter.update(requireContext())
-                    binding?.refreshEmptyHistory?.visibility = View.GONE
-                    visibility = View.VISIBLE
-                    binding?.emptyHistoryLayout?.visibility = View.GONE
-                    binding?.historyRecyclerView?.visibility = View.VISIBLE
-                    mainActivityRef?.get()?.toolbar?.menu?.findItem(R.id.history_premium)
-                        ?.isVisible = true
-                    mainActivityRef?.get()?.toolbar?.menu?.findItem(R.id.clear_history)
-                        ?.isVisible = true
-                } else emptyHistory()
+                updateHistoryUI()
                 isRefreshing = false
             }
         }
-    }
-
-    fun emptyHistory() {
-        mainActivityRef?.get()?.toolbar?.menu?.findItem(R.id.history_premium)
-            ?.isVisible = true
-        mainActivityRef?.get()?.toolbar?.menu?.findItem(R.id.clear_history)
-            ?.isVisible = false
-
-        binding?.historyRecyclerView?.visibility = View.GONE
-        binding?.refreshHistory?.visibility = View.GONE
-        binding?.refreshEmptyHistory?.visibility = View.VISIBLE
-        binding?.emptyHistoryLayout?.visibility = View.VISIBLE
-        binding?.emptyHistoryText?.text = getText(
-            if (isPremium) R.string.empty_history_text
-            else R.string.history_premium_feature
-        )
     }
 }

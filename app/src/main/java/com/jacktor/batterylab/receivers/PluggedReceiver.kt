@@ -43,17 +43,9 @@ class PluggedReceiver : BroadcastReceiver(), BatteryInfoInterface {
         tempBatteryLevelWith = service.batteryLevelWith
         tempAvailableCapacity = service.getAvailableCapacity(context)
 
-        BatteryInfoInterface.maxChargeCurrent = 0
-        BatteryInfoInterface.averageChargeCurrent = 0
-        BatteryInfoInterface.minChargeCurrent = 0
-        BatteryInfoInterface.maxDischargeCurrent = 0
-        BatteryInfoInterface.averageDischargeCurrent = 0
-        BatteryInfoInterface.minDischargeCurrent = 0
-        BatteryInfoInterface.maximumTemperature = 0.0
-        BatteryInfoInterface.averageTemperature = 0.0
-        BatteryInfoInterface.minimumTemperature = 0.0
-
-        BatteryInfoInterface.resetPeakChargingPower()
+        BatteryInfoInterface.resetChargeStats()
+        BatteryInfoInterface.resetDischargeStats()
+        BatteryInfoInterface.resetTemperatureStats()
 
         service.isSaveNumberOfCharges = true
 

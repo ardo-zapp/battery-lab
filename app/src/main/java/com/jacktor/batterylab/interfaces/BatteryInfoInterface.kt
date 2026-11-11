@@ -30,6 +30,7 @@ import java.io.IOException
 import java.text.DecimalFormat
 import kotlin.math.abs
 import kotlin.math.max
+import kotlin.math.min
 
 @SuppressWarnings("PrivateApi")
 interface BatteryInfoInterface {
@@ -54,6 +55,15 @@ interface BatteryInfoInterface {
         var maximumTemperature = 0.0
         var averageTemperature = 0.0
         var minimumTemperature = 0.0
+
+        var chargeSampleCount = 0
+        var runningChargeSum = 0.0
+
+        var dischargeSampleCount = 0
+        var runningDischargeSum = 0.0
+
+        var tempSampleCount = 0
+        var runningTempSum = 0.0
 
         var lastMeasuredVoltageV = 0.0
         private const val EMA_ALPHA = 0.2
@@ -80,6 +90,37 @@ interface BatteryInfoInterface {
         }
 
         @JvmStatic
+        fun resetChargeStats() {
+            maxChargeCurrent = 0
+            averageChargeCurrent = 0
+            minChargeCurrent = 0
+            chargeSampleCount = 0
+            runningChargeSum = 0.0
+            Smooth.emaChargeCurrentMa = 0.0
+            resetPeakChargingPower()
+        }
+
+        @JvmStatic
+        fun resetDischargeStats() {
+            maxDischargeCurrent = 0
+            averageDischargeCurrent = 0
+            minDischargeCurrent = 0
+            dischargeSampleCount = 0
+            runningDischargeSum = 0.0
+            Smooth.emaDischargeCurrentMa = 0.0
+        }
+
+        @JvmStatic
+        fun resetTemperatureStats() {
+            maximumTemperature = 0.0
+            averageTemperature = 0.0
+            minimumTemperature = 0.0
+            tempSampleCount = 0
+            runningTempSum = 0.0
+            Smooth.emaTempC = 0.0
+        }
+
+        @JvmStatic
         fun getPeakChargeWattRaw(): Double =
             if (peakChargeWatt.isFinite()) peakChargeWatt else 0.0
 
@@ -89,41 +130,90 @@ interface BatteryInfoInterface {
     }
 
     fun getDesignCapacity(context: Context): Int {
-        val powerProfileClass = "com.android.internal.os.PowerProfile"
-        val mPowerProfile = Class.forName(powerProfileClass).getConstructor(
-            Context::class.java
-        ).newInstance(context)
-        val designCapacity = (Class.forName(powerProfileClass).getMethod(
-            "getBatteryCapacity"
-        ).invoke(mPowerProfile) as Double).toInt()
+        val pref = PreferenceManager.getDefaultSharedPreferences(context)
+        val minCap = context.resources.getInteger(R.integer.min_design_capacity)
+        val maxCap = context.resources.getInteger(R.integer.max_design_capacity)
+
+        val designCapacity = try {
+            val powerProfileClass = "com.android.internal.os.PowerProfile"
+            val mPowerProfile = Class.forName(powerProfileClass).getConstructor(
+                Context::class.java
+            ).newInstance(context)
+            val cap = Class.forName(powerProfileClass).getMethod(
+                "getBatteryCapacity"
+            ).invoke(mPowerProfile) as Double
+            cap.toInt()
+        } catch (_: Throwable) {
+            readDesignCapacityFromKernel() ?: pref.getInt(DESIGN_CAPACITY, minCap)
+        }
 
         return when {
-            designCapacity == 0 || designCapacity < context.resources.getInteger(R.integer.min_design_capacity)
-                    || designCapacity > context.resources.getInteger(R.integer.max_design_capacity)
-                -> context.resources.getInteger(R.integer.min_design_capacity)
-
-            designCapacity < 0 -> -designCapacity
-            else -> designCapacity
+            designCapacity in minCap..maxCap -> designCapacity
+            designCapacity < 0 -> (-designCapacity).coerceIn(minCap, maxCap)
+            designCapacity > maxCap -> maxCap
+            else -> minCap
         }
     }
 
-    fun getBatteryLevel(context: Context) = try {
+    private fun readDesignCapacityFromKernel(): Int? {
+        val paths = listOf(
+            "/sys/class/power_supply/battery/charge_full_design",
+            "/sys/class/power_supply/bms/charge_full_design"
+        )
+        for (path in paths) {
+            try {
+                val f = File(path)
+                if (f.exists() && f.canRead()) {
+                    val raw = f.bufferedReader().use { it.readLine() }?.trim()?.toLongOrNull() ?: continue
+                    if (raw > 0) {
+                        val capMah = if (raw > 100_000) (raw / 1000).toInt() else raw.toInt()
+                        if (capMah in 500..30000) return capMah
+                    }
+                }
+            } catch (_: Throwable) {}
+        }
+        return null
+    }
+
+    fun getBatteryLevel(context: Context): Int? = try {
         (context.getSystemService(Context.BATTERY_SERVICE) as? BatteryManager)
-            ?.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)
+            ?.getIntProperty(BatteryManager.BATTERY_PROPERTY_CAPACITY)?.takeIf { it in 0..100 }
+            ?: run {
+                val bi = context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+                val level = bi?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) ?: -1
+                val scale = bi?.getIntExtra(BatteryManager.EXTRA_SCALE, 100) ?: 100
+                if (level >= 0 && scale > 0) {
+                    ((level.toDouble() / scale) * 100.0).toInt().coerceIn(0, 100)
+                } else null
+            }
     } catch (_: RuntimeException) {
         val bi = try {
             context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
         } catch (_: RuntimeException) {
             null
         }
-        bi?.getStringExtra(BatteryManager.EXTRA_LEVEL)?.toInt() ?: 0
+        val level = bi?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) ?: -1
+        val scale = bi?.getIntExtra(BatteryManager.EXTRA_SCALE, 100) ?: 100
+        if (level >= 0 && scale > 0) {
+            ((level.toDouble() / scale) * 100.0).toInt().coerceIn(0, 100)
+        } else 0
     }
 
     fun getChargeDischargeCurrent(context: Context): Int {
         return try {
+            val pref = PreferenceManager.getDefaultSharedPreferences(context)
             val bm = context.getSystemService(Context.BATTERY_SERVICE) as BatteryManager
-            val raw = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW) // µA
-            var currentMa = abs(raw) / 1000.0
+            var raw = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW) // µA or mA
+            if (raw == 0 || raw == Int.MIN_VALUE) {
+                raw = readCurrentNowFromKernel() ?: 0
+            }
+
+            val isUnitMicroAmp = pref.getString(UNIT_OF_CHARGE_DISCHARGE_CURRENT, "μA") == "μA"
+            var currentMa = when {
+                abs(raw) > 50_000 -> abs(raw) / 1000.0 // definitely in µA
+                isUnitMicroAmp -> abs(raw) / 1000.0
+                else -> abs(raw).toDouble()
+            }
 
             batteryIntent = batteryIntent ?: context.registerReceiver(
                 null,
@@ -134,13 +224,14 @@ interface BatteryInfoInterface {
                 BatteryManager.BATTERY_STATUS_UNKNOWN
             )
 
+            val v = readBatteryVoltageVolts(context)?.also { lastMeasuredVoltageV = it }
+                ?: if (lastMeasuredVoltageV > 0) lastMeasuredVoltageV else (if (status == BatteryManager.BATTERY_STATUS_CHARGING) CHARGING_VOLTAGE_WATT else NOMINAL_BATTERY_VOLTAGE)
+
             when (status) {
                 BatteryManager.BATTERY_STATUS_CHARGING -> {
                     currentMa = Smooth.update(Smooth.emaChargeCurrentMa, currentMa).also {
                         Smooth.emaChargeCurrentMa = it
                     }
-                    val v = readBatteryVoltageVolts(context)?.also { lastMeasuredVoltageV = it }
-                        ?: if (lastMeasuredVoltageV > 0) lastMeasuredVoltageV else CHARGING_VOLTAGE_WATT
                     val w = (currentMa * v) / 1000.0
                     if (w.isFinite() && w > peakChargeWatt) {
                         peakChargeWatt = w
@@ -169,11 +260,32 @@ interface BatteryInfoInterface {
         }
     }
 
+    private fun readCurrentNowFromKernel(): Int? {
+        val paths = listOf(
+            "/sys/class/power_supply/battery/current_now",
+            "/sys/class/power_supply/bms/current_now"
+        )
+        for (path in paths) {
+            try {
+                val f = File(path)
+                if (f.exists() && f.canRead()) {
+                    val raw = f.bufferedReader().use { it.readLine() }?.trim()?.toIntOrNull() ?: continue
+                    if (raw != 0) return raw
+                }
+            } catch (_: Throwable) {}
+        }
+        return null
+    }
+
     fun getChargeDischargeCurrentInWatt(
         chargeDischargeCurrent: Int,
         isCharging: Boolean = false
-    ) = (chargeDischargeCurrent.toDouble() *
-            (if (isCharging) CHARGING_VOLTAGE_WATT else NOMINAL_BATTERY_VOLTAGE)) / 1000.0
+    ): Double {
+        val voltage = if (lastMeasuredVoltageV in 2.5..5.5) lastMeasuredVoltageV
+        else (if (isCharging) CHARGING_VOLTAGE_WATT else NOMINAL_BATTERY_VOLTAGE)
+
+        return (chargeDischargeCurrent.toDouble() * voltage) / 1000.0
+    }
 
     fun getFastCharge(context: Context): String {
         return if (isFastCharge(context))
@@ -193,7 +305,6 @@ interface BatteryInfoInterface {
             context.getString(R.string.fast_charge_yes_overlay_only_values)
         else context.getString(R.string.fast_charge_no_overlay_only_values)
     }
-
 
     private fun isFastCharge(context: Context) =
         maxChargeCurrent >= context.resources.getInteger(R.integer.fast_charge_min)
@@ -238,7 +349,9 @@ interface BatteryInfoInterface {
         return try {
             val bi = context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
             val mV = bi?.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0) ?: 0
-            if (mV > 0) mV / 1000.0 else null
+            if (mV > 0) {
+                if (mV > 100_000) mV / 1_000_000.0 else mV / 1000.0
+            } else null
         } catch (_: Exception) {
             null
         }
@@ -248,41 +361,39 @@ interface BatteryInfoInterface {
         when (status) {
             BatteryManager.BATTERY_STATUS_CHARGING -> {
                 maxDischargeCurrent = 0; averageDischargeCurrent = 0; minDischargeCurrent = 0
+                dischargeSampleCount = 0; runningDischargeSum = 0.0
 
                 if (chargeCurrent > maxChargeCurrent) maxChargeCurrent = chargeCurrent
-                if ((chargeCurrent < minChargeCurrent && chargeCurrent < maxChargeCurrent) ||
-                    (minChargeCurrent == 0 && chargeCurrent < maxChargeCurrent)
-                ) minChargeCurrent = chargeCurrent
-
-                if (maxChargeCurrent > 0 && minChargeCurrent > 0) {
-                    averageChargeCurrent = ((maxChargeCurrent + minChargeCurrent) / 2)
-                    if (Smooth.emaChargeCurrentMa > 0.0) {
-                        averageChargeCurrent =
-                            ((averageChargeCurrent + Smooth.emaChargeCurrentMa).toInt()) / 2
+                if (chargeCurrent > 0) {
+                    if (minChargeCurrent == 0 || chargeCurrent < minChargeCurrent) {
+                        minChargeCurrent = chargeCurrent
                     }
+                    chargeSampleCount++
+                    runningChargeSum += chargeCurrent
+                    averageChargeCurrent = (runningChargeSum / chargeSampleCount).toInt()
                 }
             }
 
             BatteryManager.BATTERY_STATUS_DISCHARGING -> {
                 maxChargeCurrent = 0; averageChargeCurrent = 0; minChargeCurrent = 0
+                chargeSampleCount = 0; runningChargeSum = 0.0
 
                 if (chargeCurrent > maxDischargeCurrent) maxDischargeCurrent = chargeCurrent
-                if ((chargeCurrent < minDischargeCurrent && chargeCurrent < maxDischargeCurrent) ||
-                    (minDischargeCurrent == 0 && chargeCurrent < maxDischargeCurrent)
-                ) minDischargeCurrent = chargeCurrent
-
-                if (maxDischargeCurrent > 0 && minDischargeCurrent > 0) {
-                    averageDischargeCurrent = ((maxDischargeCurrent + minDischargeCurrent) / 2)
-                    if (Smooth.emaDischargeCurrentMa > 0.0) {
-                        averageDischargeCurrent =
-                            ((averageDischargeCurrent + Smooth.emaDischargeCurrentMa).toInt()) / 2
+                if (chargeCurrent > 0) {
+                    if (minDischargeCurrent == 0 || chargeCurrent < minDischargeCurrent) {
+                        minDischargeCurrent = chargeCurrent
                     }
+                    dischargeSampleCount++
+                    runningDischargeSum += chargeCurrent
+                    averageDischargeCurrent = (runningDischargeSum / dischargeSampleCount).toInt()
                 }
             }
 
             else -> {
                 maxChargeCurrent = 0; averageChargeCurrent = 0; minChargeCurrent = 0
                 maxDischargeCurrent = 0; averageDischargeCurrent = 0; minDischargeCurrent = 0
+                chargeSampleCount = 0; runningChargeSum = 0.0
+                dischargeSampleCount = 0; runningDischargeSum = 0.0
             }
         }
     }
@@ -311,9 +422,22 @@ interface BatteryInfoInterface {
     fun getTemperatureInCelsius(context: Context): Double {
         batteryIntent = context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
         val t = batteryIntent?.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, 0)?.toDouble() ?: 0.0
-        val v = t / 10.0
-        Smooth.emaTempC = Smooth.update(Smooth.emaTempC, v, alpha = 0.15)
-        return Smooth.emaTempC
+        if (t > 0.0) {
+            val v = t / 10.0
+            Smooth.emaTempC = Smooth.update(Smooth.emaTempC, v, alpha = 0.15)
+            updateTemperatureStats(v)
+        }
+        return if (Smooth.emaTempC > 0.0) Smooth.emaTempC else if (t > 0.0) t / 10.0 else 25.0
+    }
+
+    private fun updateTemperatureStats(tempC: Double) {
+        if (tempC in -30.0..85.0) {
+            if (maximumTemperature == 0.0 || tempC > maximumTemperature) maximumTemperature = tempC
+            if (minimumTemperature == 0.0 || tempC < minimumTemperature) minimumTemperature = tempC
+            tempSampleCount++
+            runningTempSum += tempC
+            averageTemperature = runningTempSum / tempSampleCount
+        }
     }
 
     fun getTemperatureInFahrenheit(context: Context) =
@@ -323,41 +447,48 @@ interface BatteryInfoInterface {
         (temperatureInCelsius * 1.8) + 32.0
 
     fun getMaximumTemperature(context: Context, temperature: Double): Double {
-        batteryIntent = context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
-        val c = (batteryIntent?.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, 0)?.toDouble()
-            ?: 0.0) / 10.0
-        return if (c >= temperature || temperature == 0.0) c else temperature
+        return if (maximumTemperature > 0.0) maximumTemperature else temperature
     }
 
-    fun getAverageTemperature(context: Context, temperatureMax: Double, temperatureMin: Double) =
-        (temperatureMax + temperatureMin) / 2.0
+    fun getAverageTemperature(context: Context, temperatureMax: Double, temperatureMin: Double): Double {
+        return if (averageTemperature > 0.0) averageTemperature
+        else if (temperatureMax > 0.0 && temperatureMin > 0.0) (temperatureMax + temperatureMin) / 2.0
+        else 0.0
+    }
 
     fun getMinimumTemperature(context: Context, temperature: Double): Double {
-        batteryIntent = context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
-        val c = (batteryIntent?.getIntExtra(BatteryManager.EXTRA_TEMPERATURE, 0)?.toDouble()
-            ?: 0.0) / 10.0
-        return if (c <= temperature || temperature == 0.0) c else temperature
+        return if (minimumTemperature > 0.0) minimumTemperature else temperature
     }
 
-    fun getAvailableCapacity(context: Context) =
-        try {
-            val pref = PreferenceManager.getDefaultSharedPreferences(context)
-            val bm = context.getSystemService(Context.BATTERY_SERVICE) as BatteryManager
-            val cc = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER).toDouble()
-            when {
-                cc < 0 -> 0.001
-                pref.getString(
-                    UNIT_OF_MEASUREMENT_OF_available_capacity,
-                    "μAh"
-                ) == "μAh" -> cc / 1000.0
+    fun getAvailableCapacity(context: Context): Double = try {
+        val pref = PreferenceManager.getDefaultSharedPreferences(context)
+        val bm = context.getSystemService(Context.BATTERY_SERVICE) as BatteryManager
+        val cc = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CHARGE_COUNTER).toDouble()
+        val isMicroAh = pref.getString(UNIT_OF_MEASUREMENT_OF_available_capacity, "μAh") == "μAh"
 
-                else -> cc
+        when {
+            cc > 50_000.0 -> cc / 1000.0 // definitely in µAh
+            cc > 0.0 -> if (isMicroAh) cc / 1000.0 else cc
+            else -> {
+                val level = (getBatteryLevel(context) ?: 0).coerceIn(0, 100)
+                val design = pref.getInt(
+                    DESIGN_CAPACITY,
+                    context.resources.getInteger(R.integer.min_design_capacity)
+                ).toDouble()
+                (level / 100.0) * design
             }
-        } catch (_: RuntimeException) {
-            0.001
         }
+    } catch (_: RuntimeException) {
+        val pref = PreferenceManager.getDefaultSharedPreferences(context)
+        val level = (getBatteryLevel(context) ?: 0).coerceIn(0, 100)
+        val design = pref.getInt(
+            DESIGN_CAPACITY,
+            context.resources.getInteger(R.integer.min_design_capacity)
+        ).toDouble()
+        (level / 100.0) * design
+    }
 
-    fun getCapacityInWh(capacity: Double) = (capacity * NOMINAL_BATTERY_VOLTAGE) / 1000.0
+    fun getCapacityInWh(capacity: Double) = (abs(capacity) * NOMINAL_BATTERY_VOLTAGE) / 1000.0
 
     fun getCapacityAdded(
         context: Context,
@@ -376,11 +507,20 @@ interface BatteryInfoInterface {
             BatteryManager.BATTERY_STATUS_UNKNOWN
         )) {
             BatteryManager.BATTERY_STATUS_CHARGING -> {
-                percentAdded = (getBatteryLevel(context) ?: 0) - tempBatteryLevelWith
-                if (percentAdded < 0) percentAdded = 0
+                val currentLevel = getBatteryLevel(context) ?: 0
+                percentAdded = (currentLevel - tempBatteryLevelWith).coerceAtLeast(0)
 
-                capacityAdded = getAvailableCapacity(context) - tempAvailableCapacity
-                if (capacityAdded < 0) capacityAdded = abs(capacityAdded)
+                val currentCap = getAvailableCapacity(context)
+                val design = pref.getInt(
+                    DESIGN_CAPACITY,
+                    context.resources.getInteger(R.integer.min_design_capacity)
+                ).toDouble()
+
+                capacityAdded = if (currentCap > 1.0 && tempAvailableCapacity > 1.0) {
+                    (currentCap - tempAvailableCapacity).coerceAtLeast(0.0)
+                } else {
+                    (percentAdded.toDouble() / 100.0) * design
+                }
 
                 if (isWh) context.getString(
                     if (!isOverlay || !isOnlyValues) R.string.capacity_added_wh else R.string.capacity_added_wh_overlay_only_values,
@@ -409,9 +549,24 @@ interface BatteryInfoInterface {
         val pref = PreferenceManager.getDefaultSharedPreferences(context)
         batteryIntent = context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
 
-        val voltage = batteryIntent?.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0)?.toDouble() ?: 0.0
+        var voltage = batteryIntent?.getIntExtra(BatteryManager.EXTRA_VOLTAGE, 0)?.toDouble() ?: 0.0
+        if (voltage <= 0.0) {
+            readBatteryVoltageVolts(context)?.let { voltage = it * 1000.0 }
+        }
 
-        return if (pref.getString(VOLTAGE_UNIT, "mV") == "μV") voltage * 1000.0 else voltage
+        val isUnitMicroV = pref.getString(VOLTAGE_UNIT, "mV") == "μV"
+        val voltageInMv = when {
+            voltage > 100_000.0 -> voltage / 1000.0
+            isUnitMicroV -> voltage / 1000.0
+            voltage in 1.0..10.0 -> voltage * 1000.0
+            else -> voltage
+        }
+
+        if (voltageInMv > 0.0) {
+            lastMeasuredVoltageV = voltageInMv / 1000.0
+        }
+
+        return voltageInMv
     }
 
     fun getBatteryHealth(context: Context): Int? {
@@ -420,14 +575,18 @@ interface BatteryInfoInterface {
             DESIGN_CAPACITY,
             context.resources.getInteger(R.integer.min_design_capacity)
         ).toDouble()
-        val residual = pref.getInt(RESIDUAL_CAPACITY, 0).toDouble() /
-                if (pref.getString(
-                        UNIT_OF_MEASUREMENT_OF_available_capacity,
-                        "μAh"
-                    ) == "μAh"
-                ) 1000.0 else 100.0
+
+        val rawResidual = pref.getInt(RESIDUAL_CAPACITY, 0).toDouble()
+        val isMicroAh = pref.getString(UNIT_OF_MEASUREMENT_OF_available_capacity, "μAh") == "μAh"
+        val residual = when {
+            rawResidual > 50_000.0 -> rawResidual / 1000.0
+            isMicroAh && rawResidual > 0.0 -> rawResidual / 1000.0
+            else -> rawResidual
+        }
+
         return if (residual > 0 && residual <= design) {
-            when ((100.0 - ((residual / design) * 100.0)).toInt()) {
+            val wearPercent = (100.0 - ((residual / design) * 100.0)).toInt()
+            when (wearPercent) {
                 in 0..9 -> R.string.battery_health_great
                 in 10..19 -> R.string.battery_health_very_good
                 in 20..29 -> R.string.battery_health_good
@@ -468,22 +627,27 @@ interface BatteryInfoInterface {
             context.resources.getInteger(R.integer.min_design_capacity)
         ).toDouble()
 
-        residualCapacity = pref.getInt(RESIDUAL_CAPACITY, 0).toDouble()
-        residualCapacity /= if (pref.getString(
-                UNIT_OF_MEASUREMENT_OF_available_capacity,
-                "μAh"
-            ) == "μAh"
-        ) 1000.0 else 100.0
-        if (residualCapacity < 0.0) residualCapacity = abs(residualCapacity)
+        val rawResidual = pref.getInt(RESIDUAL_CAPACITY, 0).toDouble()
+        val isMicroAh = pref.getString(UNIT_OF_MEASUREMENT_OF_available_capacity, "μAh") == "μAh"
+
+        residualCapacity = when {
+            rawResidual > 50_000.0 -> rawResidual / 1000.0
+            isMicroAh && rawResidual > 0.0 -> rawResidual / 1000.0
+            else -> rawResidual
+        }.coerceAtLeast(0.0)
+
+        val healthPercent = if (design > 0.0 && residualCapacity > 0.0) {
+            (residualCapacity / design) * 100.0
+        } else 100.0
 
         return if (isWh) context.getString(
             if (!isOverlay || !isOnlyValues) R.string.residual_capacity_wh else R.string.residual_capacity_wh_overlay_only_values,
             DecimalFormat("#.#").format(getCapacityInWh(residualCapacity)),
-            "${DecimalFormat("#.#").format((residualCapacity / design) * 100.0)}%"
+            "${DecimalFormat("#.#").format(healthPercent)}%"
         ) else context.getString(
             if (!isOverlay || !isOnlyValues) R.string.residual_capacity else R.string.residual_capacity_overlay_only_values,
             DecimalFormat("#.#").format(residualCapacity),
-            "${DecimalFormat("#.#").format((residualCapacity / design) * 100.0)}%"
+            "${DecimalFormat("#.#").format(healthPercent)}%"
         )
     }
 
@@ -537,23 +701,25 @@ interface BatteryInfoInterface {
         val isWh =
             pref.getBoolean(CAPACITY_IN_WH, context.resources.getBoolean(R.bool.capacity_in_wh))
 
+        val hasDegradation = residualCapacity > 0.0 && residualCapacity < design
+        val wearPercent = if (hasDegradation) {
+            (100.0 - ((residualCapacity / design) * 100.0)).coerceAtLeast(0.0)
+        } else 0.0
+
+        val wearCapacity = if (hasDegradation) {
+            (design - residualCapacity).coerceAtLeast(0.0)
+        } else 0.0
+
         return if (isWh)
             context.getString(
                 if (!isOverlay || !isOnlyValues) R.string.battery_wear_wh else R.string.battery_wear_wh_overlay_only_values,
-                if (residualCapacity > 0 && residualCapacity < design)
-                    "${DecimalFormat("#.#").format(100 - ((residualCapacity / design) * 100))}%"
-                else "0%",
-                if (residualCapacity > 0 && residualCapacity < design)
-                    DecimalFormat("#.#").format(getCapacityInWh(design - residualCapacity))
-                else "0"
+                "${DecimalFormat("#.#").format(wearPercent)}%",
+                DecimalFormat("#.#").format(getCapacityInWh(wearCapacity))
             )
         else context.getString(
             if (!isOverlay || !isOnlyValues) R.string.battery_wear else R.string.battery_wear_overlay_only_values,
-            if (residualCapacity > 0 && residualCapacity < design)
-                "${DecimalFormat("#.#").format(100 - ((residualCapacity / design) * 100))}%"
-            else "0%",
-            if (residualCapacity > 0 && residualCapacity < design)
-                DecimalFormat("#.#").format(design - residualCapacity) else "0"
+            "${DecimalFormat("#.#").format(wearPercent)}%",
+            DecimalFormat("#.#").format(wearCapacity)
         )
     }
 
@@ -586,40 +752,45 @@ interface BatteryInfoInterface {
         )
         val level = getBatteryLevel(context)?.coerceIn(0, 100) ?: 0
         val isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING
-        if (!isCharging) return context.getString(R.string.unknown)
+        if (!isCharging || level >= 100) return context.getString(R.string.unknown)
 
         val pref = PreferenceManager.getDefaultSharedPreferences(context)
-        val unitIsuAh = pref.getString(UNIT_OF_MEASUREMENT_OF_available_capacity, "μAh") == "μAh"
+        val isMicroAh = pref.getString(UNIT_OF_MEASUREMENT_OF_available_capacity, "μAh") == "μAh"
         val residualRaw = pref.getInt(RESIDUAL_CAPACITY, 0).toDouble()
-        val residualMah = if (residualRaw > 0) {
-            if (unitIsuAh) residualRaw / 1000.0 else residualRaw / 100.0
-        } else 0.0
+        val residualMah = when {
+            residualRaw > 50_000.0 -> residualRaw / 1000.0
+            isMicroAh && residualRaw > 0.0 -> residualRaw / 1000.0
+            else -> residualRaw
+        }
 
         val designMah = pref.getInt(
             DESIGN_CAPACITY,
             context.resources.getInteger(R.integer.min_design_capacity)
         ).toDouble()
         val fullMah = when {
-            residualMah in 1.0..(designMah * 1.5) -> residualMah
+            residualMah in (designMah * 0.5)..(designMah * 1.5) -> residualMah
             else -> designMah
         }.coerceAtLeast(100.0)
 
         val currentMah = getAvailableCapacity(context).coerceAtLeast(0.0)
-        val capacityToGoMah = if (currentMah in 1.0..(fullMah * 1.5)) {
-            (fullMah - currentMah).coerceAtLeast(0.0)
+        val capacityRemainingPercent = (100.0 - level).coerceAtLeast(0.0)
+        val capacityToGoFromPercent = (fullMah * capacityRemainingPercent / 100.0)
+        val capacityToGoFromCurrent = (fullMah - currentMah).coerceAtLeast(0.0)
+        val capacityToGoMah = if (currentMah in 1.0..fullMah) {
+            max(capacityToGoFromCurrent, capacityToGoFromPercent * 0.5)
         } else {
-            (fullMah * (100.0 - level) / 100.0).coerceAtLeast(0.0)
+            capacityToGoFromPercent
         }
 
         val emaMa = if (Smooth.emaChargeCurrentMa > 0) Smooth.emaChargeCurrentMa
         else averageChargeCurrent.toDouble()
-        val chargeCurrentMa = max(1.0, emaMa)
+        val chargeCurrentMa = max(50.0, emaMa)
         val hours = capacityToGoMah / chargeCurrentMa
 
         val taperFactor = when {
-            level >= 95 -> 1.30
-            level >= 90 -> 1.25
-            level >= 80 -> 1.10
+            level >= 95 -> 1.50
+            level >= 90 -> 1.30
+            level >= 80 -> 1.15
             else -> 1.00
         }
 
@@ -638,14 +809,25 @@ interface BatteryInfoInterface {
     }
 
     fun getRemainingBatteryTime(context: Context): String {
-        val currentMah = getAvailableCapacity(context)
+        val pref = PreferenceManager.getDefaultSharedPreferences(context)
+        val design = pref.getInt(
+            DESIGN_CAPACITY,
+            context.resources.getInteger(R.integer.min_design_capacity)
+        ).toDouble()
+        val level = (getBatteryLevel(context) ?: 0).coerceIn(0, 100)
+
+        val currentMah = getAvailableCapacity(context).let { cap ->
+            if (cap > 1.0) cap else (level / 100.0) * design
+        }
+
         val discharge = when {
-            Smooth.emaDischargeCurrentMa > 0 -> Smooth.emaDischargeCurrentMa
+            Smooth.emaDischargeCurrentMa > 0.0 -> Smooth.emaDischargeCurrentMa
             averageDischargeCurrent > 0 -> averageDischargeCurrent.toDouble()
             else -> 0.0
         }
-        return if (discharge > 0.0 && currentMah > 0.0) {
-            val seconds = ((currentMah / discharge) * 3600.0).toLong()
+
+        return if (discharge > 10.0 && currentMah > 0.0) {
+            val seconds = ((currentMah / discharge) * 3600.0).toLong().coerceIn(0L, 720 * 3600L)
             TimeHelper.getTime(seconds)
         } else context.getString(R.string.unknown)
     }
@@ -657,11 +839,11 @@ interface BatteryInfoInterface {
     }
 
     fun getNumberOfCyclesAndroid(): Int? {
-        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
-            batteryIntent?.getIntExtra(BatteryManager.EXTRA_CYCLE_COUNT, 0)
-        } else {
-            readCycleCountFromKernel()
-        }
+        val fromIntent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) {
+            batteryIntent?.getIntExtra(BatteryManager.EXTRA_CYCLE_COUNT, -1)?.takeIf { it > 0 }
+        } else null
+
+        return fromIntent ?: readCycleCountFromKernel()
     }
 
     private fun readCycleCountFromKernel(): Int? {

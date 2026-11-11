@@ -1,4 +1,5 @@
 # Built application files
+build/
 /*/build/
 
 # Crashlytics configuations
@@ -15,3 +16,6 @@ local.properties
 
 # User configurations
 .idea/
+
+# Premium module
+premium/

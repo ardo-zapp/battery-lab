@@ -22,4 +22,7 @@ dependencyResolutionManagement {
 
 rootProject.name = "Battery Lab"
 include(":app")
-include(":premium")
+
+if (file("premium/build.gradle.kts").exists()) {
+    include(":premium")
+}
