@@ -30,6 +30,10 @@
         <item name="colorSurfaceContainer">@color/md_theme_surfaceContainer</item>
         <item name="colorSurfaceInverse">@color/md_theme_inverseSurface</item>
         <item name="colorPrimaryInverse">@color/md_theme_inversePrimary</item>
+        <item name="android:textColorPrimary">@color/card_title_text</item>
+        <item name="android:textColorSecondary">@color/card_subtitle_text</item>
+        <item name="android:textColorTertiary">@color/caption_text</item>
+        <item name="android:textColorHint">@color/hint_text</item>
     </style>
 
     <style name="AppTheme" parent="ColorAppTheme">
@@ -46,9 +50,16 @@
         <!-- PreferenceScreen (MD3) -->
         <item name="colorAccent">?attr/colorPrimary</item>
         <item name="alertDialogTheme">@style/ThemeOverlay.App.MaterialAlertDialog</item>
+        <item name="materialSwitchStyle">@style/Widget.App.MaterialSwitch</item>
         <item name="switchPreferenceCompatStyle">
             @style/SwitchPreferenceCompat
         </item>
+    </style>
+
+    <style name="Widget.App.MaterialSwitch" parent="Widget.Material3.CompoundButton.MaterialSwitch">
+        <item name="thumbTint">@color/switch_thumb_selector</item>
+        <item name="trackTint">@color/switch_track_selector</item>
+        <item name="trackDecorationTint">@color/switch_track_decoration_selector</item>
     </style>
 
     <style name="ThemeOverlay.App.MaterialAlertDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
@@ -101,6 +112,12 @@
 
     <style name="MenuText">
         <item name="android:textColor">@color/menu_text</item>
+    </style>
+
+    <style name="ToolbarTitleTextAppearance" parent="TextAppearance.Material3.TitleMedium">
+        <item name="android:textSize">19sp</item>
+        <item name="android:textStyle">bold</item>
+        <item name="android:textColor">@color/card_title_text</item>
     </style>
 
     <style name="ChipChoice" parent="Widget.Material3.Chip.Filter.Elevated">

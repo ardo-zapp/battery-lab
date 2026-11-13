@@ -10,6 +10,7 @@ import android.content.SharedPreferences
 import android.os.BatteryManager
 import android.os.IBinder
 import android.os.PowerManager
+import android.os.SystemClock
 import android.view.View
 import android.widget.Toast
 import androidx.core.content.ContextCompat
@@ -27,6 +28,7 @@ import com.jacktor.batterylab.fragments.HistoryFragment
 import com.jacktor.batterylab.helpers.BatteryLevelHelper
 import com.jacktor.batterylab.helpers.DateHelper
 import com.jacktor.batterylab.helpers.HistoryHelper
+import com.jacktor.batterylab.helpers.IdleDrainHelper
 import com.jacktor.batterylab.helpers.ServiceHelper
 import com.jacktor.batterylab.interfaces.BatteryInfoInterface
 import com.jacktor.batterylab.interfaces.BatteryInfoInterface.Companion.capacityAdded
@@ -57,6 +59,7 @@ import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.BATTERY_LEVE
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.BATTERY_LEVEL_WITH
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.BATTERY_NOTIFY_DISCHARGED_VOLTAGE
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CAPACITY_ADDED
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGING_START_LEVEL
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.DESIGN_CAPACITY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.FAST_CHARGE_SETTING
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.FULL_CHARGE_REMINDER_FREQUENCY
@@ -106,12 +109,68 @@ class BatteryLabService : Service(), NotificationInterface, BatteryInfoInterface
     var isPluggedOrUnplugged = false
     var batteryLevelWith = -1
     var seconds = 0
-    var screenTime = 0L
+    private var screenTimeBase: Long = 0L
+    private var screenOnStartTime: Long = -1L
+
+    @Synchronized
+    fun pauseScreenTime() {
+        if (screenOnStartTime > 0L) {
+            val elapsed = (SystemClock.elapsedRealtime() - screenOnStartTime) / 1000L
+            screenTimeBase += elapsed
+            screenOnStartTime = -1L
+        }
+    }
+
+    @Synchronized
+    fun resumeScreenTime() {
+        val pm = powerManager ?: (getSystemService(POWER_SERVICE) as? PowerManager)
+        val isInteractive = pm?.isInteractive ?: false
+        if (isInteractive && !isPowerConnected && screenOnStartTime <= 0L) {
+            screenOnStartTime = SystemClock.elapsedRealtime()
+        }
+    }
+
+    var screenTime: Long
+        @Synchronized
+        get() {
+            val base = screenTimeBase
+            val start = screenOnStartTime
+            val pm = powerManager ?: (getSystemService(POWER_SERVICE) as? PowerManager)
+            val isInteractive = pm?.isInteractive ?: false
+            return if (isInteractive && !isPowerConnected && start > 0L) {
+                val elapsed = (SystemClock.elapsedRealtime() - start) / 1000L
+                base + elapsed
+            } else {
+                base
+            }
+        }
+        @Synchronized
+        set(value) {
+            screenTimeBase = value
+            val pm = powerManager ?: (getSystemService(POWER_SERVICE) as? PowerManager)
+            val isInteractive = pm?.isInteractive ?: false
+            screenOnStartTime = if (isInteractive && !isPowerConnected) {
+                SystemClock.elapsedRealtime()
+            } else {
+                -1L
+            }
+        }
     var secondsFullCharge = 0
     private var isPremium = false
 
     private val screenAwakeReceiver = object : BroadcastReceiver() {
         override fun onReceive(ctx: Context?, intent: Intent?) {
+            val context = ctx ?: applicationContext
+            when (intent?.action) {
+                Intent.ACTION_SCREEN_OFF -> {
+                    pauseScreenTime()
+                    IdleDrainHelper.onScreenOff(context)
+                }
+                Intent.ACTION_SCREEN_ON, Intent.ACTION_USER_PRESENT, Intent.ACTION_USER_UNLOCKED -> {
+                    resumeScreenTime()
+                    IdleDrainHelper.onScreenOn(context)
+                }
+            }
             try {
                 onUpdateServiceNotification(applicationContext)
             } catch (_: Throwable) {
@@ -146,9 +205,52 @@ class BatteryLabService : Service(), NotificationInterface, BatteryInfoInterface
             // Register PowerConnectionReceiver
             powerConnectionReceiver = PowerConnectionReceiver()
 
-            screenTime = if (MainApp.tempScreenTime > 0L) MainApp.tempScreenTime
+            batteryIntent = registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+
+            val plugged = batteryIntent?.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1) ?: -1
+            isPowerConnected = when (plugged) {
+                BatteryManager.BATTERY_PLUGGED_AC,
+                BatteryManager.BATTERY_PLUGGED_USB,
+                BatteryManager.BATTERY_PLUGGED_WIRELESS -> true
+                else -> false
+            }
+
+            if (isPowerConnected) {
+                val currentLevel = getBatteryLevel(applicationContext) ?: 0
+                val savedStart = pref.getInt(CHARGING_START_LEVEL, -1)
+                val startLevel = if (savedStart in 0..currentLevel) savedStart else currentLevel
+                pref.edit {
+                    putInt(CHARGING_START_LEVEL, startLevel)
+                    putInt(BATTERY_LEVEL_WITH, startLevel)
+                }
+                batteryLevelWith = startLevel
+                tempBatteryLevelWith = startLevel
+                tempAvailableCapacity = getAvailableCapacity(applicationContext)
+
+                val status = batteryIntent?.getIntExtra(
+                    BatteryManager.EXTRA_STATUS, BatteryManager.BATTERY_STATUS_UNKNOWN
+                ) ?: BatteryManager.BATTERY_STATUS_UNKNOWN
+
+                if (mainActivityRef?.get()?.fragment != null) {
+                    if (mainActivityRef?.get()?.fragment is BatteryInfoFragment)
+                        mainActivityRef?.get()?.toolbar?.title =
+                            getString(R.string.battery_info)
+
+                    val chargeDischargeNavigation =
+                        mainActivityRef?.get()?.navigation?.menu?.findItem(R.id.charge_discharge_navigation)
+
+                    chargeDischargeNavigation?.icon = BatteryLevelHelper.batteryLevelIcon(
+                        getBatteryLevel(applicationContext),
+                        status == BatteryManager.BATTERY_STATUS_CHARGING
+                    ).let { ContextCompat.getDrawable(applicationContext, it) }
+                }
+            }
+
+            val initialScreenTime = if (MainApp.tempScreenTime > 0L) MainApp.tempScreenTime
             else if (MainApp.isUpdateApp) pref.getLong(UPDATE_TEMP_SCREEN_TIME, 0L)
-            else screenTime
+            else 0L
+
+            screenTime = initialScreenTime
 
             MainApp.tempScreenTime = 0L
             MainApp.isUpdateApp = false
@@ -157,37 +259,6 @@ class BatteryLabService : Service(), NotificationInterface, BatteryInfoInterface
                     remove(
                         UPDATE_TEMP_SCREEN_TIME
                     )
-                }
-            }
-
-            batteryIntent = registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
-
-            when (batteryIntent?.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1)) {
-                BatteryManager.BATTERY_PLUGGED_AC,
-                BatteryManager.BATTERY_PLUGGED_USB,
-                BatteryManager.BATTERY_PLUGGED_WIRELESS -> {
-                    isPowerConnected = true
-                    batteryLevelWith = getBatteryLevel(applicationContext) ?: 0
-                    tempBatteryLevelWith = batteryLevelWith
-                    tempAvailableCapacity = getAvailableCapacity(applicationContext)
-
-                    val status = batteryIntent?.getIntExtra(
-                        BatteryManager.EXTRA_STATUS, BatteryManager.BATTERY_STATUS_UNKNOWN
-                    ) ?: BatteryManager.BATTERY_STATUS_UNKNOWN
-
-                    if (mainActivityRef?.get()?.fragment != null) {
-                        if (mainActivityRef?.get()?.fragment is BatteryInfoFragment)
-                            mainActivityRef?.get()?.toolbar?.title =
-                                getString(R.string.battery_info)
-
-                        val chargeDischargeNavigation =
-                            mainActivityRef?.get()?.navigation?.menu?.findItem(R.id.charge_discharge_navigation)
-
-                        chargeDischargeNavigation?.icon = BatteryLevelHelper.batteryLevelIcon(
-                            getBatteryLevel(applicationContext),
-                            status == BatteryManager.BATTERY_STATUS_CHARGING
-                        ).let { ContextCompat.getDrawable(applicationContext, it) }
-                    }
                 }
             }
 
@@ -202,6 +273,7 @@ class BatteryLabService : Service(), NotificationInterface, BatteryInfoInterface
 
             val filter = IntentFilter().apply {
                 addAction(Intent.ACTION_SCREEN_ON)
+                addAction(Intent.ACTION_SCREEN_OFF)
                 addAction(Intent.ACTION_USER_PRESENT)
                 addAction(Intent.ACTION_USER_UNLOCKED)
             }
@@ -231,11 +303,13 @@ class BatteryLabService : Service(), NotificationInterface, BatteryInfoInterface
         if (screenTimeJob == null) screenTimeJob = CoroutineScope(Dispatchers.Default).launch {
             isScreenTimeJob = !isScreenTimeJob
             while (isScreenTimeJob && !isStopService) {
-                val pm = powerManager ?: getSystemService(POWER_SERVICE) as PowerManager
+                val pm = powerManager ?: (getSystemService(POWER_SERVICE) as? PowerManager)
                 powerManager = pm
-                if (!isPowerConnected) {
-                    val interactive = pm.isInteractive
-                    if (interactive) screenTime++
+                val interactive = pm?.isInteractive ?: false
+                if (interactive && !isPowerConnected) {
+                    resumeScreenTime()
+                } else {
+                    pauseScreenTime()
                 }
                 delay(1000L)
             }
@@ -261,9 +335,23 @@ class BatteryLabService : Service(), NotificationInterface, BatteryInfoInterface
                     }
                 }
 
-                getBatteryLevel(applicationContext)?.let { lvl ->
-                    batteryLevelWith = if (batteryLevelWith < 0) lvl
-                    else kotlin.math.min(batteryLevelWith, lvl)
+                if (isPowerConnected) {
+                    getBatteryLevel(applicationContext)?.let { lvl ->
+                        if (batteryLevelWith < 0) {
+                            val savedStart = pref.getInt(CHARGING_START_LEVEL, -1)
+                            batteryLevelWith = if (savedStart in 0..lvl) savedStart else lvl
+                            pref.edit {
+                                putInt(CHARGING_START_LEVEL, batteryLevelWith)
+                                putInt(BATTERY_LEVEL_WITH, batteryLevelWith)
+                            }
+                        } else if (lvl < batteryLevelWith) {
+                            batteryLevelWith = lvl
+                            pref.edit {
+                                putInt(CHARGING_START_LEVEL, lvl)
+                                putInt(BATTERY_LEVEL_WITH, lvl)
+                            }
+                        }
+                    }
                 }
 
                 batteryIntent = registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
@@ -369,6 +457,7 @@ class BatteryLabService : Service(), NotificationInterface, BatteryInfoInterface
     }
 
     override fun onDestroy() {
+        pauseScreenTime()
         try {
             unregisterReceiver(screenAwakeReceiver)
         } catch (_: Throwable) {
@@ -397,8 +486,13 @@ class BatteryLabService : Service(), NotificationInterface, BatteryInfoInterface
         val batteryLevel = getBatteryLevel(applicationContext) ?: 0
         if (!isStopService) MainApp.tempScreenTime = screenTime
 
-        val numberOfCycles = if (batteryLevel > batteryLevelWith && batteryLevelWith >= 0) {
-            pref.getFloat(NUMBER_OF_CYCLES, 0f) + ((batteryLevel - batteryLevelWith) / 100f)
+        val savedStart = pref.getInt(CHARGING_START_LEVEL, -1)
+        val startLevel = if (batteryLevelWith in 0..batteryLevel) batteryLevelWith
+        else if (savedStart in 0..batteryLevel) savedStart
+        else pref.getInt(BATTERY_LEVEL_WITH, batteryLevel)
+
+        val numberOfCycles = if (batteryLevel > startLevel && startLevel >= 0) {
+            pref.getFloat(NUMBER_OF_CYCLES, 0f) + ((batteryLevel - startLevel) / 100f)
         } else {
             pref.getFloat(NUMBER_OF_CYCLES, 0f)
         }
@@ -411,7 +505,7 @@ class BatteryLabService : Service(), NotificationInterface, BatteryInfoInterface
         if (!isFull && seconds > 1) {
             pref.edit {
                 putInt(LAST_CHARGE_TIME, seconds)
-                putInt(BATTERY_LEVEL_WITH, batteryLevelWith)
+                putInt(BATTERY_LEVEL_WITH, startLevel)
                 putInt(BATTERY_LEVEL_TO, batteryLevel)
             }
             if (capacityAdded > 0) pref.edit { putFloat(CAPACITY_ADDED, capacityAdded.toFloat()) }
@@ -542,8 +636,13 @@ class BatteryLabService : Service(), NotificationInterface, BatteryInfoInterface
         }
 
         val batteryLevel = getBatteryLevel(applicationContext) ?: 0
-        val numberOfCycles = if (batteryLevel > batteryLevelWith && batteryLevelWith >= 0) {
-            pref.getFloat(NUMBER_OF_CYCLES, 0f) + ((batteryLevel - batteryLevelWith) / 100f)
+        val savedStart = pref.getInt(CHARGING_START_LEVEL, -1)
+        val startLevel = if (batteryLevelWith in 0..batteryLevel) batteryLevelWith
+        else if (savedStart in 0..batteryLevel) savedStart
+        else pref.getInt(BATTERY_LEVEL_WITH, batteryLevel)
+
+        val numberOfCycles = if (batteryLevel > startLevel && startLevel >= 0) {
+            pref.getFloat(NUMBER_OF_CYCLES, 0f) + ((batteryLevel - startLevel) / 100f)
         } else {
             pref.getFloat(NUMBER_OF_CYCLES, 0f)
         }
@@ -555,7 +654,7 @@ class BatteryLabService : Service(), NotificationInterface, BatteryInfoInterface
             edit {
                 putInt(LAST_CHARGE_TIME, seconds)
                 putInt(RESIDUAL_CAPACITY, residualCapacity)
-                putInt(BATTERY_LEVEL_WITH, batteryLevelWith)
+                putInt(BATTERY_LEVEL_WITH, startLevel)
                 putInt(BATTERY_LEVEL_TO, batteryLevel)
                 putLong(NUMBER_OF_FULL_CHARGES, getLong(NUMBER_OF_FULL_CHARGES, 0) + 1)
                 putFloat(CAPACITY_ADDED, capacityAdded.toFloat())

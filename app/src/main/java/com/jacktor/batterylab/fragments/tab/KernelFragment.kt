@@ -10,7 +10,7 @@ import androidx.preference.PreferenceManager
 import com.jacktor.batterylab.R
 import com.jacktor.batterylab.databinding.KernelFragmentBinding
 
-class KernelFragment : Fragment(R.layout.idle_drain_fragment) {
+class KernelFragment : Fragment(R.layout.kernel_fragment) {
 
     private var _binding: KernelFragmentBinding? = null
     private val binding get() = _binding!!

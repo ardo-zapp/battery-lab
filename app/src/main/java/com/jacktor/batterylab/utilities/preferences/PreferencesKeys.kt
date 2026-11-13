@@ -102,6 +102,7 @@ object PreferencesKeys {
     const val LAST_CHARGE_TIME = "last_charge_time"
     const val BATTERY_LEVEL_WITH = "battery_level_with"
     const val BATTERY_LEVEL_TO = "battery_level_to"
+    const val CHARGING_START_LEVEL = "charging_start_level"
     const val NUMBER_OF_CYCLES = "number_of_cycles"
     const val NUMBER_OF_FULL_CHARGES = "number_of_full_charges"
 
@@ -118,4 +119,23 @@ object PreferencesKeys {
     // Other
     const val IS_REQUEST_RATE_THE_APP = "is_request_rate_the_app"
     const val UPDATE_TEMP_SCREEN_TIME = "update_temp_screen_time"
+
+    // Idle Drain (Pemakaian Diam)
+    const val IDLE_DRAIN_TOTAL_DURATION_MS = "idle_drain_total_duration_ms"
+    const val IDLE_DRAIN_TOTAL_DEEP_SLEEP_MS = "idle_drain_total_deep_sleep_ms"
+    const val IDLE_DRAIN_TOTAL_AWAKE_MS = "idle_drain_total_awake_ms"
+    const val IDLE_DRAIN_TOTAL_PERCENT = "idle_drain_total_percent"
+    const val IDLE_DRAIN_TOTAL_MAH = "idle_drain_total_mah"
+    const val IDLE_DRAIN_SESSIONS_COUNT = "idle_drain_sessions_count"
+    const val IDLE_DRAIN_LAST_DURATION_MS = "idle_drain_last_duration_ms"
+    const val IDLE_DRAIN_LAST_DEEP_SLEEP_MS = "idle_drain_last_deep_sleep_ms"
+    const val IDLE_DRAIN_LAST_AWAKE_MS = "idle_drain_last_awake_ms"
+    const val IDLE_DRAIN_LAST_PERCENT = "idle_drain_last_percent"
+    const val IDLE_DRAIN_LAST_MAH = "idle_drain_last_mah"
+    const val IDLE_DRAIN_LAST_TIMESTAMP = "idle_drain_last_timestamp"
+    const val IDLE_DRAIN_CURRENT_START_REALTIME = "idle_drain_current_start_realtime"
+    const val IDLE_DRAIN_CURRENT_START_UPTIME = "idle_drain_current_start_uptime"
+    const val IDLE_DRAIN_CURRENT_START_LEVEL = "idle_drain_current_start_level"
+    const val IDLE_DRAIN_CURRENT_START_CAPACITY = "idle_drain_current_start_capacity"
+    const val IDLE_DRAIN_IS_ACTIVE = "idle_drain_is_active"
 }

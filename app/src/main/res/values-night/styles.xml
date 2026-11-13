@@ -30,6 +30,10 @@
         <item name="colorSurfaceContainer">@color/md_theme_surfaceContainer</item>
         <item name="colorSurfaceInverse">@color/md_theme_inverseSurface</item>
         <item name="colorPrimaryInverse">@color/md_theme_inversePrimary</item>
+        <item name="android:textColorPrimary">@color/card_title_text</item>
+        <item name="android:textColorSecondary">@color/card_subtitle_text</item>
+        <item name="android:textColorTertiary">@color/caption_text</item>
+        <item name="android:textColorHint">@color/hint_text</item>
     </style>
 
     <style name="AppTheme" parent="ColorAppTheme">

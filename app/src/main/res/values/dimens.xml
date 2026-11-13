@@ -7,11 +7,11 @@
     <dimen name="margin_top_history_date">4dp</dimen>
     <dimen name="margin_top_history_residual_capacity">8dp</dimen>
     <dimen name="margin_top_history_battery_wear">4dp</dimen>
-    <dimen name="card_corner_radius">10dp</dimen>
+    <dimen name="card_corner_radius">16dp</dimen>
     <dimen name="very_small_text_size">8sp</dimen>
     <dimen name="small_text_size">10sp</dimen>
     <dimen name="medium_text_size">14sp</dimen>
     <dimen name="large_text_size">18sp</dimen>
     <dimen name="very_large_text_size">24sp</dimen>
-    <dimen name="card_elevation">0.2dp</dimen>
+    <dimen name="card_elevation">0dp</dimen>
 </resources>

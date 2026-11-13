@@ -203,6 +203,9 @@
     <string name="export_notification_sounds">Export Notification Sounds</string>
     <string name="successful_export_of_notification_sounds">Notification Sounds have been exported successfully!</string>
     <string name="error_exporting_notification_sounds">Error Exporting Notification Sounds!\n%1$s</string>
+    <string name="section_charging_health">Charging &amp; Health</string>
+    <string name="section_hardware_power">Hardware &amp; Power</string>
+    <string name="number_of_charges_title">Charging &amp; Cycle Statistics</string>
     <string name="number_of_charges">Number of Charges: %1$d</string>
     <string name="number_of_cycles">Number of Cycles: %1$s</string>
     <string name="number_of_cycles_android">Number of Cycles (Android): %1$d</string>
@@ -445,4 +448,40 @@
     <string name="welcome_feature_three_title">Ammeter</string>
     <string name="welcome_advisory">Battery Lab does not collect analytics or sell your data to third parties. All data is stored securely and privately on your device.</string>
     <string name="welcome_btn_continue">Get Started</string>
+
+    <!-- Idle Drain -->
+    <string name="idle_drain_summary">Screen off battery drain &amp; deep sleep analytics</string>
+    <string name="idle_drain_since_unplugged">Since Unplugged</string>
+    <string name="idle_drain_last_session">Latest Screen-Off Session</string>
+    <string name="idle_drain_rate">Drain Rate</string>
+    <string name="idle_drain_rate_unit">%/h</string>
+    <string name="idle_drain_deep_sleep">Deep Sleep</string>
+    <string name="idle_drain_standby_duration">Standby Duration</string>
+    <string name="idle_drain_awake_time">Awake (Wakelock)</string>
+    <string name="idle_drain_battery_dropped">Battery Drop</string>
+    <string name="idle_drain_diagnostic_title">Standby Diagnostics</string>
+    <string name="idle_drain_recommendation_title">Smart Recommendation</string>
+    <string name="idle_drain_charging_notice">Device is currently plugged in. Idle drain metrics are recorded while running on battery power.</string>
+    <string name="idle_drain_reset">Reset Data</string>
+    <string name="idle_drain_refresh">Refresh</string>
+    <string name="idle_drain_status_excellent">Optimal</string>
+    <string name="idle_drain_status_normal">Normal</string>
+    <string name="idle_drain_status_high">High Drain</string>
+    <string name="idle_drain_status_no_data">Waiting for Screen Off</string>
+    <string name="idle_drain_reset_confirm">Reset Idle Drain statistics?</string>
+
+    <!-- Idle Drain Diagnostics & Time Formats -->
+    <string name="idle_drain_diag_no_data">No idle drain data recorded yet. Lock your screen while unplugged to start tracking standby performance.</string>
+    <string name="idle_drain_rec_no_data">Battery Lab will automatically measure battery drain when the screen is off and calculate deep sleep efficiency.</string>
+    <string name="idle_drain_diag_excellent">Optimal (%1$s%%/h). Device entered deep sleep effectively (%2$s%% Deep Sleep).</string>
+    <string name="idle_drain_rec_excellent">Standby life is optimal. No battery-draining background apps detected.</string>
+    <string name="idle_drain_diag_normal">Normal (%1$s%%/h). Standby battery consumption is within expected range (%2$s%% Deep Sleep).</string>
+    <string name="idle_drain_rec_normal">Good standby performance for daily use with background notifications active.</string>
+    <string name="idle_drain_diag_high">High drain (%1$s%%/h)! Significant battery loss while screen is off. Deep Sleep ratio: %2$s%%.</string>
+    <string name="idle_drain_rec_high">Awake time (%1$s) indicates background apps holding wakelocks or Always-On Display. Review active background apps.</string>
+    <string name="idle_drain_finished_at">Finished: %1$s</string>
+    <string name="idle_drain_rate_per_hour_format">%1$d%% (%2$s%%/h)</string>
+    <string name="duration_hours_minutes">%1$dh %2$dm</string>
+    <string name="duration_minutes_seconds">%1$dm %2$ds</string>
+    <string name="duration_seconds">%1$ds</string>
 </resources>

@@ -1,39 +1,55 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="md_theme_primary">#015AC1</color>
-    <color name="md_theme_onPrimary">#002E69</color>
-    <color name="md_theme_primaryContainer">#004494</color>
-    <color name="md_theme_onPrimaryContainer">#D8E2FF</color>
-    <color name="md_theme_secondary">#BFC6DC</color>
-    <color name="md_theme_onSecondary">#293041</color>
-    <color name="md_theme_secondaryContainer">#3F4759</color>
-    <color name="md_theme_onSecondaryContainer">#DBE2F9</color>
-    <color name="md_theme_tertiary">#ADC6FF</color>
-    <color name="md_theme_onTertiary">#002E69</color>
-    <color name="md_theme_tertiaryContainer">#004494</color>
-    <color name="md_theme_onTertiaryContainer">#D8E2FF</color>
-    <color name="md_theme_error">#FFB4AB</color>
-    <color name="md_theme_errorContainer">#93000A</color>
-    <color name="md_theme_onError">#690005</color>
-    <color name="md_theme_onErrorContainer">#FFDAD6</color>
-    <color name="md_theme_background">#1B1B1F</color>
-    <color name="md_theme_onBackground">#E3E2E6</color>
-    <color name="md_theme_surface">#1B1B1F</color>
-    <color name="md_theme_onSurface">#E3E2E6</color>
-    <color name="md_theme_surfaceVariant">#44474F</color>
-    <color name="md_theme_onSurfaceVariant">#C4C6D0</color>
-    <color name="md_theme_outline">#8E9099</color>
-    <color name="md_theme_inverseOnSurface">#1B1B1F</color>
-    <color name="md_theme_inverseSurface">#E3E2E6</color>
-    <color name="md_theme_inversePrimary">#015AC1</color>
-    <color name="md_theme_surfaceContainer">#1E1F20</color>
+    <color name="md_theme_primary">#3B82F6</color>
+    <color name="md_theme_onPrimary">#FFFFFF</color>
+    <color name="md_theme_primaryContainer">#1D4ED8</color>
+    <color name="md_theme_onPrimaryContainer">#DBEAFE</color>
+    <color name="md_theme_secondary">#94A3B8</color>
+    <color name="md_theme_onSecondary">#0F172A</color>
+    <color name="md_theme_secondaryContainer">#1E293B</color>
+    <color name="md_theme_onSecondaryContainer">#E2E8F0</color>
+    <color name="md_theme_tertiary">#3B82F6</color>
+    <color name="md_theme_onTertiary">#FFFFFF</color>
+    <color name="md_theme_tertiaryContainer">#1D4ED8</color>
+    <color name="md_theme_onTertiaryContainer">#DBEAFE</color>
+    <color name="md_theme_error">#F87171</color>
+    <color name="md_theme_errorContainer">#7F1D1D</color>
+    <color name="md_theme_onError">#FFFFFF</color>
+    <color name="md_theme_onErrorContainer">#FECACA</color>
+    <color name="md_theme_background">#121316</color>
+    <color name="md_theme_onBackground">@color/card_title_text</color>
+    <color name="md_theme_surface">#1E2024</color>
+    <color name="md_theme_onSurface">@color/card_title_text</color>
+    <color name="md_theme_surfaceVariant">#2A2D35</color>
+    <color name="md_theme_onSurfaceVariant">@color/card_subtitle_text</color>
+    <color name="md_theme_outline">#333742</color>
+    <color name="md_theme_inverseOnSurface">#121316</color>
+    <color name="md_theme_inverseSurface">#E6FFFFFF</color>
+    <color name="md_theme_inversePrimary">#2563EB</color>
+    <color name="md_theme_surfaceContainer">#1E2024</color>
 
-    <color name="scrollbar_thumb_vertical">@color/blue</color>
-    <color name="title_text">@android:color/white</color>
-    <color name="subtitle_text">@android:color/white</color>
-    <color name="icons">@android:color/white</color>
+    <!-- Modern Text & Surface Color Tokens (Dark Mode) -->
+    <color name="card_bg">#1E2024</color>
+    <color name="canvas_bg">#121316</color>
+    <color name="card_title_text">#E6FFFFFF</color>
+    <color name="card_subtitle_text">#C4C7D0</color>
+    <color name="section_title_text">#C4C7D0</color>
+    <color name="caption_text">#80FFFFFF</color>
+    <color name="hint_text">#66FFFFFF</color>
+
+    <!-- Switch Custom Colors -->
+    <color name="switch_thumb_off">#938F99</color>
+    <color name="switch_track_off">#2B2D33</color>
+    <color name="switch_border_off">#938F99</color>
+
+    <color name="scrollbar_thumb_vertical">#3B82F6</color>
+    <color name="dark_white">@color/card_subtitle_text</color>
+    <color name="title_text">@color/card_title_text</color>
+    <color name="subtitle_text">@color/card_subtitle_text</color>
+    <color name="menu_text">@color/card_title_text</color>
+    <color name="icons">@color/card_subtitle_text</color>
     <color name="service_notification_text">@android:color/darker_gray</color>
-    <color name="swipe_refresh_layout_progress_background">@color/dark</color>
+    <color name="swipe_refresh_layout_progress_background">#1E2024</color>
 
     <color name="battery_info_level_normal">#05BA7D</color>
     <color name="battery_info_level_charging">#ADC6FF</color>

@@ -12,6 +12,7 @@ import com.jacktor.batterylab.MainApp.Companion.batteryIntent
 import com.jacktor.batterylab.MainApp.Companion.isPowerConnected
 import com.jacktor.batterylab.R
 import com.jacktor.batterylab.helpers.ServiceHelper
+import com.jacktor.batterylab.helpers.IdleDrainHelper
 import com.jacktor.batterylab.interfaces.BatteryInfoInterface
 import com.jacktor.batterylab.interfaces.BatteryInfoInterface.Companion.capacityAdded
 import com.jacktor.batterylab.interfaces.BatteryInfoInterface.Companion.percentAdded
@@ -22,6 +23,7 @@ import com.jacktor.batterylab.utilities.Constants
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.BATTERY_LEVEL_TO
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.BATTERY_LEVEL_WITH
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CAPACITY_ADDED
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGING_START_LEVEL
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.LAST_CHARGE_TIME
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.NUMBER_OF_CHARGES
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.NUMBER_OF_CYCLES
@@ -47,26 +49,32 @@ class UnpluggedReceiver : BroadcastReceiver() {
 
         isPowerConnected = false
         service.isPluggedOrUnplugged = true
+        IdleDrainHelper.onPowerDisconnected(context)
 
         val isCheckedUpdateFromGooglePlay =
             mainActivityRef?.get()?.isCheckUpdateFromGooglePlay == true
         mainActivityRef?.get()?.isCheckUpdateFromGooglePlay = !isCheckedUpdateFromGooglePlay
 
         val batteryLevel = service.getBatteryLevel(context) ?: 0
-        val batteryLevelWith = service.batteryLevelWith
+        val savedStart = pref.getInt(CHARGING_START_LEVEL, -1)
+        val startLevel = if (service.batteryLevelWith in 0..batteryLevel) service.batteryLevelWith
+        else if (savedStart in 0..batteryLevel) savedStart
+        else pref.getInt(BATTERY_LEVEL_WITH, batteryLevel)
 
-        val numberOfCycles = if (batteryLevel > batteryLevelWith && batteryLevelWith >= 0) {
-            pref.getFloat(NUMBER_OF_CYCLES, 0f) + ((batteryLevel - batteryLevelWith) / 100f)
+        val numberOfCycles = if (batteryLevel > startLevel && startLevel >= 0) {
+            pref.getFloat(NUMBER_OF_CYCLES, 0f) + ((batteryLevel - startLevel) / 100f)
         } else {
             pref.getFloat(NUMBER_OF_CYCLES, 0f)
         }
 
-        if (!service.isFull && service.seconds > 1) {
+        if (service.seconds > 1) {
             val numberOfCharges = pref.getLong(NUMBER_OF_CHARGES, 0)
+            if (!service.isFull) {
+                pref.edit { putLong(NUMBER_OF_CHARGES, numberOfCharges + 1) }
+            }
             pref.edit {
-                putLong(NUMBER_OF_CHARGES, numberOfCharges + 1)
-                    .putInt(LAST_CHARGE_TIME, service.seconds)
-                    .putInt(BATTERY_LEVEL_WITH, service.batteryLevelWith)
+                putInt(LAST_CHARGE_TIME, service.seconds)
+                    .putInt(BATTERY_LEVEL_WITH, startLevel)
                     .putInt(BATTERY_LEVEL_TO, batteryLevel)
             }
 
@@ -82,6 +90,9 @@ class UnpluggedReceiver : BroadcastReceiver() {
             capacityAdded = 0.0
         }
 
+        pref.edit { remove(CHARGING_START_LEVEL) }
+        service.batteryLevelWith = -1
+
         batteryIntent = context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
 
         service.seconds = 0
@@ -92,6 +103,8 @@ class UnpluggedReceiver : BroadcastReceiver() {
                 ))
         ) {
             service.screenTime = 0L
+        } else {
+            service.resumeScreenTime()
         }
 
         BatteryInfoInterface.batteryLevel = 0

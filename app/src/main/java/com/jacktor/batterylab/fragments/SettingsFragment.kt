@@ -3,6 +3,7 @@ package com.jacktor.batterylab.fragments
 import android.content.SharedPreferences
 import android.os.Build
 import android.os.Bundle
+import android.view.View
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
@@ -15,6 +16,7 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.jacktor.batterylab.MainActivity
 import com.jacktor.batterylab.R
 import com.jacktor.batterylab.helpers.ServiceHelper
+import com.jacktor.batterylab.helpers.TextAppearanceHelper
 import com.jacktor.batterylab.helpers.ThemeHelper.setTheme
 import com.jacktor.batterylab.interfaces.BatteryInfoInterface
 import com.jacktor.batterylab.interfaces.DebugOptionsInterface
@@ -279,8 +281,17 @@ class SettingsFragment() : PreferenceFragmentCompat(),
 
             setOnPreferenceChangeListener { preference, newValue ->
 
+                val newFont = (newValue as? String) ?: "6"
                 preference.summary = resources.getStringArray(R.array.fonts_list)[
-                    (newValue as? String)?.toInt() ?: 0]
+                    newFont.toIntOrNull() ?: 6]
+                pref.edit { putString(TEXT_FONT, newFont) }
+
+                val act = (activity as? MainActivity) ?: mainActivity
+                MainActivity.apply {
+                    tempFragment = this@SettingsFragment
+                    isRecreate = true
+                }
+                act?.recreate()
 
                 true
             }
@@ -307,16 +318,34 @@ class SettingsFragment() : PreferenceFragmentCompat(),
 
         textSize?.setOnPreferenceChangeListener { preference, newValue ->
 
+            val newSize = (newValue as? String) ?: "2"
             preference.summary = resources.getStringArray(R.array.text_size_list)[
-                (newValue as? String)?.toInt() ?: 2]
+                newSize.toIntOrNull() ?: 2]
+            pref.edit { putString(TEXT_SIZE, newSize) }
+
+            val act = (activity as? MainActivity) ?: mainActivity
+            MainActivity.apply {
+                tempFragment = this@SettingsFragment
+                isRecreate = true
+            }
+            act?.recreate()
 
             true
         }
 
         textStyle?.setOnPreferenceChangeListener { preference, newValue ->
 
+            val newStyle = (newValue as? String) ?: "0"
             preference.summary = resources.getStringArray(R.array.text_style_list)[
-                (newValue as? String)?.toInt() ?: 0]
+                newStyle.toIntOrNull() ?: 0]
+            pref.edit { putString(TEXT_STYLE, newStyle) }
+
+            val act = (activity as? MainActivity) ?: mainActivity
+            MainActivity.apply {
+                tempFragment = this@SettingsFragment
+                isRecreate = true
+            }
+            act?.recreate()
 
             true
         }
@@ -824,6 +853,11 @@ class SettingsFragment() : PreferenceFragmentCompat(),
 
             true
         }
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        TextAppearanceHelper.applyToView(view)
     }
 
     override fun onResume() {

@@ -1,61 +1,76 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/history_cardview"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical">
+    android:layout_marginHorizontal="14dp"
+    android:layout_marginVertical="4dp"
+    app:cardBackgroundColor="@color/card_bg"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="0dp"
+    app:strokeWidth="0dp">
 
-    <com.google.android.material.card.MaterialCardView
-        android:id="@+id/history_cardview"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginStart="@dimen/margin_start"
-        android:layout_marginTop="@dimen/margin_top_history_cv"
-        android:layout_marginEnd="@dimen/margin_end"
-        app:cardCornerRadius="@dimen/card_corner_radius"
-        app:cardElevation="@dimen/card_elevation">
+        android:orientation="vertical"
+        android:padding="14dp">
 
-        <RelativeLayout
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp">
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <FrameLayout
+                android:layout_width="36dp"
+                android:layout_height="36dp"
+                android:layout_marginEnd="10dp"
+                android:background="@drawable/idle_status_badge_bg">
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:layout_width="20dp"
+                    android:layout_height="20dp"
+                    android:layout_gravity="center"
+                    app:srcCompat="@drawable/ic_charge_navigation_full_24dp"
+                    app:tint="@color/green" />
+            </FrameLayout>
 
             <androidx.appcompat.widget.AppCompatTextView
                 android:id="@+id/history_date"
-                android:layout_width="wrap_content"
+                android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/history_residual_capacity"
-                android:layout_marginStart="@dimen/margin_start"
-                android:layout_marginTop="@dimen/margin_top_history_date"
-                android:textSize="@dimen/medium_text_size"
-                tools:text="04.04.2021" />
-
-            <androidx.appcompat.widget.AppCompatTextView
-                android:id="@+id/history_residual_capacity"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_alignParentEnd="true"
-                android:layout_marginTop="@dimen/margin_top_history_residual_capacity"
-                android:layout_marginEnd="@dimen/margin_start"
-                android:layout_toEndOf="@id/history_date"
-                android:textAlignment="textEnd"
-                android:textSize="@dimen/medium_text_size"
-                tools:text="Residual: 3330,1 mAh (83,3%)" />
+                android:layout_weight="1"
+                android:textAppearance="@style/TextAppearance.Material3.TitleSmall"
+                android:textStyle="bold"
+                tools:text="04.04.2026" />
 
             <androidx.appcompat.widget.AppCompatTextView
                 android:id="@+id/history_battery_wear"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/history_residual_capacity"
-                android:layout_alignParentEnd="true"
-                android:layout_marginTop="@dimen/margin_top_history_battery_wear"
-                android:layout_marginEnd="@dimen/margin_start"
-                android:layout_toEndOf="@id/history_date"
-                android:textAlignment="textEnd"
-                android:textSize="@dimen/medium_text_size"
-                tools:text="Keausan Baterai: 16,7% (669,9 mAh)" />
-        </RelativeLayout>
+                android:background="@drawable/idle_status_badge_bg"
+                android:paddingHorizontal="8dp"
+                android:paddingVertical="3dp"
+                android:textAppearance="@style/TextAppearance.Material3.LabelSmall"
+                android:textColor="@color/md_theme_primary"
+                tools:text="Keausan: 5%" />
+        </LinearLayout>
 
-    </com.google.android.material.card.MaterialCardView>
-</RelativeLayout>
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginVertical="8dp"
+            android:background="@color/canvas_bg" />
+
+        <androidx.appcompat.widget.AppCompatTextView
+            android:id="@+id/history_residual_capacity"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="@style/TextAppearance.Material3.BodySmall"
+            android:textColor="@color/dark_white"
+            tools:text="Kapasitas Tersisa: 6100 mAh (93,8%)" />
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

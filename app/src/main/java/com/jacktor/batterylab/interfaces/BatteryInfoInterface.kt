@@ -82,6 +82,30 @@ interface BatteryInfoInterface {
             }
         }
 
+        object TimeEstimator {
+            var stableDischargeMa: Double = 0.0
+            var filteredRemainingSeconds: Long = -1L
+            var lastCalculationTimeMs: Long = 0L
+            var lastLevel: Int = -1
+
+            var stableChargeMa: Double = 0.0
+            var filteredChargeRemainingSeconds: Long = -1L
+            var lastChargeCalcTimeMs: Long = 0L
+            var lastChargeLevel: Int = -1
+
+            fun reset() {
+                stableDischargeMa = 0.0
+                filteredRemainingSeconds = -1L
+                lastCalculationTimeMs = 0L
+                lastLevel = -1
+
+                stableChargeMa = 0.0
+                filteredChargeRemainingSeconds = -1L
+                lastChargeCalcTimeMs = 0L
+                lastChargeLevel = -1
+            }
+        }
+
         @JvmStatic
         fun resetPeakChargingPower() {
             peakChargeWatt = 0.0
@@ -98,6 +122,7 @@ interface BatteryInfoInterface {
             runningChargeSum = 0.0
             Smooth.emaChargeCurrentMa = 0.0
             resetPeakChargingPower()
+            TimeEstimator.reset()
         }
 
         @JvmStatic
@@ -108,6 +133,7 @@ interface BatteryInfoInterface {
             dischargeSampleCount = 0
             runningDischargeSum = 0.0
             Smooth.emaDischargeCurrentMa = 0.0
+            TimeEstimator.reset()
         }
 
         @JvmStatic
@@ -736,24 +762,38 @@ interface BatteryInfoInterface {
     }
 
     fun getChargingTimeRemaining(context: Context): String {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            val bm = context.getSystemService(Context.BATTERY_SERVICE) as BatteryManager
-            val ms = bm.computeChargeTimeRemaining()
-            if (ms > 0) return TimeHelper.getTime(ms / 1000)
+        val level = (getBatteryLevel(context) ?: 0).coerceIn(0, 100)
+        batteryIntent = batteryIntent ?: try {
+            context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+        } catch (_: Throwable) {
+            null
         }
-
-        batteryIntent = batteryIntent ?: context.registerReceiver(
-            null,
-            IntentFilter(Intent.ACTION_BATTERY_CHANGED)
-        )
         val status = batteryIntent?.getIntExtra(
             BatteryManager.EXTRA_STATUS,
             BatteryManager.BATTERY_STATUS_UNKNOWN
-        )
-        val level = getBatteryLevel(context)?.coerceIn(0, 100) ?: 0
-        val isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING
-        if (!isCharging || level >= 100) return context.getString(R.string.unknown)
+        ) ?: BatteryManager.BATTERY_STATUS_UNKNOWN
 
+        if (status == BatteryManager.BATTERY_STATUS_FULL || level >= 100) {
+            TimeEstimator.filteredChargeRemainingSeconds = 0L
+            return context.getString(R.string.fully_charged)
+        }
+
+        if (status != BatteryManager.BATTERY_STATUS_CHARGING) {
+            return context.getString(R.string.unknown)
+        }
+
+        // 1. Try OEM / hardware computation first
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            try {
+                val bm = context.getSystemService(Context.BATTERY_SERVICE) as? BatteryManager
+                val ms = bm?.computeChargeTimeRemaining() ?: -1L
+                if (ms in 1000..86400000L) { // Valid 1s to 24h
+                    return TimeHelper.getTime(ms / 1000)
+                }
+            } catch (_: Throwable) {}
+        }
+
+        // 2. Proportional software estimation
         val pref = PreferenceManager.getDefaultSharedPreferences(context)
         val isMicroAh = pref.getString(UNIT_OF_MEASUREMENT_OF_available_capacity, "μAh") == "μAh"
         val residualRaw = pref.getInt(RESIDUAL_CAPACITY, 0).toDouble()
@@ -770,66 +810,173 @@ interface BatteryInfoInterface {
         val fullMah = when {
             residualMah in (designMah * 0.5)..(designMah * 1.5) -> residualMah
             else -> designMah
-        }.coerceAtLeast(100.0)
+        }.coerceAtLeast(1000.0)
 
-        val currentMah = getAvailableCapacity(context).coerceAtLeast(0.0)
-        val capacityRemainingPercent = (100.0 - level).coerceAtLeast(0.0)
-        val capacityToGoFromPercent = (fullMah * capacityRemainingPercent / 100.0)
-        val capacityToGoFromCurrent = (fullMah - currentMah).coerceAtLeast(0.0)
-        val capacityToGoMah = if (currentMah in 1.0..fullMah) {
-            max(capacityToGoFromCurrent, capacityToGoFromPercent * 0.5)
-        } else {
-            capacityToGoFromPercent
+        val capacityToGoMah = (fullMah * (100 - level).coerceAtLeast(0) / 100.0)
+        if (capacityToGoMah <= 0.0) {
+            return context.getString(R.string.fully_charged)
         }
 
-        val emaMa = if (Smooth.emaChargeCurrentMa > 0) Smooth.emaChargeCurrentMa
-        else averageChargeCurrent.toDouble()
-        val chargeCurrentMa = max(50.0, emaMa)
-        val hours = capacityToGoMah / chargeCurrentMa
+        // Sample real charging current
+        var currentMa = getChargeDischargeCurrent(context).toDouble()
+        if (currentMa <= 0.0) {
+            try {
+                val bm = context.getSystemService(Context.BATTERY_SERVICE) as? BatteryManager
+                val avg = bm?.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_AVERAGE) ?: 0
+                val now = bm?.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW) ?: 0
+                val raw = if (avg != 0 && avg != Int.MIN_VALUE) avg else now
+                if (raw != 0 && raw != Int.MIN_VALUE) {
+                    currentMa = if (abs(raw) > 50_000) abs(raw) / 1000.0 else abs(raw).toDouble()
+                }
+            } catch (_: Throwable) {}
+        }
 
+        if (currentMa <= 0.0) {
+            if (Smooth.emaChargeCurrentMa > 100.0) currentMa = Smooth.emaChargeCurrentMa
+            else if (averageChargeCurrent > 100) currentMa = averageChargeCurrent.toDouble()
+        }
+
+        // Operational charging current fallback
+        if (currentMa < 200.0) {
+            val sourceOfPower = batteryIntent?.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1) ?: -1
+            currentMa = if (sourceOfPower == BatteryManager.BATTERY_PLUGGED_AC) 2000.0 else 1000.0
+        }
+
+        // Smooth rate
+        val prevRate = TimeEstimator.stableChargeMa
+        val stableRate = if (prevRate <= 0.0) currentMa else (0.15 * currentMa + 0.85 * prevRate)
+        TimeEstimator.stableChargeMa = stableRate
+
+        // Constant-Current / Constant-Voltage taper curve
         val taperFactor = when {
-            level >= 95 -> 1.50
-            level >= 90 -> 1.30
+            level >= 95 -> 1.40
+            level >= 90 -> 1.25
             level >= 80 -> 1.15
             else -> 1.00
         }
 
-        val turboTrim = when {
-            isTurboCharge(context) && chargeCurrentMa >= 1500 -> 0.90
-            isTurboCharge(context) && chargeCurrentMa >= 1000 -> 0.95
-            else -> 1.00
+        val targetSeconds = ((capacityToGoMah / stableRate.coerceAtLeast(100.0)) * taperFactor * 3600.0).toLong().coerceIn(60L, 86400L)
+
+        // Slew-rate filtering
+        val nowMs = System.currentTimeMillis()
+        val prevFiltered = TimeEstimator.filteredChargeRemainingSeconds
+        val lastTime = TimeEstimator.lastChargeCalcTimeMs
+
+        val finalSeconds: Long = if (prevFiltered <= 0L || lastTime <= 0L || TimeEstimator.lastChargeLevel != level) {
+            targetSeconds
+        } else {
+            val elapsedSec = max(0L, (nowMs - lastTime) / 1000L)
+            val naturalCountdown = max(0L, prevFiltered - elapsedSec)
+            val maxAllowedShift = max(2L, elapsedSec * 2L)
+            naturalCountdown + (targetSeconds - naturalCountdown).coerceIn(-maxAllowedShift, maxAllowedShift)
         }
 
-        val seconds = (hours * taperFactor * turboTrim * 3600.0)
-            .coerceIn(0.0, 72 * 3600.0)
+        TimeEstimator.filteredChargeRemainingSeconds = finalSeconds
+        TimeEstimator.lastChargeCalcTimeMs = nowMs
+        TimeEstimator.lastChargeLevel = level
 
-        return if (seconds.isFinite() && seconds > 0.0)
-            TimeHelper.getTime(seconds.toLong())
-        else context.getString(R.string.unknown)
+        return TimeHelper.getTime(finalSeconds)
     }
 
     fun getRemainingBatteryTime(context: Context): String {
+        val level = (getBatteryLevel(context) ?: 0).coerceIn(0, 100)
+        if (level <= 0) return context.getString(R.string.unknown)
+
         val pref = PreferenceManager.getDefaultSharedPreferences(context)
         val design = pref.getInt(
             DESIGN_CAPACITY,
             context.resources.getInteger(R.integer.min_design_capacity)
         ).toDouble()
-        val level = (getBatteryLevel(context) ?: 0).coerceIn(0, 100)
 
-        val currentMah = getAvailableCapacity(context).let { cap ->
-            if (cap > 1.0) cap else (level / 100.0) * design
+        // 1. Determine effective full capacity & remaining mAh
+        val isMicroAh = pref.getString(UNIT_OF_MEASUREMENT_OF_available_capacity, "μAh") == "μAh"
+        val residualRaw = pref.getInt(RESIDUAL_CAPACITY, 0).toDouble()
+        val residualMah = when {
+            residualRaw > 50_000.0 -> residualRaw / 1000.0
+            isMicroAh && residualRaw > 0.0 -> residualRaw / 1000.0
+            else -> residualRaw
         }
 
-        val discharge = when {
-            Smooth.emaDischargeCurrentMa > 0.0 -> Smooth.emaDischargeCurrentMa
-            averageDischargeCurrent > 0 -> averageDischargeCurrent.toDouble()
-            else -> 0.0
+        val fullCapacityMah = when {
+            residualMah in (design * 0.5)..(design * 1.4) -> residualMah
+            else -> design
+        }.coerceAtLeast(1000.0)
+
+        // Remaining capacity proportional to level (with availableCapacity sanity check)
+        val capacityFromLevel = (level / 100.0) * fullCapacityMah
+        val avail = getAvailableCapacity(context)
+        val remainingMah = if (avail in (capacityFromLevel * 0.7)..(capacityFromLevel * 1.3)) {
+            0.6 * capacityFromLevel + 0.4 * avail
+        } else {
+            capacityFromLevel
         }
 
-        return if (discharge > 10.0 && currentMah > 0.0) {
-            val seconds = ((currentMah / discharge) * 3600.0).toLong().coerceIn(0L, 720 * 3600L)
-            TimeHelper.getTime(seconds)
-        } else context.getString(R.string.unknown)
+        // 2. Determine stable discharge rate
+        val bm = context.getSystemService(Context.BATTERY_SERVICE) as? BatteryManager
+        val hwAvgRaw = bm?.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_AVERAGE) ?: 0
+        val isUnitMicro = pref.getString(UNIT_OF_CHARGE_DISCHARGE_CURRENT, "μA") == "μA"
+        val hwAvgMa = when {
+            abs(hwAvgRaw) > 50_000 -> abs(hwAvgRaw) / 1000.0
+            isUnitMicro && abs(hwAvgRaw) > 0 -> abs(hwAvgRaw) / 1000.0
+            else -> abs(hwAvgRaw).toDouble()
+        }
+
+        val instantMa = Smooth.emaDischargeCurrentMa
+        val sessionAvgMa = if (dischargeSampleCount >= 8 && averageDischargeCurrent > 50) {
+            averageDischargeCurrent.toDouble()
+        } else 0.0
+
+        val candidateRate = when {
+            hwAvgMa in 150.0..2500.0 && sessionAvgMa > 0.0 -> {
+                0.5 * hwAvgMa + 0.5 * sessionAvgMa
+            }
+            hwAvgMa in 150.0..2500.0 -> {
+                0.7 * hwAvgMa + 0.3 * (if (instantMa > 0) instantMa else 420.0)
+            }
+            sessionAvgMa > 0.0 && instantMa > 0.0 -> {
+                0.6 * sessionAvgMa + 0.4 * instantMa
+            }
+            sessionAvgMa > 0.0 -> sessionAvgMa
+            instantMa in 100.0..2500.0 -> instantMa
+            else -> 420.0
+        }
+
+        val prevRate = TimeEstimator.stableDischargeMa
+        val smoothedRate = if (prevRate <= 0.0) {
+            candidateRate
+        } else {
+            0.02 * candidateRate + 0.98 * prevRate
+        }
+        TimeEstimator.stableDischargeMa = smoothedRate
+
+        val safeDischargeRate = smoothedRate.coerceIn(200.0, 1500.0)
+
+        // 3. Target remaining seconds
+        val targetSeconds = ((remainingMah / safeDischargeRate) * 3600.0)
+            .coerceIn(60.0, 72.0 * 3600.0)
+
+        // 4. Temporal filter with Slew-Rate Limiting (smooth countdown, no jumping)
+        val nowMs = android.os.SystemClock.elapsedRealtime()
+        val lastMs = TimeEstimator.lastCalculationTimeMs
+        val lastSec = TimeEstimator.filteredRemainingSeconds
+
+        val finalSeconds = if (lastSec <= 0L || lastMs <= 0L || (nowMs - lastMs) > 60_000L) {
+            targetSeconds.toLong()
+        } else {
+            val deltaSec = ((nowMs - lastMs) / 1000.0).coerceAtLeast(0.0)
+            val elapsedDec = (lastSec.toDouble() - deltaSec).coerceAtLeast(60.0)
+            val diff = targetSeconds - elapsedDec
+            // Slew rate: limit adjustment to at most 1.5s per second elapsed
+            val maxAdjust = (deltaSec * 1.5).coerceAtLeast(1.0)
+            val step = diff.coerceIn(-maxAdjust, maxAdjust)
+            (elapsedDec + step).toLong().coerceIn(60L, 72L * 3600L)
+        }
+
+        TimeEstimator.filteredRemainingSeconds = finalSeconds
+        TimeEstimator.lastCalculationTimeMs = nowMs
+        TimeEstimator.lastLevel = level
+
+        return TimeHelper.getTime(finalSeconds)
     }
 
     fun getLastChargeTime(context: Context): String {
@@ -933,6 +1080,69 @@ interface BatteryInfoInterface {
             PowerManager.THERMAL_STATUS_SHUTDOWN -> R.color.battery_info_temp_very_hot
 
             else -> R.color.battery_info_temp_normal
+        }
+    }
+
+    fun getTemperatureTintRes(tempC: Double): Int {
+        val t = (tempC * 10.0).toInt()
+        return when {
+            t >= 480 -> R.color.battery_info_temp_very_hot
+            t >= 420 -> R.color.battery_info_temp_hot
+            t >= 380 -> R.color.battery_info_temp_warm
+            t >= 150 -> R.color.battery_info_temp_normal
+            else -> R.color.battery_info_temp_cold
+        }
+    }
+
+    fun getTemperatureTintRes(context: Context): Int {
+        return getTemperatureTintRes(getTemperatureInCelsius(context))
+    }
+
+    fun getVoltageTintRes(voltageMv: Double, isCharging: Boolean = false): Int {
+        return when {
+            // Extreme over-voltage condition (safety limit > 4.65V)
+            voltageMv >= 4650.0 -> R.color.battery_info_temp_very_hot
+            // Actively charging: fast charging voltages up to 4.55V are completely normal
+            isCharging -> R.color.battery_info_level_charging
+            // Normal discharging plateau
+            voltageMv >= 3700.0 -> R.color.battery_info_level_normal
+            // Low discharging voltage warning
+            voltageMv >= 3450.0 -> R.color.battery_info_temp_warm
+            // Critically low discharging voltage
+            voltageMv > 0.0 -> R.color.battery_info_level_low
+            else -> R.color.battery_info_level_normal
+        }
+    }
+
+    fun getVoltageTintRes(context: Context, isCharging: Boolean = false): Int {
+        return getVoltageTintRes(getVoltage(context), isCharging)
+    }
+
+    fun getBatteryHealthTintRes(context: Context): Int {
+        val bi = batteryIntent ?: try {
+            context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+        } catch (_: Throwable) {
+            null
+        }
+        val health = bi?.getIntExtra(BatteryManager.EXTRA_HEALTH, BatteryManager.BATTERY_HEALTH_UNKNOWN)
+            ?: BatteryManager.BATTERY_HEALTH_UNKNOWN
+
+        return when (health) {
+            BatteryManager.BATTERY_HEALTH_OVERHEAT -> R.color.battery_info_temp_very_hot
+            BatteryManager.BATTERY_HEALTH_OVER_VOLTAGE -> R.color.battery_info_temp_hot
+            BatteryManager.BATTERY_HEALTH_DEAD -> R.color.battery_info_level_low
+            BatteryManager.BATTERY_HEALTH_COLD -> R.color.battery_info_temp_cold
+            BatteryManager.BATTERY_HEALTH_GOOD -> R.color.battery_info_health
+            else -> R.color.battery_info_health
+        }
+    }
+
+    fun getTimeTintRes(level: Int, isCharging: Boolean, isFull: Boolean = false): Int {
+        return when {
+            isFull -> R.color.battery_info_level_normal
+            isCharging -> R.color.battery_info_level_charging
+            level <= 20 -> R.color.battery_info_level_low
+            else -> R.color.battery_info_level_normal
         }
     }
 }

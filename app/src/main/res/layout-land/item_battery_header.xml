@@ -1,0 +1,272 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="6dp"
+    android:layout_marginTop="2dp"
+    android:layout_marginBottom="4dp"
+    android:clipChildren="false"
+    android:clipToPadding="false"
+    app:cardBackgroundColor="@color/card_bg"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="0dp"
+    app:strokeWidth="0dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:clipChildren="false"
+        android:clipToPadding="false"
+        android:orientation="vertical"
+        android:padding="10dp">
+
+        <!-- Top Section: Gauge on Left + Details on Right -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <!-- Compact Circular Battery Gauge -->
+            <FrameLayout
+                android:layout_width="96dp"
+                android:layout_height="96dp"
+                android:layout_marginEnd="10dp"
+                android:clipChildren="false"
+                android:clipToPadding="false">
+
+                <!-- Background Track -->
+                <com.google.android.material.progressindicator.CircularProgressIndicator
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:progress="100"
+                    app:indicatorColor="@color/md_theme_surfaceVariant"
+                    app:indicatorSize="88dp"
+                    app:trackColor="@android:color/transparent"
+                    app:trackThickness="8dp" />
+
+                <!-- Active Animated Battery Level Arc -->
+                <com.google.android.material.progressindicator.CircularProgressIndicator
+                    android:id="@+id/circularBatteryProgress"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    app:indicatorColor="@color/battery_info_level_charging"
+                    app:indicatorSize="88dp"
+                    app:trackColor="@android:color/transparent"
+                    app:trackCornerRadius="4dp"
+                    app:trackThickness="8dp"
+                    tools:progress="65" />
+
+                <!-- Center: Icon & Percentage -->
+                <LinearLayout
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center"
+                    android:gravity="center"
+                    android:orientation="vertical">
+
+                    <androidx.appcompat.widget.AppCompatImageView
+                        android:id="@+id/imgBatteryStatusIcon"
+                        android:layout_width="20dp"
+                        android:layout_height="20dp"
+                        android:layout_marginBottom="1dp"
+                        app:srcCompat="@drawable/ic_charge_navigation_full_24dp"
+                        app:tint="@color/battery_info_level_charging" />
+
+                    <com.google.android.material.textview.MaterialTextView
+                        android:id="@+id/tvHeroBatteryPercent"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:textColor="@color/card_title_text"
+                        android:textSize="18sp"
+                        android:textStyle="bold"
+                        tools:text="65%" />
+                </LinearLayout>
+            </FrameLayout>
+
+            <!-- Right Details: Status Pill + Timing Info -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="center_vertical"
+                android:orientation="vertical">
+
+                <!-- Status Pill Badge -->
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/tvHeroBatteryStatus"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="4dp"
+                    android:background="@drawable/idle_status_badge_bg"
+                    android:paddingHorizontal="12dp"
+                    android:paddingVertical="3dp"
+                    android:gravity="center"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/md_theme_primary"
+                    tools:text="Mengisi Daya Cepat" />
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/tvChargingTime"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="1dp"
+                    android:textColor="@color/dark_white"
+                    android:textSize="11sp"
+                    android:visibility="gone"
+                    tools:text="Waktu Pengisian: 45m" />
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/tvChargingTimeRemaining"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="1dp"
+                    android:textColor="@color/dark_white"
+                    android:textSize="11sp"
+                    android:visibility="gone"
+                    tools:text="Sisa Waktu Pengisian: 30m" />
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/tvRemainingBatteryTime"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="1dp"
+                    android:textColor="@color/dark_white"
+                    android:textSize="11sp"
+                    android:visibility="gone"
+                    tools:text="Sisa Waktu Baterai: 8j" />
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/tvScreenTime"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginBottom="1dp"
+                    android:textColor="@color/dark_white"
+                    android:textSize="11sp"
+                    tools:text="Waktu Layar: 2j 14m" />
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/tvLastChargeTime"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="@color/dark_white"
+                    android:textSize="11sp"
+                    tools:text="Pengisian Terakhir: 1j yang lalu" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Divider -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="6dp"
+            android:layout_marginBottom="6dp"
+            android:background="@color/canvas_bg" />
+
+        <!-- Quick 3-Metric Unified Bar (Temp | Voltage | Time) - Pill Chips -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <!-- Metric 1: Temp -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginEnd="3dp"
+                android:background="@drawable/bg_quick_metric_chip"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:paddingVertical="4dp"
+                android:paddingHorizontal="4dp">
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/imgHeroTemp"
+                    android:layout_width="14dp"
+                    android:layout_height="14dp"
+                    android:layout_marginEnd="4dp"
+                    app:srcCompat="@drawable/ic_temperature_24"
+                    tools:tint="@color/battery_info_temp_warm" />
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/tvHeroTemp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    tools:text="37.6°C" />
+            </LinearLayout>
+
+            <!-- Metric 2: Voltage -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginHorizontal="3dp"
+                android:background="@drawable/bg_quick_metric_chip"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:paddingVertical="4dp"
+                android:paddingHorizontal="4dp">
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/imgHeroVoltage"
+                    android:layout_width="14dp"
+                    android:layout_height="14dp"
+                    android:layout_marginEnd="4dp"
+                    app:srcCompat="@drawable/ic_voltage_24"
+                    tools:tint="@color/battery_info_temp_normal" />
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/tvHeroVoltage"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    tools:text="3.77 V" />
+            </LinearLayout>
+
+            <!-- Metric 3: Time -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:layout_marginStart="3dp"
+                android:background="@drawable/bg_quick_metric_chip"
+                android:gravity="center"
+                android:orientation="horizontal"
+                android:paddingVertical="4dp"
+                android:paddingHorizontal="4dp">
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/imgHeroTime"
+                    android:layout_width="14dp"
+                    android:layout_height="14dp"
+                    android:layout_marginEnd="4dp"
+                    app:srcCompat="@drawable/ic_service_time_24dp"
+                    tools:tint="@color/battery_info_temp_normal" />
+
+                <com.google.android.material.textview.MaterialTextView
+                    android:id="@+id/tvHeroTime"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textSize="12sp"
+                    android:textStyle="bold"
+                    tools:text="6j 14m" />
+            </LinearLayout>
+        </LinearLayout>
+
+    </LinearLayout>
+</com.google.android.material.card.MaterialCardView>

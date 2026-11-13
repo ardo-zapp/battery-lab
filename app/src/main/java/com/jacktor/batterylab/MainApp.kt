@@ -7,6 +7,12 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.os.Build
+import android.os.Bundle
+import android.view.View
+import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentActivity
+import androidx.fragment.app.FragmentManager
+import com.jacktor.batterylab.helpers.TextAppearanceHelper
 import com.jacktor.batterylab.helpers.ThemeHelper
 import com.jacktor.batterylab.interfaces.NavigationInterface.Companion.mainActivityRef
 import com.jacktor.batterylab.utilities.Constants
@@ -24,6 +30,42 @@ class MainApp : Application() {
 
         initializeTheme()
         isInstalledGooglePlay = checkIfGooglePlayInstalled()
+
+        registerActivityLifecycleCallbacks(object : ActivityLifecycleCallbacks {
+            override fun onActivityCreated(activity: Activity, savedInstanceState: Bundle?) {
+                if (activity is FragmentActivity) {
+                    activity.supportFragmentManager.registerFragmentLifecycleCallbacks(
+                        object : FragmentManager.FragmentLifecycleCallbacks() {
+                            override fun onFragmentViewCreated(
+                                fm: FragmentManager,
+                                f: Fragment,
+                                v: View,
+                                savedInstanceState: Bundle?
+                            ) {
+                                TextAppearanceHelper.applyToView(v)
+                            }
+                        },
+                        true
+                    )
+                }
+            }
+
+            override fun onActivityStarted(activity: Activity) {
+                TextAppearanceHelper.applyToActivity(activity)
+            }
+
+            override fun onActivityResumed(activity: Activity) {
+                TextAppearanceHelper.applyToActivity(activity)
+            }
+
+            override fun onActivityPaused(activity: Activity) {}
+
+            override fun onActivityStopped(activity: Activity) {}
+
+            override fun onActivitySaveInstanceState(activity: Activity, outState: Bundle) {}
+
+            override fun onActivityDestroyed(activity: Activity) {}
+        })
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {

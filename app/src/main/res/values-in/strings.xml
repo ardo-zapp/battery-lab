@@ -164,6 +164,9 @@
     <string name="export_notification_sounds">Ekspor Suara Notifikasi</string>
     <string name="successful_export_of_notification_sounds">Suara Notifikasi berhasil diekspor!</string>
     <string name="error_exporting_notification_sounds">Gagal Mengekspor Suara Notifikasi!\n%1$s</string>
+    <string name="section_charging_health">Pengisian &amp; Kesehatan</string>
+    <string name="section_hardware_power">Perangkat Keras &amp; Daya</string>
+    <string name="number_of_charges_title">Statistik Pengisian &amp; Siklus</string>
     <string name="number_of_charges">Jumlah Pengisian: %1$d</string>
     <string name="number_of_cycles">Jumlah Siklus: %1$s</string>
     <string name="number_of_cycles_android">Jumlah Siklus (Android): %1$d</string>
@@ -398,4 +401,40 @@
     <string name="welcome_feature_three_title">Ampermeter</string>
     <string name="welcome_advisory">Battery Lab tidak mengumpulkan analitik maupun menjual data Anda kepada pihak ketiga. Data Anda disimpan dengan aman dan privat di perangkat Anda.</string>
     <string name="welcome_btn_continue">Mulai</string>
+
+    <!-- Idle Drain (Pemakaian Diam) -->
+    <string name="idle_drain_summary">Analisis konsumsi baterai &amp; deep sleep saat layar mati</string>
+    <string name="idle_drain_since_unplugged">Sejak Pengisi Daya Dicabut</string>
+    <string name="idle_drain_last_session">Sesi Layar Mati Terakhir</string>
+    <string name="idle_drain_rate">Kecepatan Pengurangan</string>
+    <string name="idle_drain_rate_unit">%/jam</string>
+    <string name="idle_drain_deep_sleep">Deep Sleep</string>
+    <string name="idle_drain_standby_duration">Durasi Siaga</string>
+    <string name="idle_drain_awake_time">Terjaga (Wakelock)</string>
+    <string name="idle_drain_battery_dropped">Penurunan Daya</string>
+    <string name="idle_drain_diagnostic_title">Diagnostik Siaga</string>
+    <string name="idle_drain_recommendation_title">Rekomendasi Pintar</string>
+    <string name="idle_drain_charging_notice">Perangkat sedang diisi daya. Pemakaian diam hanya dicatat saat ponsel tidak tersambung ke pengisi daya.</string>
+    <string name="idle_drain_reset">Reset Data</string>
+    <string name="idle_drain_refresh">Perbarui</string>
+    <string name="idle_drain_status_excellent">Optimal</string>
+    <string name="idle_drain_status_normal">Normal</string>
+    <string name="idle_drain_status_high">Boros</string>
+    <string name="idle_drain_status_no_data">Menunggu Layar Mati</string>
+    <string name="idle_drain_reset_confirm">Reset statistik Pemakaian Diam?</string>
+
+    <!-- Idle Drain Diagnostics & Time Formats -->
+    <string name="idle_drain_diag_no_data">Belum ada data pemakaian diam yang terekam. Kunci layar ponsel saat tidak mengisi daya untuk mulai merekam statistik siaga.</string>
+    <string name="idle_drain_rec_no_data">Battery Lab akan secara otomatis mengukur pengurasan daya saat layar mati dan menghitung efisiensi deep sleep.</string>
+    <string name="idle_drain_diag_excellent">Sangat Efisien (%1$s%%/jam). Perangkat tidur pulas (Deep Sleep: %2$s%%) dengan sangat baik.</string>
+    <string name="idle_drain_rec_excellent">Daya tahan siaga optimal. Tidak terdeteksi adanya aplikasi latar belakang yang boros baterai.</string>
+    <string name="idle_drain_diag_normal">Normal (%1$s%%/jam). Penggunaan daya siaga dalam batas wajar (%2$s%% Deep Sleep).</string>
+    <string name="idle_drain_rec_normal">Kinerja siaga baik untuk penggunaan sehari-hari dengan sinkronisasi notifikasi aktif.</string>
+    <string name="idle_drain_diag_high">Boros (%1$s%%/jam)! Terjadi penurunan baterai tinggi saat layar mati. Rasio Deep Sleep: %2$s%%.</string>
+    <string name="idle_drain_rec_high">Waktu terjaga (%1$s) mengindikasikan adanya aplikasi yang menahan wakelock di latar belakang atau Always-On-Display (AOD). Periksa aplikasi yang aktif di latar belakang.</string>
+    <string name="idle_drain_finished_at">Selesai: %1$s</string>
+    <string name="idle_drain_rate_per_hour_format">%1$d%% (%2$s%%/jam)</string>
+    <string name="duration_hours_minutes">%1$dj %2$dm</string>
+    <string name="duration_minutes_seconds">%1$dm %2$dd</string>
+    <string name="duration_seconds">%1$dd</string>
 </resources>

@@ -1,71 +1,133 @@
 <?xml version="1.0" encoding="utf-8"?>
 <com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="8dp"
-    app:cardElevation="@dimen/card_elevation">
+    android:layout_marginHorizontal="14dp"
+    android:layout_marginVertical="4dp"
+    app:cardBackgroundColor="@color/card_bg"
+    app:cardCornerRadius="16dp"
+    app:cardElevation="0dp"
+    app:strokeWidth="0dp">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:padding="12dp">
+        android:padding="16dp">
 
-        <androidx.appcompat.widget.AppCompatImageView
-            android:id="@+id/imgIcon"
-            android:layout_width="28dp"
-            android:layout_height="28dp"
-            android:layout_marginBottom="4dp"
-            app:tint="@color/md_theme_primary" />
-
-        <androidx.appcompat.widget.AppCompatTextView
-            android:id="@+id/tvTitle"
+        <!-- Header Row with Squircle Icon Badge and Title -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textAppearance="@style/TextAppearance.Material3.BodySmall"
-            android:textColor="@color/md_theme_primary" />
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
 
-        <androidx.appcompat.widget.AppCompatTextView
-            android:id="@+id/tvPrimary"
+            <FrameLayout
+                android:id="@+id/containerIcon"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginEnd="12dp"
+                android:background="@drawable/idle_status_badge_bg">
+
+                <androidx.appcompat.widget.AppCompatImageView
+                    android:id="@+id/imgIcon"
+                    android:layout_width="22dp"
+                    android:layout_height="22dp"
+                    android:layout_gravity="center"
+                    tools:srcCompat="@drawable/ic_voltage_24" />
+            </FrameLayout>
+
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/tvTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textColor="?attr/colorOnSurface"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    tools:text="Pemantau Daya" />
+
+                <androidx.appcompat.widget.AppCompatTextView
+                    android:id="@+id/tvPrimary"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:textColor="@color/dark_white"
+                    android:textSize="12sp"
+                    tools:text="Arus: 1777 mA" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Secondary Details Container (Flat layout - No nested card box) -->
+        <LinearLayout
+            android:id="@+id/layoutSecondaryContainer"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginBottom="5dp"
-            android:textAppearance="@style/TextAppearance.Material3.TitleMedium" />
+            android:layout_marginTop="8dp"
+            android:orientation="vertical">
 
-        <androidx.appcompat.widget.AppCompatTextView
-            android:id="@+id/tvSecondary1"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textAppearance="@style/TextAppearance.Material3.BodySmall"
-            android:visibility="gone" />
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginBottom="6dp"
+                android:background="@color/canvas_bg" />
 
-        <androidx.appcompat.widget.AppCompatTextView
-            android:id="@+id/tvSecondary2"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textAppearance="@style/TextAppearance.Material3.BodySmall"
-            android:visibility="gone" />
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/tvSecondary1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="3dp"
+                android:textColor="@color/dark_white"
+                android:textSize="12sp"
+                android:visibility="gone"
+                tools:text="Tegangan: 3728 mV" />
 
-        <androidx.appcompat.widget.AppCompatTextView
-            android:id="@+id/tvSecondary3"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textAppearance="@style/TextAppearance.Material3.BodySmall"
-            android:visibility="gone" />
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/tvSecondary2"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="3dp"
+                android:textColor="@color/dark_white"
+                android:textSize="12sp"
+                android:visibility="gone"
+                tools:text="Arus Maks: 3089 mA" />
 
-        <androidx.appcompat.widget.AppCompatTextView
-            android:id="@+id/tvSecondary4"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textAppearance="@style/TextAppearance.Material3.BodySmall"
-            android:visibility="gone" />
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/tvSecondary3"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="3dp"
+                android:textColor="@color/dark_white"
+                android:textSize="12sp"
+                android:visibility="gone"
+                tools:text="Arus Min: 1200 mA" />
 
-        <androidx.appcompat.widget.AppCompatTextView
-            android:id="@+id/tvSecondary5"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textAppearance="@style/TextAppearance.Material3.BodySmall"
-            android:visibility="gone" />
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/tvSecondary4"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="3dp"
+                android:textColor="@color/dark_white"
+                android:textSize="12sp"
+                android:visibility="gone"
+                tools:text="Rata-rata: 2008 mA" />
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/tvSecondary5"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="3dp"
+                android:textColor="@color/dark_white"
+                android:textSize="12sp"
+                android:visibility="gone"
+                tools:text="Baterai: Li-poly" />
+        </LinearLayout>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

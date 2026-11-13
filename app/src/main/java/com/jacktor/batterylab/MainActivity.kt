@@ -7,6 +7,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.content.SharedPreferences
 import android.content.pm.PackageManager
+import android.content.res.Configuration
 import android.os.BatteryManager
 import android.os.Build
 import android.os.Bundle
@@ -422,6 +423,13 @@ class MainActivity : AppCompatActivity(),
 
     private fun handleTempFragment() {
         tempFragment = null
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        tempFragment = fragment
+        isRecreate = true
+        recreate()
     }
 
     private fun resetRecreateFlag() {

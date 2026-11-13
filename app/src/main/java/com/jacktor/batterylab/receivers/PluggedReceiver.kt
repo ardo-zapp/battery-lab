@@ -8,16 +8,21 @@ import android.os.BatteryManager
 import android.os.Handler
 import android.os.Looper
 import androidx.core.content.ContextCompat
+import androidx.core.content.edit
+import androidx.preference.PreferenceManager
 import com.jacktor.batterylab.MainApp.Companion.batteryIntent
 import com.jacktor.batterylab.MainApp.Companion.isPowerConnected
 import com.jacktor.batterylab.R
 import com.jacktor.batterylab.helpers.BatteryLevelHelper
+import com.jacktor.batterylab.helpers.IdleDrainHelper
 import com.jacktor.batterylab.interfaces.BatteryInfoInterface
 import com.jacktor.batterylab.interfaces.BatteryInfoInterface.Companion.tempBatteryLevelWith
 import com.jacktor.batterylab.interfaces.BatteryInfoInterface.Companion.tempAvailableCapacity
 import com.jacktor.batterylab.interfaces.NavigationInterface.Companion.mainActivityRef
 import com.jacktor.batterylab.interfaces.NotificationInterface
 import com.jacktor.batterylab.services.BatteryLabService
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.BATTERY_LEVEL_WITH
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGING_START_LEVEL
 
 class PluggedReceiver : BroadcastReceiver(), BatteryInfoInterface {
 
@@ -33,15 +38,24 @@ class PluggedReceiver : BroadcastReceiver(), BatteryInfoInterface {
 
         isPowerConnected = true
         service.isPluggedOrUnplugged = true
+        service.pauseScreenTime()
+        IdleDrainHelper.onPowerConnected(context)
 
         batteryIntent = context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
         val status = batteryIntent?.getIntExtra(
             BatteryManager.EXTRA_STATUS, BatteryManager.BATTERY_STATUS_UNKNOWN
         ) ?: BatteryManager.BATTERY_STATUS_UNKNOWN
 
-        service.batteryLevelWith = service.getBatteryLevel(context) ?: 0
-        tempBatteryLevelWith = service.batteryLevelWith
+        val pref = PreferenceManager.getDefaultSharedPreferences(context)
+        val level = (service.getBatteryLevel(context) ?: 0).coerceIn(0, 100)
+        service.batteryLevelWith = level
+        tempBatteryLevelWith = level
         tempAvailableCapacity = service.getAvailableCapacity(context)
+
+        pref.edit {
+            putInt(CHARGING_START_LEVEL, level)
+            putInt(BATTERY_LEVEL_WITH, level)
+        }
 
         BatteryInfoInterface.resetChargeStats()
         BatteryInfoInterface.resetDischargeStats()

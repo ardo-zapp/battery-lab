@@ -6,6 +6,7 @@ import android.content.IntentFilter
 import android.content.SharedPreferences
 import android.os.BatteryManager
 import android.os.Bundle
+import android.os.SystemClock
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,7 +14,7 @@ import androidx.appcompat.widget.AppCompatTextView
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import androidx.fragment.app.Fragment
-import androidx.recyclerview.widget.GridLayoutManager
+import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.SimpleItemAnimator
 import com.jacktor.batterylab.MainActivity
 import com.jacktor.batterylab.MainApp
@@ -120,25 +121,10 @@ class BatteryInfoFragment : Fragment(R.layout.battery_info_fragment), SettingsIn
                 )
             }
         )
-        val glm = GridLayoutManager(requireContext(), 2)
-        glm.spanSizeLookup = object : GridLayoutManager.SpanSizeLookup() {
-            override fun getSpanSize(position: Int): Int {
-                return when (adapter.getItemViewType(position)) {
-                    0, 1 -> 2
-                    else -> 1
-                }
-            }
-        }
-        binding.recyclerView.layoutManager = glm
+        binding.recyclerView.layoutManager = LinearLayoutManager(requireContext())
         binding.recyclerView.adapter = adapter
-
-        (binding.recyclerView.itemAnimator as? SimpleItemAnimator)?.apply {
-            supportsChangeAnimations = false
-        }
-        binding.recyclerView.itemAnimator?.apply {
-            changeDuration = 0
-            moveDuration = 0
-        }
+        binding.recyclerView.overScrollMode = View.OVER_SCROLL_NEVER
+        binding.recyclerView.itemAnimator = null
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -148,6 +134,7 @@ class BatteryInfoFragment : Fragment(R.layout.battery_info_fragment), SettingsIn
 
     override fun onResume() {
         super.onResume()
+        TextAppearanceHelper.applyToView(binding.root)
         batteryIntent =
             requireContext().registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
         isJob = true
@@ -173,6 +160,10 @@ class BatteryInfoFragment : Fragment(R.layout.battery_info_fragment), SettingsIn
     private fun startJob() {
         if (job == null) job = CoroutineScope(Dispatchers.Default).launch {
             while (isJob) {
+                runCatching {
+                    context?.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+                }.getOrNull()?.let { batteryIntent = it }
+
                 val status = batteryIntent?.getIntExtra(
                     BatteryManager.EXTRA_STATUS,
                     BatteryManager.BATTERY_STATUS_UNKNOWN
@@ -183,17 +174,32 @@ class BatteryInfoFragment : Fragment(R.layout.battery_info_fragment), SettingsIn
 
                 withContext(Dispatchers.Main) {
                     updateToolbar(status)
-                    val rows = buildRows(status, sourceOfPower)
-                    if (rows != lastRows) {
-                        adapter.submit(rows)
-                        lastRows = rows
+                    val allRows = buildRows(status, sourceOfPower)
+                    val headerLand = binding.heroHeaderLand
+                    val rowsToSubmit = if (headerLand != null) {
+                        val header = allRows.firstOrNull { it is BatteryInfoRow.Header } as? BatteryInfoRow.Header
+                        if (header != null) {
+                            adapter.bindHeader(headerLand, header)
+                        }
+                        allRows.filter { it !is BatteryInfoRow.Header }
+                    } else {
+                        allRows
+                    }
+
+                    if (rowsToSubmit != lastRows) {
+                        val isFirst = lastRows.isEmpty()
+                        adapter.submit(rowsToSubmit)
+                        lastRows = rowsToSubmit
+                        if (isFirst) {
+                            binding.recyclerView.scheduleLayoutAnimation()
+                        }
                     }
                 }
 
-                when (status) {
-                    BatteryManager.BATTERY_STATUS_CHARGING -> delay(0.975.seconds)
-                    else -> delay(1.5.seconds)
-                }
+                val now = SystemClock.elapsedRealtime()
+                val nextSecond = (now / 1000L + 1L) * 1000L
+                val delayTime = ((nextSecond - now) + 20L).coerceIn(100L, 1050L)
+                delay(delayTime)
             }
         }
     }
@@ -217,23 +223,31 @@ class BatteryInfoFragment : Fragment(R.layout.battery_info_fragment), SettingsIn
         val rows = mutableListOf<BatteryInfoRow>()
 
         // ===== HEADER: CHARGING TIME, BATTERY TIME, SCREEN TIME, LAST CHARGE =====
+        val isPlugged = sourceOfPower > 0
+        val isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING
+        val isFull = status == BatteryManager.BATTERY_STATUS_FULL || (isPlugged && (getBatteryLevel(requireContext()) ?: 0) >= 100)
+
         val seconds = BatteryLabService.instance?.seconds ?: 0
         val chargingTime = if (seconds > 1) getChargingTime(requireContext(), seconds) else null
+        val chargingTimeRemainingStr =
+            if (isPlugged && (isCharging || isFull)) getChargingTimeRemaining(requireContext()) else null
         val chargingTimeRemaining =
-            if (sourceOfPower == BatteryManager.BATTERY_PLUGGED_AC && status == BatteryManager.BATTERY_STATUS_CHARGING)
+            if (!chargingTimeRemainingStr.isNullOrBlank() && !isFull)
                 getString(
                     R.string.charging_time_remaining,
-                    getChargingTimeRemaining(requireContext())
+                    chargingTimeRemainingStr
                 )
             else null
+
+        val remainingTimeStr =
+            if (!isPlugged && !isCharging && !isFull && (getBatteryLevel(requireContext()) ?: 0) > 0)
+                getRemainingBatteryTime(requireContext())
+            else null
         val remainingBatteryTime =
-            if (sourceOfPower != BatteryManager.BATTERY_PLUGGED_AC && getAvailableCapacity(
-                    requireContext()
-                ) > 0.0
-            )
+            if (!remainingTimeStr.isNullOrBlank())
                 getString(
                     R.string.remaining_battery_time,
-                    getRemainingBatteryTime(requireContext())
+                    remainingTimeStr
                 )
             else null
 
@@ -248,57 +262,56 @@ class BatteryInfoFragment : Fragment(R.layout.battery_info_fragment), SettingsIn
             "${pref.getInt(Keys.BATTERY_LEVEL_WITH, 0)}%",
             "${pref.getInt(Keys.BATTERY_LEVEL_TO, 0)}%"
         )
+        val level = getBatteryLevel(requireContext()) ?: 0
+        val statusText = getStatus(requireContext(), status)
+        val rawVoltage = getVoltage(requireContext())
+        val voltageText = if (rawVoltage >= 1000) {
+            "${DecimalFormat("#.##").format(rawVoltage / 1000.0)} V"
+        } else {
+            "${DecimalFormat("#.#").format(rawVoltage)} mV"
+        }
+        val voltageTint = getVoltageTintRes(rawVoltage, isCharging)
+
+        val tempCDouble = getTemperatureInCelsius(requireContext())
+        val tempText = "${DecimalFormat("#.#").format(tempCDouble)}°C"
+        val tempTint = getTemperatureTintRes(tempCDouble)
+
+        val heroTime = when {
+            isFull -> getString(R.string.fully_charged)
+            isCharging && !chargingTimeRemainingStr.isNullOrBlank() -> chargingTimeRemainingStr
+            !remainingTimeStr.isNullOrBlank() -> remainingTimeStr
+            else -> TimeHelper.getTime(screenTimeValue)
+        }
+        val timeTint = getTimeTintRes(level, isCharging, isFull)
+
         rows += BatteryInfoRow.Header(
-            chargingTime,
-            chargingTimeRemaining,
-            remainingBatteryTime,
-            screenTime,
-            lastChargeTime
+            level = level,
+            isCharging = isCharging,
+            statusText = statusText,
+            voltageText = voltageText,
+            temperatureText = tempText,
+            timeHeroText = heroTime,
+            chargingTime = chargingTime,
+            chargingTimeRemaining = chargingTimeRemaining,
+            remainingBatteryTime = remainingBatteryTime,
+            screenTime = screenTime,
+            lastChargeTime = lastChargeTime,
+            tempTint = tempTint,
+            voltageTint = voltageTint,
+            timeTint = timeTint
         )
+
+        // ===== SECTION: CHARGING & HEALTH =====
+        rows += BatteryInfoRow.Section(getString(R.string.section_charging_health))
 
         // ===== BATTERY CYCLE COUNTS =====
+        val androidCycles = getNumberOfCyclesAndroid()
         rows += BatteryInfoRow.Counts(
-            charges = getString(
-                R.string.number_of_charges,
-                pref.getLong(Keys.NUMBER_OF_CHARGES, 0)
-            ),
-            fullCharges = getString(
-                R.string.number_of_full_charges,
-                pref.getLong(Keys.NUMBER_OF_FULL_CHARGES, 0)
-            ),
-            cycles = getString(
-                R.string.number_of_cycles,
-                DecimalFormat("#.##").format(pref.getFloat(Keys.NUMBER_OF_CYCLES, 0f))
-            ),
-            cyclesAndroid = getString(
-                R.string.number_of_cycles_android,
-                getNumberOfCyclesAndroid()
-            ),
-            showCyclesAndroid = getNumberOfCyclesAndroid() != null
-        )
-
-        // ===== BATTERY LEVEL =====
-        val isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING
-        val level = getBatteryLevel(requireContext())
-        val lvlIcon = BatteryLevelHelper.batteryLevelIcon(level, isCharging)
-        val levelColor = when {
-            isCharging -> R.color.battery_info_level_charging
-            level in 0..20 -> R.color.battery_info_level_low
-            else -> R.color.battery_info_level_normal
-        }
-        rows += BatteryInfoRow.Stat(
-            icon = lvlIcon,
-            iconTint = levelColor,
-            title = getString(R.string.battery_level_title),
-            primary = getString(R.string.battery_level, "$level%")
-        )
-
-        // ===== BATTERY STATUS =====
-        rows += BatteryInfoRow.Stat(
-            icon = R.drawable.ic_battery_status_24,
-            iconTint = R.color.battery_info_power_source_connected,
-            title = getString(R.string.battery_status_title),
-            primary = getStatus(requireContext(), status)
+            charges = pref.getLong(Keys.NUMBER_OF_CHARGES, 0).toString(),
+            fullCharges = pref.getLong(Keys.NUMBER_OF_FULL_CHARGES, 0).toString(),
+            cycles = DecimalFormat("#.##").format(pref.getFloat(Keys.NUMBER_OF_CYCLES, 0f)),
+            cyclesAndroid = androidCycles?.toString(),
+            showCyclesAndroid = androidCycles != null
         )
 
         // ===== POWER SOURCE =====
@@ -405,7 +418,7 @@ class BatteryInfoFragment : Fragment(R.layout.battery_info_fragment), SettingsIn
         // ===== HEALTH =====
         rows += BatteryInfoRow.Stat(
             icon = R.drawable.ic_health_24,
-            iconTint = R.color.battery_info_health,
+            iconTint = getBatteryHealthTintRes(requireContext()),
             title = getString(R.string.health_title),
             primary = getString(
                 R.string.battery_health_android,
@@ -418,6 +431,9 @@ class BatteryInfoFragment : Fragment(R.layout.battery_info_fragment), SettingsIn
                 )
             )
         )
+
+        // ===== SECTION: HARDWARE & POWER =====
+        rows += BatteryInfoRow.Section(getString(R.string.section_hardware_power))
 
         // ===== CAPACITY =====
         val designCapacityMah =
@@ -460,19 +476,11 @@ class BatteryInfoFragment : Fragment(R.layout.battery_info_fragment), SettingsIn
         )
 
         // ===== TEMPERATURE =====
-        val tempC = DecimalFormat("#.#").format(getTemperatureInCelsius(requireContext()))
-        val tempF = DecimalFormat("#.#").format(getTemperatureInFahrenheit(requireContext()))
-        val t = getTemperature(requireContext()) ?: 0
-        val tempColor = when {
-            t >= 500 -> R.color.battery_info_temp_very_hot
-            t >= 400 -> R.color.battery_info_temp_hot
-            t >= 300 -> R.color.battery_info_temp_warm
-            t >= 200 -> R.color.battery_info_temp_normal
-            else -> R.color.battery_info_temp_cold
-        }
+        val tempC = DecimalFormat("#.#").format(tempCDouble)
+        val tempF = DecimalFormat("#.#").format(getTemperatureInFahrenheit(tempCDouble))
         rows += BatteryInfoRow.Stat(
             icon = R.drawable.ic_temperature_24,
-            iconTint = tempColor,
+            iconTint = tempTint,
             title = getString(R.string.temperature_title),
             primary = "$tempC°C / $tempF°F",
             secondary = listOf(
@@ -649,7 +657,7 @@ class BatteryInfoFragment : Fragment(R.layout.battery_info_fragment), SettingsIn
         }
         rows += BatteryInfoRow.Stat(
             icon = R.drawable.ic_voltage_24,
-            iconTint = R.color.battery_info_power_monitor,
+            iconTint = voltageTint,
             title = getString(R.string.power_monitor_title),
             primary = voltagePrimary,
             secondary = currentStats

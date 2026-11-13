@@ -129,3 +129,18 @@ dependencies {
     implementation("com.jaredrummler:colorpicker:1.1.0")
     implementation("com.github.XomaDev:MIUI-autostart:v1.3")
 }
+
+val premiumModule = rootProject.findProject(":premium")
+
+if (premiumModule != null) {
+    val syncPremiumAar = tasks.register<Copy>("syncPremiumAar") {
+        dependsOn(":premium:bundleDebugAar")
+        from(premiumModule.layout.buildDirectory.file("outputs/aar/premium-debug.aar"))
+        into(layout.projectDirectory.dir("libs"))
+        rename { "premium.aar" }
+    }
+
+    tasks.named("preBuild") {
+        dependsOn(syncPremiumAar)
+    }
+}

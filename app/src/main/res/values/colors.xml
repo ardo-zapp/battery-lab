@@ -1,38 +1,52 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="md_theme_primary">#015AC1</color>
+    <color name="md_theme_primary">#2563EB</color>
     <color name="md_theme_onPrimary">#FFFFFF</color>
-    <color name="md_theme_primaryContainer">#D8E2FF</color>
-    <color name="md_theme_onPrimaryContainer">#001A41</color>
-    <color name="md_theme_secondary">#575E71</color>
+    <color name="md_theme_primaryContainer">#DBEAFE</color>
+    <color name="md_theme_onPrimaryContainer">#1E3A8A</color>
+    <color name="md_theme_secondary">#475569</color>
     <color name="md_theme_onSecondary">#FFFFFF</color>
-    <color name="md_theme_secondaryContainer">#DBE2F9</color>
-    <color name="md_theme_onSecondaryContainer">#141B2C</color>
-    <color name="md_theme_tertiary">#015AC1</color>
+    <color name="md_theme_secondaryContainer">#E2E8F0</color>
+    <color name="md_theme_onSecondaryContainer">#0F172A</color>
+    <color name="md_theme_tertiary">#2563EB</color>
     <color name="md_theme_onTertiary">#FFFFFF</color>
-    <color name="md_theme_tertiaryContainer">#D8E2FF</color>
-    <color name="md_theme_onTertiaryContainer">#001A41</color>
-    <color name="md_theme_error">#BA1A1A</color>
-    <color name="md_theme_errorContainer">#FFDAD6</color>
+    <color name="md_theme_tertiaryContainer">#DBEAFE</color>
+    <color name="md_theme_onTertiaryContainer">#1E3A8A</color>
+    <color name="md_theme_error">#DC2626</color>
+    <color name="md_theme_errorContainer">#FEE2E2</color>
     <color name="md_theme_onError">#FFFFFF</color>
-    <color name="md_theme_onErrorContainer">#410002</color>
-    <color name="md_theme_background">#FEFBFF</color>
-    <color name="md_theme_onBackground">#1B1B1F</color>
-    <color name="md_theme_surface">#FEFBFF</color>
-    <color name="md_theme_onSurface">#1B1B1F</color>
-    <color name="md_theme_surfaceVariant">#E1E2EC</color>
-    <color name="md_theme_onSurfaceVariant">#44474F</color>
-    <color name="md_theme_outline">#75777F</color>
-    <color name="md_theme_inverseOnSurface">#F2F0F4</color>
-    <color name="md_theme_inverseSurface">#303033</color>
-    <color name="md_theme_inversePrimary">#ADC6FF</color>
-    <color name="md_theme_surfaceContainer">#F0F4F9</color>
+    <color name="md_theme_onErrorContainer">#7F1D1D</color>
+    <color name="md_theme_background">#EAECF5</color>
+    <color name="md_theme_onBackground">@color/card_title_text</color>
+    <color name="md_theme_surface">#FFFFFF</color>
+    <color name="md_theme_onSurface">@color/card_title_text</color>
+    <color name="md_theme_surfaceVariant">#E2E8F0</color>
+    <color name="md_theme_onSurfaceVariant">@color/card_subtitle_text</color>
+    <color name="md_theme_outline">#74777F</color>
+    <color name="md_theme_inverseOnSurface">#F8FAFC</color>
+    <color name="md_theme_inverseSurface">#1E293B</color>
+    <color name="md_theme_inversePrimary">#93C5FD</color>
+    <color name="md_theme_surfaceContainer">#FFFFFF</color>
+
+    <!-- Modern Text & Surface Color Tokens (Light Mode) -->
+    <color name="card_bg">#FFFFFF</color>
+    <color name="canvas_bg">#EAECF5</color>
+    <color name="card_title_text">#1C1B1F</color>
+    <color name="card_subtitle_text">#525866</color>
+    <color name="section_title_text">#525866</color>
+    <color name="caption_text">#74777F</color>
+    <color name="hint_text">#8E919A</color>
+
+    <!-- Switch Custom Colors -->
+    <color name="switch_thumb_off">#74777F</color>
+    <color name="switch_track_off">#E2E4ED</color>
+    <color name="switch_border_off">#74777F</color>
 
     <color name="scrollbar_thumb_vertical">@color/blue</color>
-    <color name="text_dialog_list_item">@color/dark_white</color>
-    <color name="title_text">@color/dark_white</color>
-    <color name="subtitle_text">@color/dark_white</color>
-    <color name="menu_text">@color/dark_white</color>
+    <color name="text_dialog_list_item">@color/card_subtitle_text</color>
+    <color name="title_text">@color/card_title_text</color>
+    <color name="subtitle_text">@color/card_subtitle_text</color>
+    <color name="menu_text">@color/card_title_text</color>
 
     <color name="md_blue_600">#1e88e5</color>
 
@@ -43,8 +57,8 @@
     <color name="black">#000000</color>
 
     <color name="dark">#121212</color>
-    <color name="dark_white">#5F6368</color>
-    <color name="icons">@color/dark_white</color>
+    <color name="dark_white">@color/card_subtitle_text</color>
+    <color name="icons">@color/card_subtitle_text</color>
     <color name="icons_pref_category">@color/blue</color>
     <color name="overheat_overcool">@color/red</color>
     <color name="battery_charged">@color/green</color>

@@ -25,6 +25,8 @@
         android:id="@+id/navigation"
         android:layout_alignParentBottom="true"
         android:textAlignment="center"
+        android:background="@color/card_bg"
+        app:elevation="0dp"
         app:labelVisibilityMode="labeled"
         app:menu="@menu/navigation_menu"/>
 
