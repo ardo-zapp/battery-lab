@@ -66,6 +66,7 @@ interface BatteryInfoInterface {
         var runningTempSum = 0.0
 
         var lastMeasuredVoltageV = 0.0
+        var detectedCellMultiplier: Int? = null
         private const val EMA_ALPHA = 0.2
 
         var peakChargeWatt = 0.0
@@ -1098,24 +1099,68 @@ interface BatteryInfoInterface {
         return getTemperatureTintRes(getTemperatureInCelsius(context))
     }
 
-    fun getVoltageTintRes(voltageMv: Double, isCharging: Boolean = false): Int {
+    fun resolveBatteryCellMultiplier(voltageMv: Double): Int {
+        val currentCached = detectedCellMultiplier
+        if (currentCached != null) {
+            if (currentCached == 1 && voltageMv >= 6000.0) {
+                detectedCellMultiplier = 2
+                return 2
+            }
+            return currentCached
+        }
+        if (voltageMv > 0.0) {
+            val detected = if (voltageMv >= 6000.0) 2 else 1
+            detectedCellMultiplier = detected
+            return detected
+        }
+        return 1
+    }
+
+    fun getVoltageTintRes(
+        voltageMv: Double,
+        health: Int = BatteryManager.BATTERY_HEALTH_UNKNOWN
+    ): Int {
+        // Prioritas 1 — Status Kesehatan BMS (BatteryManager.EXTRA_HEALTH)
+        when (health) {
+            BatteryManager.BATTERY_HEALTH_OVER_VOLTAGE,
+            BatteryManager.BATTERY_HEALTH_DEAD,
+            BatteryManager.BATTERY_HEALTH_UNSPECIFIED_FAILURE -> {
+                return R.color.battery_info_voltage_danger
+            }
+            BatteryManager.BATTERY_HEALTH_OVERHEAT -> {
+                return R.color.battery_info_voltage_warning
+            }
+        }
+
+        if (voltageMv <= 0.0) {
+            return R.color.battery_info_voltage_normal
+        }
+
+        // Prioritas 2 — Normalisasi Tegangan Per Sel (Single-Cell vs Dual-Cell)
+        val multiplier = resolveBatteryCellMultiplier(voltageMv)
+        val cellVoltageMv = (voltageMv / multiplier).toInt()
+
         return when {
-            // Extreme over-voltage condition (safety limit > 4.65V)
-            voltageMv >= 4650.0 -> R.color.battery_info_temp_very_hot
-            // Actively charging: fast charging voltages up to 4.55V are completely normal
-            isCharging -> R.color.battery_info_level_charging
-            // Normal discharging plateau
-            voltageMv >= 3700.0 -> R.color.battery_info_level_normal
-            // Low discharging voltage warning
-            voltageMv >= 3450.0 -> R.color.battery_info_temp_warm
-            // Critically low discharging voltage
-            voltageMv > 0.0 -> R.color.battery_info_level_low
-            else -> R.color.battery_info_level_normal
+            // MERAH (Danger): Drop kritis (< 3400 mV) atau Over-voltage (> 4550 mV)
+            cellVoltageMv < 3400 || cellVoltageMv > 4550 -> R.color.battery_info_voltage_danger
+            // KUNING (Warning): Tegangan rendah (3400..3599 mV) atau tinggi mendekati batas (4481..4550 mV)
+            cellVoltageMv in 3400..3599 || cellVoltageMv in 4481..4550 -> R.color.battery_info_voltage_warning
+            // HIJAU (Normal): 3600..4480 mV (toleransi aman termasuk saat fast charging)
+            else -> R.color.battery_info_voltage_normal
         }
     }
 
-    fun getVoltageTintRes(context: Context, isCharging: Boolean = false): Int {
-        return getVoltageTintRes(getVoltage(context), isCharging)
+    fun getVoltageTintRes(context: Context): Int {
+        val bi = batteryIntent ?: try {
+            context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+        } catch (_: Throwable) {
+            null
+        }
+        val health = bi?.getIntExtra(
+            BatteryManager.EXTRA_HEALTH,
+            BatteryManager.BATTERY_HEALTH_UNKNOWN
+        ) ?: BatteryManager.BATTERY_HEALTH_UNKNOWN
+        return getVoltageTintRes(getVoltage(context), health)
     }
 
     fun getBatteryHealthTintRes(context: Context): Int {

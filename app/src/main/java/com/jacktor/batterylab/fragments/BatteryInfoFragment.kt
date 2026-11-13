@@ -265,12 +265,16 @@ class BatteryInfoFragment : Fragment(R.layout.battery_info_fragment), SettingsIn
         val level = getBatteryLevel(requireContext()) ?: 0
         val statusText = getStatus(requireContext(), status)
         val rawVoltage = getVoltage(requireContext())
+        val batteryHealth = batteryIntent?.getIntExtra(
+            BatteryManager.EXTRA_HEALTH,
+            BatteryManager.BATTERY_HEALTH_UNKNOWN
+        ) ?: BatteryManager.BATTERY_HEALTH_UNKNOWN
         val voltageText = if (rawVoltage >= 1000) {
             "${DecimalFormat("#.##").format(rawVoltage / 1000.0)} V"
         } else {
             "${DecimalFormat("#.#").format(rawVoltage)} mV"
         }
-        val voltageTint = getVoltageTintRes(rawVoltage, isCharging)
+        val voltageTint = getVoltageTintRes(rawVoltage, batteryHealth)
 
         val tempCDouble = getTemperatureInCelsius(requireContext())
         val tempText = "${DecimalFormat("#.#").format(tempCDouble)}°C"
@@ -522,9 +526,7 @@ class BatteryInfoFragment : Fragment(R.layout.battery_info_fragment), SettingsIn
 
         // ===== POWER MONITOR =====
         val voltagePrimary = getString(
-            R.string.voltage, DecimalFormat("#.#").format(
-                getVoltage(requireContext())
-            )
+            R.string.voltage, DecimalFormat("#.#").format(rawVoltage)
         )
 
         val chargingCurrentLimit = getChargingCurrentLimit(requireContext())?.toIntOrNull()

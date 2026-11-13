@@ -284,6 +284,8 @@ class BatteryLabService : Service(), NotificationInterface, BatteryInfoInterface
                 filter, ContextCompat.RECEIVER_NOT_EXPORTED
             )
 
+            IdleDrainHelper.syncWithSystemState(applicationContext)
+
             onCreateServiceNotification(applicationContext)
 
         }
@@ -302,6 +304,7 @@ class BatteryLabService : Service(), NotificationInterface, BatteryInfoInterface
         // Job screen time
         if (screenTimeJob == null) screenTimeJob = CoroutineScope(Dispatchers.Default).launch {
             isScreenTimeJob = !isScreenTimeJob
+            var lastInteractiveState: Boolean? = null
             while (isScreenTimeJob && !isStopService) {
                 val pm = powerManager ?: (getSystemService(POWER_SERVICE) as? PowerManager)
                 powerManager = pm
@@ -310,6 +313,10 @@ class BatteryLabService : Service(), NotificationInterface, BatteryInfoInterface
                     resumeScreenTime()
                 } else {
                     pauseScreenTime()
+                }
+                if (lastInteractiveState != interactive) {
+                    lastInteractiveState = interactive
+                    IdleDrainHelper.syncWithSystemState(applicationContext)
                 }
                 delay(1000L)
             }

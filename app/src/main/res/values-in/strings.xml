@@ -287,7 +287,7 @@
     <string name="version">Versi</string>
     <string name="build">Build</string>
     <string name="build_date">Tanggal Build (GMT+7)</string>
-    <string name="experiment">Eksperimen</string>
+    <string name="experiment">Stres &amp; Impedansi</string>
     <string name="battery_status_information">Informasi Status Baterai</string>
     <string name="battery_is_discharged_voltage">Baterai Habis (Tegangan)</string>
     <string name="battery_is_discharged_notification_voltage">Baterai habis. %1$d mV</string>
@@ -433,8 +433,35 @@
     <string name="idle_drain_diag_high">Boros (%1$s%%/jam)! Terjadi penurunan baterai tinggi saat layar mati. Rasio Deep Sleep: %2$s%%.</string>
     <string name="idle_drain_rec_high">Waktu terjaga (%1$s) mengindikasikan adanya aplikasi yang menahan wakelock di latar belakang atau Always-On-Display (AOD). Periksa aplikasi yang aktif di latar belakang.</string>
     <string name="idle_drain_finished_at">Selesai: %1$s</string>
-    <string name="idle_drain_rate_per_hour_format">%1$d%% (%2$s%%/jam)</string>
+    <string name="idle_drain_rate_per_hour_format">%1$s%% (%2$s%%/jam)</string>
     <string name="duration_hours_minutes">%1$dj %2$dm</string>
     <string name="duration_minutes_seconds">%1$dm %2$dd</string>
     <string name="duration_seconds">%1$dd</string>
+
+    <!-- Stress & Impedance Analyzer -->
+    <string name="stress_lab_title">Stres Elektrokimia &amp; C-Rate</string>
+    <string name="stress_lab_subtitle">Analisis C-Rate, impedansi internal (mΩ), &amp; vektor keausan sel</string>
+    <string name="stress_status_low">Zona Awet</string>
+    <string name="stress_status_moderate">Beban Moderat</string>
+    <string name="stress_status_high">Stres Sel Tinggi</string>
+    <string name="stress_score_label">Indeks Stres Sel (%1$d/100)</string>
+    <string name="stress_physics_card_title">Impedansi Internal &amp; Fisika Sel</string>
+    <string name="stress_internal_resistance">Impedansi Internal (Rint)</string>
+    <string name="stress_voltage_sag">Drop Tegangan Beban (I·R)</string>
+    <string name="stress_joule_heat">Disipasi Panas Dalam (I²R)</string>
+    <string name="stress_wear_multiplier">Faktor Penuaan Siklus</string>
+    <string name="stress_vectors_card_title">Rincian 3 Vektor Tekanan Sel</string>
+    <string name="stress_vector_thermal">Tekanan Termal (%1$s°C)</string>
+    <string name="stress_vector_voltage">Tegangan Katoda (%1$d mV/sel)</string>
+    <string name="stress_vector_current">Beban Arus C-Rate (%1$sC · %2$d mA)</string>
+    <string name="stress_diag_card_title">Diagnostik Elektrokimia</string>
+    <string name="stress_rec_title">Rekomendasi Keawetan Sel</string>
+    <string name="stress_btn_sample">Ukur ΔV/ΔI</string>
+    <string name="stress_btn_reset">Reset Sampel</string>
+    <string name="stress_diag_low">Tekanan elektrokimia rendah (%1$sC, Rint ~%2$d mΩ/sel). Sel bekerja pada zona keawetan optimal dengan disipasi panas internal minimal (%3$s mW).</string>
+    <string name="stress_rec_low">Menjaga baterai di rentang 20–80%% dengan suhu di bawah 35°C meminimalkan penebalan lapisan SEI dan oksidasi katoda.</string>
+    <string name="stress_diag_moderate">Beban sel moderat (%1$sC, Rint ~%2$d mΩ/sel, voltage sag ~%3$d mV). Laju keausan kimiawi saat ini berkisar %4$sx dari standar.</string>
+    <string name="stress_rec_moderate">Saat mengisi daya di atas 80%% atau menjalankan beban berat, jaga sirkulasi udara agar suhu tidak melipatgandakan tekanan tegangan.</string>
+    <string name="stress_diag_high">Stres sel tinggi (%1$sC, Rint ~%2$d mΩ/sel, panas internal ~%3$s mW)! Kombinasi C-Rate, tegangan sel, atau suhu mempercepat degradasi (%4$sx).</string>
+    <string name="stress_rec_high">Hindari beban berat saat fast charging dan biarkan suhu turun di bawah 38°C untuk mencegah kenaikan impedansi &amp; pelapisan litium.</string>
 </resources>

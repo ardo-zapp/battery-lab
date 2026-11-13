@@ -64,5 +64,8 @@
     <color name="battery_info_temp_normal">#1e88e5</color>
     <color name="battery_info_temp_cold">#42a5f5</color>
     <color name="battery_info_power_monitor">#ffee58</color>
+    <color name="battery_info_voltage_normal">@color/battery_info_level_normal</color>
+    <color name="battery_info_voltage_warning">#F59E0B</color>
+    <color name="battery_info_voltage_danger">#EF4444</color>
 
 </resources>

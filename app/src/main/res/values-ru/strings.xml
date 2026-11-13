@@ -286,7 +286,7 @@
     <string name="version">Версия</string>
     <string name="build">Сборка</string>
     <string name="build_date">Дата сборки (GMT+7)</string>
-    <string name="experiment">Эксперимент</string>
+    <string name="experiment">Стресс и импеданс</string>
     <string name="battery_status_information">Сведения о состоянии батареи</string>
     <string name="battery_is_discharged_voltage">Батарея разряжается (по напряжению)</string>
     <string name="battery_is_discharged_notification_voltage">Батарея разряжается. %1$d мВ</string>
@@ -433,8 +433,35 @@
     <string name="idle_drain_diag_high">Высокий разряд (%1$s%%/ч)! Заметная потеря заряда при выключенном экране. Доля Deep Sleep: %2$s%%.</string>
     <string name="idle_drain_rec_high">Время бодрствования (%1$s) указывает на фоновые процессы (wakelock) или Always-On Display. Проверьте активные приложения.</string>
     <string name="idle_drain_finished_at">Завершено: %1$s</string>
-    <string name="idle_drain_rate_per_hour_format">%1$d%% (%2$s%%/ч)</string>
+    <string name="idle_drain_rate_per_hour_format">%1$s%% (%2$s%%/ч)</string>
     <string name="duration_hours_minutes">%1$dч %2$dм</string>
     <string name="duration_minutes_seconds">%1$dм %2$dс</string>
     <string name="duration_seconds">%1$dс</string>
+
+    <!-- Stress & Impedance Analyzer -->
+    <string name="stress_lab_title">Электрохимический стресс и C-Rate</string>
+    <string name="stress_lab_subtitle">Анализ C-Rate, внутреннего импеданса (мОм) и износа ячейки</string>
+    <string name="stress_status_low">Оптимальная зона</string>
+    <string name="stress_status_moderate">Умеренная нагрузка</string>
+    <string name="stress_status_high">Высокий стресс</string>
+    <string name="stress_score_label">Индекс стресса ячейки (%1$d/100)</string>
+    <string name="stress_physics_card_title">Внутренний импеданс и физика ячейки</string>
+    <string name="stress_internal_resistance">Внутренний импеданс (Rint)</string>
+    <string name="stress_voltage_sag">Просадка напряжения (I·R)</string>
+    <string name="stress_joule_heat">Тепловые потери (I²R)</string>
+    <string name="stress_wear_multiplier">Коэффициент старения</string>
+    <string name="stress_vectors_card_title">3 вектора нагрузки на ячейку</string>
+    <string name="stress_vector_thermal">Тепловой стресс (%1$s°C)</string>
+    <string name="stress_vector_voltage">Напряжение катода (%1$d мВ/яч.)</string>
+    <string name="stress_vector_current">Токовая нагрузка (%1$sC · %2$d мА)</string>
+    <string name="stress_diag_card_title">Электрохимическая диагностика</string>
+    <string name="stress_rec_title">Рекомендация по ресурсу</string>
+    <string name="stress_btn_sample">Замер ΔV/ΔI</string>
+    <string name="stress_btn_reset">Сброс замеров</string>
+    <string name="stress_diag_low">Низкий электрохимический стресс (%1$sC, Rint ~%2$d мОм/яч.). Ячейка работает в оптимальной зоне долговечности (тепловыделение ~%3$s мВт).</string>
+    <string name="stress_rec_low">Поддержание заряда в пределах 20–80%% при температуре ниже 35°C минимизирует деградацию слоя SEI и окисление катода.</string>
+    <string name="stress_diag_moderate">Умеренная нагрузка (%1$sC, Rint ~%2$d мОм/яч., просадка ~%3$d мВ). Текущая скорость химического старения: %4$sx.</string>
+    <string name="stress_rec_moderate">При зарядке выше 80%% или высокой нагрузке обеспечивайте охлаждение устройства.</string>
+    <string name="stress_diag_high">Высокий стресс ячейки (%1$sC, Rint ~%2$d мОм/яч., нагрев ~%3$s мВт)! Сочетание тока, напряжения или температуры ускоряет износ (%4$sx).</string>
+    <string name="stress_rec_high">Избегайте игр во время быстрой зарядки и охладите батарею ниже 38°C для предотвращения роста импеданса.</string>
 </resources>

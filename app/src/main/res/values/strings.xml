@@ -325,7 +325,7 @@
     <string name="version">Version</string>
     <string name="build">Build</string>
     <string name="build_date">Build Date (GMT+7)</string>
-    <string name="experiment">Experiment</string>
+    <string name="experiment">Stress &amp; Impedance</string>
     <string name="battery_status_information">Battery Status Information</string>
     <string name="battery_is_discharged_voltage">Battery is Discharged (Voltage)</string>
     <string name="battery_is_discharged_notification_voltage">Battery is discharged. %1$d mV</string>
@@ -480,8 +480,35 @@
     <string name="idle_drain_diag_high">High drain (%1$s%%/h)! Significant battery loss while screen is off. Deep Sleep ratio: %2$s%%.</string>
     <string name="idle_drain_rec_high">Awake time (%1$s) indicates background apps holding wakelocks or Always-On Display. Review active background apps.</string>
     <string name="idle_drain_finished_at">Finished: %1$s</string>
-    <string name="idle_drain_rate_per_hour_format">%1$d%% (%2$s%%/h)</string>
+    <string name="idle_drain_rate_per_hour_format">%1$s%% (%2$s%%/h)</string>
     <string name="duration_hours_minutes">%1$dh %2$dm</string>
     <string name="duration_minutes_seconds">%1$dm %2$ds</string>
     <string name="duration_seconds">%1$ds</string>
+
+    <!-- Stress & Impedance Analyzer -->
+    <string name="stress_lab_title">Electrochemical Stress &amp; C-Rate</string>
+    <string name="stress_lab_subtitle">Real-time C-Rate, internal impedance (mΩ), &amp; cell wear vectors</string>
+    <string name="stress_status_low">Longevity Zone</string>
+    <string name="stress_status_moderate">Moderate Load</string>
+    <string name="stress_status_high">High Cell Stress</string>
+    <string name="stress_score_label">Cell Stress Index (%1$d/100)</string>
+    <string name="stress_physics_card_title">Internal Impedance &amp; Cell Physics</string>
+    <string name="stress_internal_resistance">Internal Impedance (Rint)</string>
+    <string name="stress_voltage_sag">Load Voltage Sag (I·R)</string>
+    <string name="stress_joule_heat">Internal Heat Loss (I²R)</string>
+    <string name="stress_wear_multiplier">Cycle Aging Factor</string>
+    <string name="stress_vectors_card_title">3-Vector Stress Breakdown</string>
+    <string name="stress_vector_thermal">Thermal Stress (%1$s°C)</string>
+    <string name="stress_vector_voltage">Cathode Voltage (%1$d mV/cell)</string>
+    <string name="stress_vector_current">Current C-Rate (%1$sC · %2$d mA)</string>
+    <string name="stress_diag_card_title">Electrochemical Diagnostics</string>
+    <string name="stress_rec_title">Longevity Recommendation</string>
+    <string name="stress_btn_sample">Sample ΔV/ΔI</string>
+    <string name="stress_btn_reset">Reset Samples</string>
+    <string name="stress_diag_low">Low electrochemical stress (%1$sC, Rint ~%2$d mΩ/cell). Cell operates inside the optimal longevity window with minimal internal heat dissipation (%3$s mW).</string>
+    <string name="stress_rec_low">Maintaining battery between 20–80%% at temperatures under 35°C minimizes SEI layer growth and cathode oxidation.</string>
+    <string name="stress_diag_moderate">Moderate cell load (%1$sC, Rint ~%2$d mΩ/cell, sag ~%3$d mV). Chemical aging rate is currently %4$sx relative to baseline.</string>
+    <string name="stress_rec_moderate">If charging above 80%% or running heavy apps, keep device ventilated so thermal stress does not compound voltage pressure.</string>
+    <string name="stress_diag_high">Elevated cell stress (%1$sC, Rint ~%2$d mΩ/cell, internal heat ~%3$s mW)! Combination of high C-Rate, cell voltage, or heat accelerates wear (%4$sx).</string>
+    <string name="stress_rec_high">Avoid heavy gaming while fast-charging and let the battery cool below 38°C to prevent lithium plating and impedance rise.</string>
 </resources>

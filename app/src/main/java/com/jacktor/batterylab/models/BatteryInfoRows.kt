@@ -16,7 +16,7 @@ sealed class BatteryInfoRow {
         val screenTime: String,
         val lastChargeTime: String,
         val tempTint: Int = R.color.battery_info_temp_normal,
-        val voltageTint: Int = R.color.battery_info_temp_normal,
+        val voltageTint: Int = R.color.battery_info_voltage_normal,
         val timeTint: Int = R.color.battery_info_temp_normal
     ) : BatteryInfoRow()
 

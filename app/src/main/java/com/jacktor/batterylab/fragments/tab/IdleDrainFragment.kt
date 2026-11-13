@@ -18,7 +18,6 @@ import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.jacktor.batterylab.MainApp.Companion.batteryIntent
 import com.jacktor.batterylab.R
 import com.jacktor.batterylab.databinding.IdleDrainFragmentBinding
-import com.jacktor.batterylab.helpers.DateHelper
 import com.jacktor.batterylab.helpers.IdleDrainHelper
 import com.jacktor.batterylab.helpers.IdleDrainStatus
 import kotlinx.coroutines.Dispatchers
@@ -27,6 +26,9 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.text.DecimalFormat
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class IdleDrainFragment : Fragment(R.layout.idle_drain_fragment) {
 
@@ -164,8 +166,10 @@ class IdleDrainFragment : Fragment(R.layout.idle_drain_fragment) {
             }
         }
 
+        val hasData = stats.totalDurationMs >= IdleDrainHelper.MIN_IDLE_DURATION_MS || stats.totalDrainPercent > 0f
+
         // 3. Overview Primary Metrics
-        if (stats.totalDurationMs >= 60_000L) {
+        if (hasData) {
             binding.tvDrainRateValue.text = df.format(stats.totalDrainRatePercentPerHour)
             binding.tvDrainRateMa.text = "~${df.format(stats.totalDrainRateMa)} mA"
             binding.tvDeepSleepPercent.text = "${df.format(stats.deepSleepPercent)}%"
@@ -178,9 +182,10 @@ class IdleDrainFragment : Fragment(R.layout.idle_drain_fragment) {
         }
 
         // 4. Since Unplugged Details
-        if (stats.totalDurationMs >= 60_000L) {
+        if (hasData) {
+            val totalPctStr = IdleDrainHelper.formatPercent(stats.totalDrainPercent)
             binding.tvTotalDuration.text = IdleDrainHelper.formatDuration(context, stats.totalDurationMs)
-            binding.tvTotalDrain.text = "${stats.totalDrainPercent}% (~${df.format(stats.totalDrainMah)} mAh)"
+            binding.tvTotalDrain.text = "$totalPctStr% (~${df.format(stats.totalDrainMah)} mAh)"
             binding.tvTotalDeepSleep.text = "${IdleDrainHelper.formatDuration(context, stats.totalDeepSleepMs)} (${df.format(stats.deepSleepPercent)}%)"
             binding.tvTotalAwake.text = IdleDrainHelper.formatDuration(context, stats.totalAwakeMs)
         } else {
@@ -191,14 +196,10 @@ class IdleDrainFragment : Fragment(R.layout.idle_drain_fragment) {
         }
 
         // 5. Latest Session
-        if (stats.lastDurationMs >= 20_000L) {
+        if (stats.lastDurationMs >= IdleDrainHelper.MIN_IDLE_DURATION_MS) {
             binding.cardLastSession.visibility = View.VISIBLE
             val formattedTime = if (stats.lastTimestamp > 0L) {
-                DateHelper.getDate(
-                    DateHelper.getCurrentDay(),
-                    DateHelper.getCurrentMonth(),
-                    DateHelper.getCurrentYear()
-                )
+                SimpleDateFormat("dd MMM yyyy, HH:mm", Locale.getDefault()).format(Date(stats.lastTimestamp))
             } else ""
             binding.tvLastSessionTime.text = if (formattedTime.isNotEmpty()) {
                 getString(R.string.idle_drain_finished_at, formattedTime)
@@ -206,7 +207,7 @@ class IdleDrainFragment : Fragment(R.layout.idle_drain_fragment) {
             binding.tvLastSessionDuration.text = IdleDrainHelper.formatDuration(context, stats.lastDurationMs)
             binding.tvLastSessionDrain.text = getString(
                 R.string.idle_drain_rate_per_hour_format,
-                stats.lastDrainPercent,
+                IdleDrainHelper.formatPercent(stats.lastDrainPercent),
                 df.format(stats.lastDrainRatePercentPerHour)
             )
             binding.tvLastSessionDeepSleep.text = "${df.format(stats.lastDeepSleepPercent)}%"
