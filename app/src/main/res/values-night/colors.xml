@@ -68,4 +68,10 @@
     <color name="battery_info_voltage_warning">#F59E0B</color>
     <color name="battery_info_voltage_danger">#EF4444</color>
 
+    <!-- Informational Banner Tokens (Dark Mode) -->
+    <color name="charging_notice_bg">#18243A</color>
+    <color name="charging_notice_stroke">#2C446E</color>
+    <color name="charging_notice_text">#DBEAFE</color>
+    <color name="charging_notice_icon">#60A5FA</color>
+
 </resources>

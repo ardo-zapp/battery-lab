@@ -668,14 +668,19 @@ object IdleDrainHelper : BatteryInfoInterface {
                 var activeDropPct = pref.getFloat(IDLE_DRAIN_ACTIVE_SCREEN_PERCENT, 0f) + currentSliceDropPct
                 val untrackedActiveMs = (effectiveActiveMs - trackedActiveMs).coerceAtLeast(0L)
                 if (untrackedActiveMs > 60_000L) {
-                    activeDropPct += (untrackedActiveMs / 3_600_000f) * 9.5f
+                    val measuredActivePctPerHour = if (trackedActiveMs >= 180_000L && activeDropPct > 0.2f) {
+                        (activeDropPct / (trackedActiveMs / 3_600_000f)).coerceIn(6.0f, 13.5f)
+                    } else {
+                        8.2f
+                    }
+                    activeDropPct += (untrackedActiveMs / 3_600_000f) * measuredActivePctPerHour
                 }
 
                 val sleepRatio = if (totalDurationMs > 0L) {
                     (totalDeepSleepMs.toFloat() / totalDurationMs.toFloat()).coerceIn(0f, 1f)
                 } else 0.8f
                 val maxPlausibleTotalIdlePct = (totalDurationMs / 3_600_000f) *
-                        (sleepRatio * 0.65f + (1f - sleepRatio) * 3.8f) + 0.5f
+                        (sleepRatio * 0.55f + (1f - sleepRatio) * 3.4f) + 0.4f
 
                 val baselineIdleDropPct = (overallDropPct - activeDropPct)
                     .coerceIn(0f, maxPlausibleTotalIdlePct)
@@ -715,10 +720,15 @@ object IdleDrainHelper : BatteryInfoInterface {
         // menghakimi "Boros semua" (akibat fluktuasi sesaat) ataupun "Optimal semua" (saat % belum bergeser).
         val sleepFraction = (deepSleepPercent / 100.0).coerceIn(0.0, 1.0)
         val awakeFraction = 1.0 - sleepFraction
-        val kinematicExpectedRate = (sleepFraction * 0.38) + (awakeFraction * 2.25)
+        val kinematicExpectedRate = (sleepFraction * 0.36) + (awakeFraction * 2.10)
 
         val totalMinutes = totalDurationMs / 60_000.0
-        val sensorConfidence = (totalMinutes / 30.0).coerceIn(0.25, 1.0)
+        val hasHwCounter = hasHardwareChargeCounter(context) && totalDrainMah > 0.5f
+        val sensorConfidence = if (hasHwCounter) {
+            (totalMinutes / 12.0).coerceIn(0.55, 1.0)
+        } else {
+            (totalMinutes / 30.0).coerceIn(0.25, 1.0)
+        }
 
         val totalDrainRatePercentPerHour = if (totalDurationMs >= MIN_IDLE_DURATION_MS) {
             if (rawDrainRatePercentPerHour <= 0.01 && totalMinutes < 40.0) {
@@ -741,8 +751,12 @@ object IdleDrainHelper : BatteryInfoInterface {
             ((lastDeepSleepMs.toDouble() / lastDurationMs) * 100.0).coerceIn(0.0, 100.0)
         } else 0.0
         val lastSleepFrac = (lastDeepSleepPercent / 100.0).coerceIn(0.0, 1.0)
-        val lastKinematicRate = (lastSleepFrac * 0.38) + ((1.0 - lastSleepFrac) * 2.25)
-        val lastConfidence = ((lastDurationMs / 60_000.0) / 30.0).coerceIn(0.25, 1.0)
+        val lastKinematicRate = (lastSleepFrac * 0.36) + ((1.0 - lastSleepFrac) * 2.10)
+        val lastConfidence = if (hasHwCounter && lastDrainMah > 0.5f) {
+            ((lastDurationMs / 60_000.0) / 12.0).coerceIn(0.55, 1.0)
+        } else {
+            ((lastDurationMs / 60_000.0) / 30.0).coerceIn(0.25, 1.0)
+        }
         val lastDrainRatePercentPerHour = if (lastDurationMs >= MIN_IDLE_DURATION_MS) {
             if (rawLastRate <= 0.01 && (lastDurationMs / 60_000.0) < 40.0) {
                 lastKinematicRate * (1.0 - lastConfidence * 0.6)

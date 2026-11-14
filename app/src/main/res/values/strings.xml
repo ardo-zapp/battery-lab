@@ -519,4 +519,67 @@
     <string name="stress_rec_moderate">If charging above 80%% or running heavy apps, keep device ventilated so thermal stress does not compound voltage pressure.</string>
     <string name="stress_diag_high">Elevated cell stress (%1$sC, Rint ~%2$d mΩ/cell, internal heat ~%3$s mW)! Combination of high C-Rate, cell voltage, or heat accelerates wear (%4$sx).</string>
     <string name="stress_rec_high">Avoid heavy gaming while fast-charging and let the battery cool below 38°C to prevent lithium plating and impedance rise.</string>
+
+    <!-- Dynamic Premium Features Window -->
+    <string name="premium_features_button">See What\'s Included</string>
+    <string name="premium_features_window_title">Included in Premium</string>
+    <string name="premium_features_window_subtitle">One-time upgrade unlocking all Battery Lab features</string>
+    <string name="premium_features_close">Close</string>
+    <string name="premium_feat_no_ads_title">Completely Ad-Free</string>
+    <string name="premium_feat_no_ads_desc">Removes banner and interstitial ads across the entire app.</string>
+    <string name="premium_feat_history_title">Unlimited Charging History</string>
+    <string name="premium_feat_history_desc">View all past charging sessions beyond the 10-entry limit, swipe to delete items, or clear history.</string>
+    <string name="premium_feat_overlay_title">Floating Telemetry Overlay</string>
+    <string name="premium_feat_overlay_desc">Display real-time battery level, temperature, current, voltage, and fast-charge status on top of other apps.</string>
+    <string name="premium_feat_notif_title">Extended Service Notification &amp; Controls</string>
+    <string name="premium_feat_notif_desc">Show detailed battery metrics in the persistent notification, expanded view, and quick Stop Service button.</string>
+    <string name="premium_feat_alerts_title">Smart Status Alerts &amp; Auto-Stop</string>
+    <string name="premium_feat_alerts_desc">Configure battery level, voltage, and temperature alerts, plus automatic service stop when unplugged.</string>
+    <string name="premium_feat_units_title">Wh Capacity &amp; Watt Power Units</string>
+    <string name="premium_feat_units_desc">Show residual/charged capacity in watt-hours (Wh) and charge/discharge power in watts (W).</string>
+    <string name="premium_feat_custom_backup_title">Full Personalization &amp; Backup</string>
+    <string name="premium_feat_custom_backup_desc">Unlock custom fonts, startup tab selection, flexible screen-time reset, and settings backup/restore.</string>
+
+    <!-- App Power Consumption Tab -->
+    <string name="app_usage_tab">App Power</string>
+    <string name="app_usage_permission_title">Usage Access Permission Required</string>
+    <string name="app_usage_permission_desc">Battery Lab needs Usage Access permission to analyze active screen time, background foreground-service activity, and estimate per-app battery consumption without root.</string>
+    <string name="app_usage_permission_cta">Grant Usage Access</string>
+    <string name="app_usage_permission_open_failed">Unable to open Usage Access settings on this device.</string>
+    <string name="app_usage_overview_title">App Power Consumption</string>
+    <string name="app_usage_overview_subtitle">Ranked from heaviest battery drain to most efficient</string>
+    <string name="app_usage_tracked_count">%1$d Apps</string>
+    <string name="app_usage_total_power_label">Estimated App Draw</string>
+    <string name="app_usage_total_active_label">Active Screen Time</string>
+    <string name="app_usage_mah_fmt">~%1$d mAh</string>
+    <string name="app_usage_battery_pct_fmt">%1$s%% of %2$d mAh</string>
+    <string name="app_usage_total_bg_fmt">Background: %1$s</string>
+    <string name="app_usage_top_consumer_fmt">Highest drain: %1$s (%2$s%% · ~%3$d mAh)</string>
+    <string name="app_usage_window_today">Today</string>
+    <string name="app_usage_window_24h">24 Hours</string>
+    <string name="app_usage_window_7d">7 Days</string>
+    <string name="app_usage_include_system">System Apps</string>
+    <string name="app_usage_empty">No measurable app power activity recorded in this time window yet.</string>
+    <string name="app_usage_methodology_note">Note: Without root access, per-app mAh and intensity tiers are estimated from Android UsageStats (foreground time, foreground-service runtime, launch frequency) combined with device battery capacity.</string>
+    <string name="app_usage_rank_fmt">#%1$d</string>
+    <string name="app_usage_fg_short">%1$s active</string>
+    <string name="app_usage_bg_short">%1$s bg</string>
+    <string name="app_usage_launches_short">%1$dx opens</string>
+    <string name="app_usage_percent_fmt">%1$s%%</string>
+    <string name="app_usage_severity_extreme">Very Heavy</string>
+    <string name="app_usage_severity_high">Heavy</string>
+    <string name="app_usage_severity_moderate">Moderate</string>
+    <string name="app_usage_severity_low">Efficient</string>
+    <string name="app_usage_detail_message">Package: %1$s\nDrain Level: %2$s\n\n• Estimated Consumption: ~%3$d mAh (%4$s%% share · %5$s%% battery)\n• Average Draw Rate: ~%6$d mAh/h\n• Active Foreground: %7$s\n• Background Service: %8$s\n• App Switches / Launches: %9$dx\n\nRecommendation:\n%10$s</string>
+    <string name="app_usage_dialog_metric_drain">Battery Consumption: %1$s%% (~%2$d mAh)</string>
+    <string name="app_usage_dialog_metric_share">Relative Share Across Apps: %1$s%%</string>
+    <string name="app_usage_dialog_metric_fg">Active Screen (Foreground): %1$s</string>
+    <string name="app_usage_dialog_metric_bg">Background Service (FGS): %1$s</string>
+    <string name="app_usage_dialog_metric_rate">Average Draw Rate: ~%1$d mAh/h</string>
+    <string name="app_usage_dialog_metric_energy">Energy Used: %1$s Wh · %2$dx opens</string>
+    <string name="app_usage_advice_background">High background service duration detected compared to active screen usage. Consider restricting background battery activity in App Info if notifications from this app are not critical.</string>
+    <string name="app_usage_advice_heavy">This app accounts for a large share of your battery consumption. Lowering screen brightness, frame rate, or background refresh can noticeably extend battery life.</string>
+    <string name="app_usage_advice_normal">Power usage for this app is within normal expected range relative to its active time.</string>
+    <string name="app_usage_open_app_info">App Battery Settings</string>
+    <string name="app_usage_open_app_info_failed">Unable to open App Info settings.</string>
 </resources>

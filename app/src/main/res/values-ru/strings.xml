@@ -472,4 +472,67 @@
     <string name="stress_rec_moderate">При зарядке выше 80%% или высокой нагрузке обеспечивайте охлаждение устройства.</string>
     <string name="stress_diag_high">Высокий стресс ячейки (%1$sC, Rint ~%2$d мОм/яч., нагрев ~%3$s мВт)! Сочетание тока, напряжения или температуры ускоряет износ (%4$sx).</string>
     <string name="stress_rec_high">Избегайте игр во время быстрой зарядки и охладите батарею ниже 38°C для предотвращения роста импеданса.</string>
+
+    <!-- Dynamic Premium Features Window -->
+    <string name="premium_features_button">Список доступных функций</string>
+    <string name="premium_features_window_title">Что входит в Премиум</string>
+    <string name="premium_features_window_subtitle">Разовая покупка для полного доступа ко всем возможностям Battery Lab</string>
+    <string name="premium_features_close">Закрыть</string>
+    <string name="premium_feat_no_ads_title">Полностью без рекламы</string>
+    <string name="premium_feat_no_ads_desc">Убирает все баннеры и полноэкранную рекламу в приложении.</string>
+    <string name="premium_feat_history_title">Неограниченная история зарядок</string>
+    <string name="premium_feat_history_desc">Доступ ко всей истории сверх лимита в 10 записей, удаление свайпом и полная очистка истории.</string>
+    <string name="premium_feat_overlay_title">Плавающий оверлей телеметрии</string>
+    <string name="premium_feat_overlay_desc">Отображение заряда, температуры, тока, напряжения и быстрой зарядки поверх других приложений.</string>
+    <string name="premium_feat_notif_title">Расширенное уведомление и управление</string>
+    <string name="premium_feat_notif_desc">Подробная информация о батарее в постоянном уведомлении и кнопка остановки службы.</string>
+    <string name="premium_feat_alerts_title">Умные оповещения и автоостановка</string>
+    <string name="premium_feat_alerts_desc">Оповещения об уровне заряда, напряжении и температуре, а также автоостановка службы при отключении зарядки.</string>
+    <string name="premium_feat_units_title">Единицы Wh и Ватты</string>
+    <string name="premium_feat_units_desc">Отображение ёмкости в ватт-часах (Wh) и мощности зарядки/разрядки в ваттах (W).</string>
+    <string name="premium_feat_custom_backup_title">Персонализация и резервная копия</string>
+    <string name="premium_feat_custom_backup_desc">Выбор пользовательских шрифтов, стартовой вкладки, гибкий сброс экранного времени и бэкап настроек.</string>
+
+    <!-- App Power Consumption Tab -->
+    <string name="app_usage_tab">Расход ПО</string>
+    <string name="app_usage_permission_title">Требуется доступ к статистике</string>
+    <string name="app_usage_permission_desc">Для анализа экранного времени, фоновых служб и оценки энергопотребления приложений без root требуется разрешение «Доступ к данным об использовании».</string>
+    <string name="app_usage_permission_cta">Выдать разрешение</string>
+    <string name="app_usage_permission_open_failed">Не удалось открыть настройки доступа к статистике.</string>
+    <string name="app_usage_overview_title">Расход энергии по приложениям</string>
+    <string name="app_usage_overview_subtitle">Сортировка от самых прожорливых к экономичным</string>
+    <string name="app_usage_tracked_count">%1$d прил.</string>
+    <string name="app_usage_total_power_label">Оценка расхода</string>
+    <string name="app_usage_total_active_label">Экранное время</string>
+    <string name="app_usage_mah_fmt">~%1$d мА·ч</string>
+    <string name="app_usage_battery_pct_fmt">%1$s%% от %2$d мА·ч</string>
+    <string name="app_usage_total_bg_fmt">Фон: %1$s</string>
+    <string name="app_usage_top_consumer_fmt">Больше всего: %1$s (%2$s%% · ~%3$d мА·ч)</string>
+    <string name="app_usage_window_today">Сегодня</string>
+    <string name="app_usage_window_24h">24 часа</string>
+    <string name="app_usage_window_7d">7 дней</string>
+    <string name="app_usage_include_system">Системные</string>
+    <string name="app_usage_empty">За выбранный период нет зафиксированной активности приложений.</string>
+    <string name="app_usage_methodology_note">Примечание: без root-доступа оценка в мА·ч рассчитывается на основе Android UsageStats (активность, фоновые службы, запуски) и ёмкости батареи.</string>
+    <string name="app_usage_rank_fmt">#%1$d</string>
+    <string name="app_usage_fg_short">%1$s акт.</string>
+    <string name="app_usage_bg_short">%1$s фон</string>
+    <string name="app_usage_launches_short">%1$dx зап.</string>
+    <string name="app_usage_percent_fmt">%1$s%%</string>
+    <string name="app_usage_severity_extreme">Очень высокий</string>
+    <string name="app_usage_severity_high">Высокий</string>
+    <string name="app_usage_severity_moderate">Умеренный</string>
+    <string name="app_usage_severity_low">Экономичный</string>
+    <string name="app_usage_detail_message">Пакет: %1$s\nУровень расхода: %2$s\n\n• Оценка расхода: ~%3$d мА·ч (%4$s%% доля · %5$s%% батареи)\n• Средний ток: ~%6$d мА·ч/ч\n• Активно на экране: %7$s\n• Фоновая служба: %8$s\n• Запуски / переключения: %9$dx\n\nРекомендация:\n%10$s</string>
+    <string name="app_usage_dialog_metric_drain">Расход батареи: %1$s%% (~%2$d мА·ч)</string>
+    <string name="app_usage_dialog_metric_share">Доля среди приложений: %1$s%%</string>
+    <string name="app_usage_dialog_metric_fg">Активно на экране: %1$s</string>
+    <string name="app_usage_dialog_metric_bg">Фоновая служба (FGS): %1$s</string>
+    <string name="app_usage_dialog_metric_rate">Средняя скорость расхода: ~%1$d мА·ч/ч</string>
+    <string name="app_usage_dialog_metric_energy">Затрачено энергии: %1$s Вт·ч · %2$dx зап.</string>
+    <string name="app_usage_advice_background">Обнаружена длительная фоновая работа по сравнению с активным временем. Ограничьте фоновую активность в настройках приложения, если уведомления не критичны.</string>
+    <string name="app_usage_advice_heavy">Приложение потребляет значительную долю заряда. Снижение яркости, частоты экрана или фонового обновления поможет продлить работу.</string>
+    <string name="app_usage_advice_normal">Энергопотребление этого приложения находится в пределах нормы относительно времени использования.</string>
+    <string name="app_usage_open_app_info">Настройки батареи прил.</string>
+    <string name="app_usage_open_app_info_failed">Не удалось открыть сведения о приложении.</string>
 </resources>

@@ -346,15 +346,18 @@ class StressImpedanceFragment : Fragment(R.layout.stress_impedance_fragment), Ba
 
         val prevI = lastSampledCurrentSignedMa
         val prevV = lastSampledCellVoltageMv
-        if (prevI != null && prevV != null) {
+        if (prevI != null && prevV != null && !isCharging) {
             val deltaIMa = signedCurrentMa - prevI
             val deltaVMv = cellVoltageMv - prevV
-            // Saat arus naik (charging lebih besar / discharging lebih kecil), tegangan sel ikut naik (dan sebaliknya)
-            if (abs(deltaIMa) >= 120.0 && deltaIMa * deltaVMv > 0.0) {
-                val measuredMohm = ((abs(deltaVMv) / abs(deltaIMa)) * 1000.0).coerceIn(30.0, 350.0)
-                val blended = measuredMohm * 0.45 + modeledRintMohm * 0.55
+            // Hanya perbarui impedansi diferensial saat pengosongan (discharging) agar langkah regulasi CC/CV charger tidak mendistorsi ΔV/ΔI
+            if (abs(deltaIMa) >= 140.0 && deltaIMa * deltaVMv > 0.0 && abs(deltaVMv) <= 180.0) {
+                val minValidMohm = (modeledRintMohm * 0.55).coerceAtLeast(32.0)
+                val maxValidMohm = (modeledRintMohm * 1.65).coerceAtMost(290.0)
+                val measuredMohm = ((abs(deltaVMv) / abs(deltaIMa)) * 1000.0)
+                    .coerceIn(minValidMohm, maxValidMohm)
+                val blended = measuredMohm * 0.35 + modeledRintMohm * 0.65
                 emaInternalResistanceMohm = emaInternalResistanceMohm?.let {
-                    it * 0.70 + blended * 0.30
+                    it * 0.75 + blended * 0.25
                 } ?: blended
             }
         }

@@ -17,6 +17,8 @@ import com.jacktor.batterylab.helpers.ThemeHelper
 import com.jacktor.batterylab.interfaces.NavigationInterface.Companion.mainActivityRef
 import com.jacktor.batterylab.utilities.Constants
 import com.jacktor.premium.Premium
+import com.jacktor.premium.data.model.PremiumFeatureItem
+import com.jacktor.premium.data.model.PremiumFeaturesWindowConfig
 import java.io.Serializable
 import kotlin.system.exitProcess
 
@@ -27,6 +29,45 @@ class MainApp : Application() {
 
         // Jacktor Premium
         Premium.init(this, "premium")
+        Premium.setFeaturesWindowProvider { ctx ->
+            PremiumFeaturesWindowConfig(
+                enabled = true,
+                buttonText = ctx.getString(R.string.premium_features_button),
+                dialogTitle = ctx.getString(R.string.premium_features_window_title),
+                dialogSubtitle = ctx.getString(R.string.premium_features_window_subtitle),
+                closeButtonText = ctx.getString(R.string.premium_features_close),
+                features = listOf(
+                    PremiumFeatureItem(
+                        title = ctx.getString(R.string.premium_feat_no_ads_title),
+                        description = ctx.getString(R.string.premium_feat_no_ads_desc)
+                    ),
+                    PremiumFeatureItem(
+                        title = ctx.getString(R.string.premium_feat_history_title),
+                        description = ctx.getString(R.string.premium_feat_history_desc)
+                    ),
+                    PremiumFeatureItem(
+                        title = ctx.getString(R.string.premium_feat_overlay_title),
+                        description = ctx.getString(R.string.premium_feat_overlay_desc)
+                    ),
+                    PremiumFeatureItem(
+                        title = ctx.getString(R.string.premium_feat_notif_title),
+                        description = ctx.getString(R.string.premium_feat_notif_desc)
+                    ),
+                    PremiumFeatureItem(
+                        title = ctx.getString(R.string.premium_feat_alerts_title),
+                        description = ctx.getString(R.string.premium_feat_alerts_desc)
+                    ),
+                    PremiumFeatureItem(
+                        title = ctx.getString(R.string.premium_feat_units_title),
+                        description = ctx.getString(R.string.premium_feat_units_desc)
+                    ),
+                    PremiumFeatureItem(
+                        title = ctx.getString(R.string.premium_feat_custom_backup_title),
+                        description = ctx.getString(R.string.premium_feat_custom_backup_desc)
+                    )
+                )
+            )
+        }
 
         initializeTheme()
         isInstalledGooglePlay = checkIfGooglePlayInstalled()

@@ -63,6 +63,7 @@ class ToolsFragment : Fragment(R.layout.tools_fragment), MenuInterface {
             when (position) {
                 0 -> tab.text = getString(R.string.idle_drain)
                 1 -> tab.text = getString(R.string.stress_impedance_tab)
+                2 -> tab.text = getString(R.string.app_usage_tab)
             }
         }.attach()
 

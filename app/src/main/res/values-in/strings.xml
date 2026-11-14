@@ -472,4 +472,67 @@
     <string name="stress_rec_moderate">Saat mengisi daya di atas 80%% atau menjalankan beban berat, jaga sirkulasi udara agar suhu tidak melipatgandakan tekanan tegangan.</string>
     <string name="stress_diag_high">Stres sel tinggi (%1$sC, Rint ~%2$d mΩ/sel, panas internal ~%3$s mW)! Kombinasi C-Rate, tegangan sel, atau suhu mempercepat degradasi (%4$sx).</string>
     <string name="stress_rec_high">Hindari beban berat saat fast charging dan biarkan suhu turun di bawah 38°C untuk mencegah kenaikan impedansi &amp; pelapisan litium.</string>
+
+    <!-- Dynamic Premium Features Window -->
+    <string name="premium_features_button">Lihat Fitur yang Didapat</string>
+    <string name="premium_features_window_title">Fitur di Versi Premium</string>
+    <string name="premium_features_window_subtitle">Upgrade sekali untuk membuka seluruh fitur Battery Lab</string>
+    <string name="premium_features_close">Tutup</string>
+    <string name="premium_feat_no_ads_title">Bebas Iklan Sepenuhnya</string>
+    <string name="premium_feat_no_ads_desc">Menghapus seluruh iklan banner maupun interstitial di dalam aplikasi.</string>
+    <string name="premium_feat_history_title">Riwayat Pengisian Tanpa Batas</string>
+    <string name="premium_feat_history_desc">Lihat seluruh riwayat pengisian lebih dari 10 catatan, hapus per item dengan geser, atau bersihkan riwayat.</string>
+    <string name="premium_feat_overlay_title">Overlay Telemetri Mengambang</string>
+    <string name="premium_feat_overlay_desc">Tampilkan level baterai, suhu, arus, tegangan, dan status pengisian cepat secara real-time di atas aplikasi lain.</string>
+    <string name="premium_feat_notif_title">Notifikasi Layanan Lengkap &amp; Tombol Hentikan</string>
+    <string name="premium_feat_notif_desc">Tampilkan informasi baterai lengkap di notifikasi persisten, tampilan diperluas, dan tombol Hentikan Layanan.</string>
+    <string name="premium_feat_alerts_title">Peringatan Status &amp; Berhenti Otomatis</string>
+    <string name="premium_feat_alerts_desc">Aktifkan notifikasi level baterai, tegangan, overheat/dingin, serta hentikan layanan otomatis saat pengisi daya dicabut.</string>
+    <string name="premium_feat_units_title">Satuan Kapasitas Wh &amp; Daya Watt</string>
+    <string name="premium_feat_units_desc">Tampilkan kapasitas dalam watt-jam (Wh) serta daya pengisian/pemakaian dalam watt (W).</string>
+    <string name="premium_feat_custom_backup_title">Kustomisasi Penuh &amp; Cadangan</string>
+    <string name="premium_feat_custom_backup_desc">Buka pilihan font kustom, tab awal aplikasi, reset waktu layar fleksibel, serta cadangkan &amp; pulihkan pengaturan.</string>
+
+    <!-- App Power Consumption Tab -->
+    <string name="app_usage_tab">Konsumsi App</string>
+    <string name="app_usage_permission_title">Izin Akses Penggunaan Diperlukan</string>
+    <string name="app_usage_permission_desc">Battery Lab memerlukan izin Akses Penggunaan (Usage Access) untuk membaca waktu aktif aplikasi, aktivitas layanan latar belakang, serta memperkirakan seberapa boros daya tiap aplikasi tanpa root.</string>
+    <string name="app_usage_permission_cta">Berikan Izin Akses</string>
+    <string name="app_usage_permission_open_failed">Tidak dapat membuka pengaturan Akses Penggunaan di perangkat ini.</string>
+    <string name="app_usage_overview_title">Konsumsi Daya Aplikasi</string>
+    <string name="app_usage_overview_subtitle">Diurutkan dari aplikasi paling boros ke paling hemat</string>
+    <string name="app_usage_tracked_count">%1$d App</string>
+    <string name="app_usage_total_power_label">Estimasi Total Daya</string>
+    <string name="app_usage_total_active_label">Total Aktif Layar</string>
+    <string name="app_usage_mah_fmt">~%1$d mAh</string>
+    <string name="app_usage_battery_pct_fmt">%1$s%% dari %2$d mAh</string>
+    <string name="app_usage_total_bg_fmt">Latar: %1$s</string>
+    <string name="app_usage_top_consumer_fmt">Paling boros: %1$s (%2$s%% · ~%3$d mAh)</string>
+    <string name="app_usage_window_today">Hari Ini</string>
+    <string name="app_usage_window_24h">24 Jam</string>
+    <string name="app_usage_window_7d">7 Hari</string>
+    <string name="app_usage_include_system">App Sistem</string>
+    <string name="app_usage_empty">Belum ada aktivitas konsumsi daya aplikasi yang tercatat pada rentang waktu ini.</string>
+    <string name="app_usage_methodology_note">Catatan: Tanpa akses root, estimasi mAh dan tingkat keborosan dihitung dari Android UsageStats (durasi layar aktif, layanan latar belakang, frekuensi buka) yang diskalakan dengan kapasitas baterai perangkat.</string>
+    <string name="app_usage_rank_fmt">#%1$d</string>
+    <string name="app_usage_fg_short">%1$s aktif</string>
+    <string name="app_usage_bg_short">%1$s latar</string>
+    <string name="app_usage_launches_short">%1$dx buka</string>
+    <string name="app_usage_percent_fmt">%1$s%%</string>
+    <string name="app_usage_severity_extreme">Sangat Boros</string>
+    <string name="app_usage_severity_high">Boros</string>
+    <string name="app_usage_severity_moderate">Sedang</string>
+    <string name="app_usage_severity_low">Hemat</string>
+    <string name="app_usage_detail_message">Paket: %1$s\nTingkat Keborosan: %2$s\n\n• Estimasi Daya: ~%3$d mAh (%4$s%% porsi · %5$s%% baterai)\n• Laju Rata-rata: ~%6$d mAh/jam\n• Aktif di Layar: %7$s\n• Layanan Latar: %8$s\n• Frekuensi Dibuka: %9$dx\n\nRekomendasi:\n%10$s</string>
+    <string name="app_usage_dialog_metric_drain">Konsumsi Baterai: %1$s%% (~%2$d mAh)</string>
+    <string name="app_usage_dialog_metric_share">Porsi Antar Aplikasi: %1$s%%</string>
+    <string name="app_usage_dialog_metric_fg">Aktif di Layar (Foreground): %1$s</string>
+    <string name="app_usage_dialog_metric_bg">Layanan Latar (FGS): %1$s</string>
+    <string name="app_usage_dialog_metric_rate">Rata-rata Laju Kuras: ~%1$d mAh/jam</string>
+    <string name="app_usage_dialog_metric_energy">Energi Terpakai: %1$s Wh · %2$dx dibuka</string>
+    <string name="app_usage_advice_background">Aplikasi ini cukup lama berjalan di latar belakang dibanding waktu penggunaan aktifnya. Pertimbangkan membatasi aktivitas latar belakang melalui Pengaturan Baterai App jika tidak mendesak.</string>
+    <string name="app_usage_advice_heavy">Aplikasi ini menyumbang porsi konsumsi daya yang besar. Menurunkan kecerahan layar, refresh rate, atau pembaruan latar dapat menghemat baterai secara signifikan.</string>
+    <string name="app_usage_advice_normal">Konsumsi daya aplikasi ini masih tergolong wajar dan sebanding dengan waktu pemakaiannya.</string>
+    <string name="app_usage_open_app_info">Atur Baterai / Info App</string>
+    <string name="app_usage_open_app_info_failed">Tidak dapat membuka halaman Info Aplikasi.</string>
 </resources>

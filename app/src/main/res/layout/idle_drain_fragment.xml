@@ -19,9 +19,11 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
             android:visibility="gone"
-            app:cardBackgroundColor="@color/md_theme_surfaceVariant"
+            app:cardBackgroundColor="@color/charging_notice_bg"
             app:cardCornerRadius="@dimen/card_corner_radius"
-            app:cardElevation="@dimen/card_elevation">
+            app:cardElevation="@dimen/card_elevation"
+            app:strokeColor="@color/charging_notice_stroke"
+            app:strokeWidth="1dp">
 
             <LinearLayout
                 android:layout_width="match_parent"
@@ -35,14 +37,15 @@
                     android:layout_height="24dp"
                     android:layout_marginEnd="12dp"
                     app:srcCompat="@drawable/ic_charge_navigation_full_24dp"
-                    app:tint="@color/green" />
+                    app:tint="@color/charging_notice_icon" />
 
                 <com.google.android.material.textview.MaterialTextView
                     android:layout_width="0dp"
                     android:layout_height="wrap_content"
                     android:layout_weight="1"
                     android:text="@string/idle_drain_charging_notice"
-                    android:textAppearance="@style/TextAppearance.Material3.BodySmall" />
+                    android:textAppearance="@style/TextAppearance.Material3.BodySmall"
+                    android:textColor="@color/charging_notice_text" />
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 

@@ -955,11 +955,12 @@ interface BatteryInfoInterface {
         val stableRate = if (prevRate <= 0.0) currentMa else (0.15 * currentMa + 0.85 * prevRate)
         TimeEstimator.stableChargeMa = stableRate
 
-        // Constant-Current / Constant-Voltage taper curve
+        // Constant-Current / Constant-Voltage taper curve (calibrated for standard vs Fast Charge step-down)
+        val fastChargeActive = stableRate >= 2400.0
         val taperFactor = when {
-            level >= 95 -> 1.40
-            level >= 90 -> 1.25
-            level >= 80 -> 1.15
+            level >= 95 -> if (fastChargeActive) 2.10 else 1.65
+            level >= 90 -> if (fastChargeActive) 1.70 else 1.40
+            level >= 80 -> if (fastChargeActive) 1.32 else 1.18
             else -> 1.00
         }
 
@@ -1053,11 +1054,11 @@ interface BatteryInfoInterface {
         val smoothedRate = if (prevRate <= 0.0) {
             candidateRate
         } else {
-            0.02 * candidateRate + 0.98 * prevRate
+            0.12 * candidateRate + 0.88 * prevRate
         }
         TimeEstimator.stableDischargeMa = smoothedRate
 
-        val safeDischargeRate = smoothedRate.coerceIn(200.0, 1500.0)
+        val safeDischargeRate = smoothedRate.coerceIn(170.0, 1650.0)
 
         // 3. Target remaining seconds
         val targetSeconds = ((remainingMah / safeDischargeRate) * 3600.0)
