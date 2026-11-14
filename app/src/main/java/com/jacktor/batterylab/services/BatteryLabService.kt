@@ -61,7 +61,6 @@ import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.BATTERY_NOTI
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CAPACITY_ADDED
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGING_START_LEVEL
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.DESIGN_CAPACITY
-import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.FAST_CHARGE_SETTING
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.FULL_CHARGE_REMINDER_FREQUENCY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.LAST_CHARGE_TIME
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.NOTIFY_BATTERY_IS_CHARGED
@@ -93,6 +92,8 @@ class BatteryLabService : Service(), NotificationInterface, BatteryInfoInterface
 
     private lateinit var pref: SharedPreferences
     private lateinit var powerConnectionReceiver: PowerConnectionReceiver
+    private var pluggedReceiver: PluggedReceiver? = null
+    private var unpluggedReceiver: UnpluggedReceiver? = null
 
     private var screenTimeJob: Job? = null
     private var jobService: Job? = null
@@ -200,6 +201,9 @@ class BatteryLabService : Service(), NotificationInterface, BatteryInfoInterface
             super.onCreate()
             instance = this
             pref = PreferenceManager.getDefaultSharedPreferences(this)
+            if (pref.contains("is_fast_charge_setting")) {
+                pref.edit { remove("is_fast_charge_setting") }
+            }
             pref.registerOnSharedPreferenceChangeListener(preferenceChangeListener)
 
             // Register PowerConnectionReceiver
@@ -262,14 +266,18 @@ class BatteryLabService : Service(), NotificationInterface, BatteryInfoInterface
                 }
             }
 
-            applicationContext.registerReceiver(
-                PluggedReceiver(),
-                IntentFilter(Intent.ACTION_POWER_CONNECTED)
-            )
-            applicationContext.registerReceiver(
-                UnpluggedReceiver(),
-                IntentFilter(Intent.ACTION_POWER_DISCONNECTED)
-            )
+            pluggedReceiver = PluggedReceiver().also {
+                applicationContext.registerReceiver(
+                    it,
+                    IntentFilter(Intent.ACTION_POWER_CONNECTED)
+                )
+            }
+            unpluggedReceiver = UnpluggedReceiver().also {
+                applicationContext.registerReceiver(
+                    it,
+                    IntentFilter(Intent.ACTION_POWER_DISCONNECTED)
+                )
+            }
 
             val filter = IntentFilter().apply {
                 addAction(Intent.ACTION_SCREEN_ON)
@@ -469,6 +477,16 @@ class BatteryLabService : Service(), NotificationInterface, BatteryInfoInterface
             unregisterReceiver(screenAwakeReceiver)
         } catch (_: Throwable) {
         }
+        try {
+            pluggedReceiver?.let { applicationContext.unregisterReceiver(it) }
+            pluggedReceiver = null
+        } catch (_: Throwable) {
+        }
+        try {
+            unpluggedReceiver?.let { applicationContext.unregisterReceiver(it) }
+            unpluggedReceiver = null
+        } catch (_: Throwable) {
+        }
         pref.unregisterOnSharedPreferenceChangeListener(preferenceChangeListener)
 
         if (isReceiverRegistered) Receiver.unregister(this, powerConnectionReceiver)
@@ -559,6 +577,9 @@ class BatteryLabService : Service(), NotificationInterface, BatteryInfoInterface
     }
 
     private suspend fun batteryCharging() {
+        getChargeDischargeCurrent(applicationContext)
+        updateAutoFastChargeState(applicationContext)
+
         val batteryLevel = getBatteryLevel(applicationContext) ?: 0
 
         if (batteryLevel == 100) {
@@ -568,7 +589,7 @@ class BatteryLabService : Service(), NotificationInterface, BatteryInfoInterface
                             UNIT_OF_MEASUREMENT_OF_available_capacity,
                             "μAh"
                         ) == "μAh"
-                    ) 1000.0 else 100.0
+                    ) 1000.0 else 1.0
                     ).toInt()
             secondsFullCharge++
         } else {

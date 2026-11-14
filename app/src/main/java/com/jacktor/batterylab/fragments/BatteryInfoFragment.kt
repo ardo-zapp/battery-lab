@@ -23,6 +23,7 @@ import com.jacktor.batterylab.R
 import com.jacktor.batterylab.adapters.BatteryInfoAdapter
 import com.jacktor.batterylab.databinding.BatteryInfoFragmentBinding
 import com.jacktor.batterylab.helpers.BatteryLevelHelper
+import com.jacktor.batterylab.helpers.MotionHelper
 import com.jacktor.batterylab.helpers.TextAppearanceHelper
 import com.jacktor.batterylab.helpers.TimeHelper
 import com.jacktor.batterylab.interfaces.BatteryInfoInterface
@@ -63,6 +64,7 @@ class BatteryInfoFragment : Fragment(R.layout.battery_info_fragment), SettingsIn
     private lateinit var adapter: BatteryInfoAdapter
 
     private var lastRows: List<BatteryInfoRow> = emptyList()
+    private var hasAnimatedLandHeader = false
 
     var pluggedTypeState = BatteryManager.BATTERY_PLUGGED_USB
 
@@ -149,11 +151,17 @@ class BatteryInfoFragment : Fragment(R.layout.battery_info_fragment), SettingsIn
         super.onStop()
         isJob = false
         job?.cancel(); job = null
+        if (::adapter.isInitialized) {
+            adapter.clearAnimations()
+        }
     }
 
     override fun onDestroy() {
         isJob = false
         job?.cancel(); job = null
+        if (::adapter.isInitialized) {
+            adapter.clearAnimations()
+        }
         super.onDestroy()
     }
 
@@ -180,6 +188,10 @@ class BatteryInfoFragment : Fragment(R.layout.battery_info_fragment), SettingsIn
                         val header = allRows.firstOrNull { it is BatteryInfoRow.Header } as? BatteryInfoRow.Header
                         if (header != null) {
                             adapter.bindHeader(headerLand, header)
+                            if (!hasAnimatedLandHeader) {
+                                hasAnimatedLandHeader = true
+                                MotionHelper.animateEntrance(headerLand.root, delayMs = 20L)
+                            }
                         }
                         allRows.filter { it !is BatteryInfoRow.Header }
                     } else {

@@ -70,6 +70,12 @@ class HistoryDB(context: Context) :
     fun remove(capacity: Int) {
         val id = getIdByResidualCapacity(capacity)
         if (id != -1) {
+            removeById(id)
+        }
+    }
+
+    fun removeById(id: Int) {
+        if (id != -1) {
             writableDatabase.use { db ->
                 db.delete(TABLE_NAME, "$ID=?", arrayOf(id.toString()))
             }

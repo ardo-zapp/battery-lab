@@ -1,5 +1,6 @@
 package com.jacktor.batterylab.fragments
 
+import android.animation.ObjectAnimator
 import android.annotation.SuppressLint
 import android.content.SharedPreferences
 import android.os.Bundle
@@ -18,6 +19,7 @@ import com.jacktor.batterylab.databases.History
 import com.jacktor.batterylab.databases.HistoryDB
 import com.jacktor.batterylab.databinding.HistoryFragmentBinding
 import com.jacktor.batterylab.helpers.HistoryHelper
+import com.jacktor.batterylab.helpers.MotionHelper
 import com.jacktor.batterylab.interfaces.NavigationInterface.Companion.mainActivityRef
 import com.jacktor.batterylab.interfaces.views.MenuInterface
 import com.jacktor.premium.Premium
@@ -33,6 +35,8 @@ class HistoryFragment : Fragment(R.layout.history_fragment), MenuInterface {
     lateinit var historyAdapter: HistoryAdapter
 
     private var isPremium = false
+    private var emptyMascotFloatAnimator: ObjectAnimator? = null
+    private var hasAnimatedEmptyState = false
 
     var binding: HistoryFragmentBinding? = null
 
@@ -70,18 +74,33 @@ class HistoryFragment : Fragment(R.layout.history_fragment), MenuInterface {
         updateHistoryUI()
     }
 
+    override fun onDestroyView() {
+        binding?.jacktorImg?.let { MotionHelper.stopAnimator(emptyMascotFloatAnimator, it) }
+            ?: emptyMascotFloatAnimator?.cancel()
+        emptyMascotFloatAnimator = null
+        hasAnimatedEmptyState = false
+        super.onDestroyView()
+        binding = null
+    }
+
     override fun onDestroy() {
+        emptyMascotFloatAnimator?.cancel()
+        emptyMascotFloatAnimator = null
         instance = null
         HistoryAdapter.instance = null
         super.onDestroy()
     }
 
-    fun updateHistoryUI() {
+    fun updateHistoryUI(replayAnimation: Boolean = false) {
         val ctx = context ?: return
         val historyDB = HistoryDB(ctx)
         val historyCount = historyDB.getCount()
 
         if (historyCount > 0) {
+            binding?.jacktorImg?.let { MotionHelper.stopAnimator(emptyMascotFloatAnimator, it) }
+            emptyMascotFloatAnimator = null
+            hasAnimatedEmptyState = false
+
             val rawList = historyDB.readAll() as MutableList<History>
             val displayList = if (isPremium) rawList else rawList.takeLast(10).toMutableList()
 
@@ -90,12 +109,17 @@ class HistoryFragment : Fragment(R.layout.history_fragment), MenuInterface {
             binding?.historyRecyclerView?.visibility = View.VISIBLE
             binding?.refreshHistory?.visibility = View.VISIBLE
 
-            if (!::historyAdapter.isInitialized || binding?.historyRecyclerView?.adapter == null) {
+            val isInitialBind = !::historyAdapter.isInitialized || binding?.historyRecyclerView?.adapter == null
+            if (isInitialBind) {
                 historyAdapter = HistoryAdapter(displayList)
                 binding?.historyRecyclerView?.setItemViewCacheSize(historyAdapter.itemCount)
                 binding?.historyRecyclerView?.adapter = historyAdapter
+                binding?.historyRecyclerView?.scheduleLayoutAnimation()
             } else {
                 historyAdapter.update(ctx)
+                if (replayAnimation) {
+                    binding?.historyRecyclerView?.scheduleLayoutAnimation()
+                }
             }
 
             mainActivityRef?.get()?.toolbar?.menu?.findItem(R.id.history_premium)?.isVisible = !isPremium
@@ -114,6 +138,16 @@ class HistoryFragment : Fragment(R.layout.history_fragment), MenuInterface {
         binding?.refreshEmptyHistory?.visibility = View.VISIBLE
         binding?.emptyHistoryLayout?.visibility = View.VISIBLE
         binding?.emptyHistoryText?.text = resources.getText(R.string.empty_history_text)
+
+        if (!hasAnimatedEmptyState) {
+            hasAnimatedEmptyState = true
+            binding?.emptyHistoryText?.let { MotionHelper.animateEntrance(it, delayMs = 30L) }
+            binding?.jacktorImg?.let { img ->
+                MotionHelper.animateEntrance(img, delayMs = 90L)
+                MotionHelper.stopAnimator(emptyMascotFloatAnimator, img)
+                emptyMascotFloatAnimator = MotionHelper.startFloatLoop(img, amplitudeDp = 5f, durationMs = 1700L)
+            }
+        }
     }
 
     private fun swipeToRemoveHistory() =
@@ -126,6 +160,11 @@ class HistoryFragment : Fragment(R.layout.history_fragment), MenuInterface {
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                 var isRemoving = true
                 val position = viewHolder.bindingAdapterPosition
+                if (position == RecyclerView.NO_POSITION) return
+
+                val currentList = historyAdapter.getHistoryList()
+                val targetIndex = currentList.size - 1 - position
+                val swipedItem = currentList.getOrNull(targetIndex)
 
                 historyAdapter.remove(requireContext(), position)
                 binding?.historyRecyclerView?.setItemViewCacheSize(historyAdapter.itemCount)
@@ -146,16 +185,17 @@ class HistoryFragment : Fragment(R.layout.history_fragment), MenuInterface {
                 CoroutineScope(Dispatchers.Main).launch {
                     delay(3.seconds)
                     if (isRemoving) {
-                        val historyList = HistoryDB(requireContext()).readAll()
+                        val ctx = context ?: return@launch
                         try {
-                            HistoryHelper.remove(
-                                requireContext(),
-                                historyList[historyList.size - 1 - position].residualCapacity
-                            )
-                        } catch (_: ArrayIndexOutOfBoundsException) {
+                            if (swipedItem != null && swipedItem.id > 0) {
+                                HistoryHelper.removeById(ctx, swipedItem.id)
+                            } else if (swipedItem != null) {
+                                HistoryHelper.remove(ctx, swipedItem.residualCapacity)
+                            }
+                        } catch (_: Exception) {
                         } finally {
                             binding?.refreshHistory?.isEnabled = true
-                            if (HistoryHelper.isHistoryEmpty(requireContext())) emptyHistory()
+                            if (HistoryHelper.isHistoryEmpty(ctx)) emptyHistory()
                         }
                     }
                 }
@@ -178,7 +218,7 @@ class HistoryFragment : Fragment(R.layout.history_fragment), MenuInterface {
             )
             setOnRefreshListener {
                 isRefreshing = true
-                updateHistoryUI()
+                updateHistoryUI(replayAnimation = true)
                 isRefreshing = false
             }
         }
@@ -200,7 +240,7 @@ class HistoryFragment : Fragment(R.layout.history_fragment), MenuInterface {
             )
             setOnRefreshListener {
                 isRefreshing = true
-                updateHistoryUI()
+                updateHistoryUI(replayAnimation = true)
                 isRefreshing = false
             }
         }

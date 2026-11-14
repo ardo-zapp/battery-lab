@@ -13,7 +13,9 @@ import com.jacktor.batterylab.MainActivity
 import com.jacktor.batterylab.R
 import com.jacktor.batterylab.adapters.ViewPagerAdapter
 import com.jacktor.batterylab.databinding.ToolsFragmentBinding
+import com.jacktor.batterylab.helpers.MotionHelper
 import com.jacktor.batterylab.interfaces.views.MenuInterface
+import kotlin.math.abs
 
 class ToolsFragment : Fragment(R.layout.tools_fragment), MenuInterface {
 
@@ -40,12 +42,27 @@ class ToolsFragment : Fragment(R.layout.tools_fragment), MenuInterface {
         val viewPagerAdapter = ViewPagerAdapter(requireActivity())
         binding.viewPager.adapter = viewPagerAdapter
         binding.viewPager.isUserInputEnabled = false
+        binding.viewPager.setPageTransformer { page, position ->
+            if (!MotionHelper.isAnimationsEnabled()) {
+                page.alpha = 1f
+                page.scaleX = 1f
+                page.scaleY = 1f
+                page.translationX = 0f
+                return@setPageTransformer
+            }
+            val absPos = abs(position)
+            page.alpha = (1f - absPos * 0.45f).coerceIn(0f, 1f)
+            val scale = (0.965f + (1f - absPos) * 0.035f).coerceIn(0.965f, 1f)
+            page.scaleX = scale
+            page.scaleY = scale
+            page.translationX = -position * page.width * 0.08f
+        }
 
         // Hubungkan TabLayout dengan ViewPager2
         TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
             when (position) {
                 0 -> tab.text = getString(R.string.idle_drain)
-                1 -> tab.text = getString(R.string.experiment)
+                1 -> tab.text = getString(R.string.stress_impedance_tab)
             }
         }.attach()
 

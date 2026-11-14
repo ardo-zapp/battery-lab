@@ -498,7 +498,7 @@
             android:orientation="horizontal">
 
             <com.google.android.material.button.MaterialButton
-                android:id="@+id/btnRefresh"
+                android:id="@+id/btnBatteryUsage"
                 style="@style/Widget.Material3.Button"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -507,7 +507,7 @@
                 android:backgroundTint="@color/md_theme_primary"
                 android:textColor="@color/white"
                 app:cornerRadius="14dp"
-                android:text="@string/idle_drain_refresh" />
+                android:text="@string/idle_drain_battery_usage" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnReset"

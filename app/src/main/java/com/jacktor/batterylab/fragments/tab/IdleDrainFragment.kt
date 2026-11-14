@@ -7,10 +7,15 @@ import android.content.IntentFilter
 import android.content.SharedPreferences
 import android.os.BatteryManager
 import android.os.Bundle
+import android.provider.Settings
+import android.transition.AutoTransition
+import android.transition.TransitionManager
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.core.content.ContextCompat
+import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
@@ -20,6 +25,7 @@ import com.jacktor.batterylab.R
 import com.jacktor.batterylab.databinding.IdleDrainFragmentBinding
 import com.jacktor.batterylab.helpers.IdleDrainHelper
 import com.jacktor.batterylab.helpers.IdleDrainStatus
+import com.jacktor.batterylab.helpers.MotionHelper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -37,6 +43,7 @@ class IdleDrainFragment : Fragment(R.layout.idle_drain_fragment) {
 
     private var realtimeUpdateJob: Job? = null
     private var pref: SharedPreferences? = null
+    private var hasAnimatedEntrance = false
 
     private val prefListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
         if (key != null && key.startsWith("idle_drain")) {
@@ -66,6 +73,13 @@ class IdleDrainFragment : Fragment(R.layout.idle_drain_fragment) {
         pref = PreferenceManager.getDefaultSharedPreferences(requireContext())
         setupButtons()
         updateUI()
+        if (!hasAnimatedEntrance) {
+            hasAnimatedEntrance = true
+            val contentColumn = (binding.root as? ViewGroup)?.getChildAt(0) as? ViewGroup
+            if (contentColumn != null) {
+                MotionHelper.animateStaggeredChildren(contentColumn)
+            }
+        }
     }
 
     override fun onResume() {
@@ -116,10 +130,10 @@ class IdleDrainFragment : Fragment(R.layout.idle_drain_fragment) {
     }
 
     private fun setupButtons() {
-        binding.btnRefresh.setOnClickListener {
-            val ctx = context ?: return@setOnClickListener
-            batteryIntent = ctx.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
-            updateUI()
+        MotionHelper.bindPressScale(binding.btnBatteryUsage, binding.btnReset)
+
+        binding.btnBatteryUsage.setOnClickListener {
+            openSystemBatteryUsage()
         }
 
         binding.btnReset.setOnClickListener {
@@ -136,6 +150,23 @@ class IdleDrainFragment : Fragment(R.layout.idle_drain_fragment) {
         }
     }
 
+    private fun openSystemBatteryUsage() {
+        val ctx = context ?: return
+        val candidates = listOf(
+            Intent(Intent.ACTION_POWER_USAGE_SUMMARY),
+            Intent(Settings.ACTION_BATTERY_SAVER_SETTINGS),
+            Intent(Settings.ACTION_SETTINGS)
+        )
+        for (intent in candidates) {
+            try {
+                startActivity(intent)
+                return
+            } catch (_: Throwable) {
+            }
+        }
+        Toast.makeText(ctx, R.string.idle_drain_battery_usage_error, Toast.LENGTH_SHORT).show()
+    }
+
     fun updateUI() {
         val context = context ?: return
         if (_binding == null) return
@@ -143,28 +174,47 @@ class IdleDrainFragment : Fragment(R.layout.idle_drain_fragment) {
         val stats = IdleDrainHelper.getIdleDrainStats(context)
         val df = DecimalFormat("#.#")
 
+        val showLastSession = stats.lastDurationMs >= IdleDrainHelper.MIN_IDLE_DURATION_MS
+        val visibilityChanging =
+            binding.cardChargingNotice.isVisible != stats.isCharging ||
+                binding.cardLastSession.isVisible != showLastSession
+        if (hasAnimatedEntrance && visibilityChanging && MotionHelper.isAnimationsEnabled()) {
+            val contentColumn = (binding.root as? ViewGroup)?.getChildAt(0) as? ViewGroup
+            if (contentColumn != null && contentColumn.isLaidOut) {
+                val transition = AutoTransition().apply {
+                    duration = 220L
+                    interpolator = MotionHelper.EMPHASIZED_DECELERATE
+                }
+                TransitionManager.beginDelayedTransition(contentColumn, transition)
+            }
+        }
+
         // 1. Charging Notice
         binding.cardChargingNotice.visibility = if (stats.isCharging) View.VISIBLE else View.GONE
 
         // 2. Status Badge
-        when (stats.status) {
+        val badgeColorRes = when (stats.status) {
             IdleDrainStatus.EXCELLENT -> {
                 binding.tvStatusBadge.text = getString(R.string.idle_drain_status_excellent)
-                binding.tvStatusBadge.setTextColor(ContextCompat.getColor(context, R.color.green))
+                R.color.green
             }
             IdleDrainStatus.NORMAL -> {
                 binding.tvStatusBadge.text = getString(R.string.idle_drain_status_normal)
-                binding.tvStatusBadge.setTextColor(ContextCompat.getColor(context, R.color.md_theme_primary))
+                R.color.md_theme_primary
             }
             IdleDrainStatus.HIGH_DRAIN -> {
                 binding.tvStatusBadge.text = getString(R.string.idle_drain_status_high)
-                binding.tvStatusBadge.setTextColor(ContextCompat.getColor(context, R.color.red))
+                R.color.red
             }
             IdleDrainStatus.NO_DATA -> {
                 binding.tvStatusBadge.text = getString(R.string.idle_drain_status_no_data)
-                binding.tvStatusBadge.setTextColor(ContextCompat.getColor(context, R.color.dark_white))
+                R.color.dark_white
             }
         }
+        MotionHelper.animateBadgeColors(
+            binding.tvStatusBadge,
+            ContextCompat.getColor(context, badgeColorRes)
+        )
 
         val hasData = stats.totalDurationMs >= IdleDrainHelper.MIN_IDLE_DURATION_MS || stats.totalDrainPercent > 0f
 
@@ -222,6 +272,7 @@ class IdleDrainFragment : Fragment(R.layout.idle_drain_fragment) {
 
     override fun onDestroyView() {
         stopRealtimeUpdates()
+        hasAnimatedEntrance = false
         super.onDestroyView()
         _binding = null
     }

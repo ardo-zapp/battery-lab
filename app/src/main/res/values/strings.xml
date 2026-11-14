@@ -289,11 +289,9 @@
     <string name="stop_service">Stop Service</string>
     <string name="stopping_service">Stopping Service…</string>
     <string name="service_stopped_successfully">Service Stopped Successfully!</string>
-    <string name="instruction_message_enable_fast_charge_option">If you charge your device with fast charging, enable the "Fast Charge" option in the app settings to more correctly calculate battery wear\n\n</string>
     <string name="fast_charge">Fast Charge</string>
     <string name="fast_charge_yes">Fast Charge: Yes (%1$sW)</string>
     <string name="fast_charge_no">Fast Charge: No</string>
-    <string name="fast_charge_dialog_message">This option is designed to more correctly calculate battery wear when using fast charging. Only enable this option if you are charging your device with a fast charger</string>
     <string name="full_charge_reminder">Full Charge Reminder</string>
     <string name="full_charge_reminder_summary">Full charge reminder every 30 minutes</string>
     <string name="full_charge_reminder_frequency">Full Charge Reminder Frequency</string>
@@ -302,30 +300,34 @@
     <string name="background_activity_control_xiaomi_dialog">In order for the application to work correctly in the background, go to the next window and select \"No restrictions\"</string>
     <string name="ignoring_battery_optimizations_dialog_message">For the app to work properly, you must allow the app to run in the background</string>
     <string name="faq">FAQ</string>
-    <string name="faq_how_does_the_app_work" formatted="false">Question: How does the app work?\nAnswer: Residual capacity is formed on the basis of the current capacity upon reaching 100% and the status of \"Charged\" (up to the last 5 charges). The current capacity is taken from the kernel of the OS, by the Android API itself, which allows you to get the current capacity without root rights. The kernel takes the current capacity from the battery itself and writes it to the \"charge_counter\" file (file path: /sys/class/power_supply/battery). On how accurate the current capacity depends on the battery and the kernel itself.\n\n</string>
-    <string name="faq_capacity_added">Question: What is considered to be \"Capacity Added\"?\nAnswer: \"Capacity Added\" is considered very simple: the current capacity - capacity, which was before you connected the charging.\n\n</string>
-    <string name="faq_where_does_the_app_get_the_ccl">Question: Where does the application get the \"Charging Current Limit\"?\nAnswer: The application takes the \"Charging Current Limit\" from the kernel file \"constant_charge_current_max\" along the path /sys/class/power_supply/battery.\n\n</string>
-    <string name="faq_why_is_ccl_not_displayed">Question: Why is \"Charging Current Limit\" not displayed?\nAnswer: The display \"Charging Current Limit\" depends on whether the file \"constant_charge_current_max\" is readable or not. Not all kernels allow \"reading\" this file, and also not all kernels have this file.\n\n</string>
-    <string name="faq_i_have_everything_in_zeros" formatted="false">Question: I have everything (or almost everything) in zeros. Why?\nAnswer: Because the manufacturer of your device has saved on various sensors.  And since the kernel cannot get the value, it returns 0.\n\n</string>
-    <string name="faq_units">Question: Very large or small numbers are shown in the current capacity, charge/discharge current, voltage.\nAnswer: Go to the settings, in the \"Misc\" section, expand all the settings and change the unit of measurement.\n\n</string>
-    <string name="faq_available_capacity">Question: The available capacity has ceased to be displayed, although it was previously displayed (or is displayed, but not always).\nAnswer: This means that the battery is coming or has already come to an end. If everything is in order with the battery, then the firmware kernel or the controller, which gives the current capacity, may be buggy.\n\n</string>
-    <string name="faq_residual_capacity_is_higher" formatted="false">Question: Residual capacity is higher than the design capacity\nAnswer: If the battery is new, this is normal. The capacity of a battery, especially a new one, is never equal to the design capacity, it is either 2–3% less, or higher, but most often lower. If the capacity of the new battery is higher than the design one, then consider yourself lucky with the battery. If the battery is not new, you can try to calibrate the kernel by discharging the battery to 10% or lower and charging it to full 100%. If this does not help, then unfortunately either the kernel developers made a mistake somewhere that incorrectly reads the current capacity from the battery, or the matter is in the battery itself\n\n</string>
-    <string name="faq_battery_wear_changes_when_charger_is_disconnected">Question: Battery wear changes when the charger is disconnected\nAnswer: The fact is that when the charger is disconnected, sometimes the current capacity differs from what it was when fully charged, thus, when the charger is disconnected, the battery wear is more true than before the charger was disconnected\n\n</string>
-    <string name="faq_battery_wear_not_change" formatted="false">Question: Battery wear does not change even after several months\nAnswer: Sometimes the current capacity may not be displayed correctly and due to this the battery wear will be incorrect. In order to avoid this, calibrate the current capacity once a month or two. In order to calibrate the current capacity, you need to discharge the battery to 10% or lower and charge to 100% (status: \"Fully Charged\")\n\n</string>
-    <string name="faq_with_each_charge_battery_wear_changes">Question: With each charge, the battery wear changes, then increases, then decreases\nAnswer: This is normal, since chemical processes occur in the battery\n\n</string>
-    <string name="faq_where_does_the_app_get_the_number_of_cycles_android">Question: Where does the application get the \"Number of Cycles (Android)\"?\nAnswer: The application gets data from the \"cycles_count\" kernel file at the path: /sys/class/power_supply/battery\n\n</string>
-    <string name="faq_not_displayed_number_of_cycles_android">Question: Not Displayed \"Number of Cycles (Android)\"\nAnswer: If \"Number of Cycles (Android)\" is not displayed, then it is not possible to read the file in which the number of charging cycles is recorded due to the fact that read access is closed\n\n</string>
+    <string name="faq_how_does_the_app_work" formatted="false">Question: How does the app work?\nAnswer: Residual capacity is calculated from the battery charge counter when charging reaches 100% with the \"Charged\" status (averaged across recent charges). Data is read via official Android BatteryManager APIs and supported kernel power_supply interfaces without requiring root access. Overall accuracy depends on the device fuel gauge and firmware.\n\n</string>
+    <string name="faq_capacity_added">Question: What is considered to be \"Capacity Added\"?\nAnswer: \"Capacity Added\" is the difference between the current capacity and the capacity recorded right before you connected the charger.\n\n</string>
+    <string name="faq_dual_cell_voltage" formatted="false">Question: Why does my battery show ~7.2V–8.9V, and why is the lightning icon green during fast charging?\nAnswer: Devices with Dual-Cell (2S series) batteries report total pack voltage around 7.2V–9.0V, which the app detects automatically (≥ 6000 mV = Dual-Cell) and normalizes per cell (3.60V–4.48V per cell during fast charging) before evaluating battery health status.\n\n</string>
+    <string name="faq_idle_drain" formatted="false">Question: How does \"Idle Drain\" calculate standby usage?\nAnswer: Idle Drain tracks battery percentage drop, estimated mAh consumed, and Deep Sleep vs. Awake time while the screen is off after unplugging the charger. For an accurate reading, leave the device idle on battery with the screen off for several minutes. Use the \"Battery Usage\" button to open Android\'s per-app power list if drain is high.\n\n</string>
+    <string name="faq_stress_impedance" formatted="false">Question: What is the \"Stress &amp; Impedance\" tab and the \"Pulse Test (2s)\"?\nAnswer: This lab estimates C-Rate load, Voltage Sag, internal resistance (Rint per cell), and a 3-vector electrochemical Stress Score (Thermal, Cathode Voltage, and Current). Tap \"Pulse Test (2s)\" while unplugged to apply a brief controlled CPU load and calibrate Rint directly from ΔV/ΔI.\n\n</string>
+    <string name="faq_where_does_the_app_get_the_ccl">Question: Where does the application get the \"Charging Current Limit\"?\nAnswer: The application reads \"Charging Current Limit\" from the kernel node \"constant_charge_current_max\" under /sys/class/power_supply/battery.\n\n</string>
+    <string name="faq_why_is_ccl_not_displayed">Question: Why is \"Charging Current Limit\" not displayed?\nAnswer: Not all kernels expose or allow read access to \"constant_charge_current_max\". When restricted or absent, this field is hidden.\n\n</string>
+    <string name="faq_i_have_everything_in_zeros" formatted="false">Question: I have everything (or almost everything) in zeros. Why?\nAnswer: Some manufacturers omit or restrict fuel-gauge telemetry sensors, causing the Android API and kernel to report 0.\n\n</string>
+    <string name="faq_units">Question: Very large or small numbers appear for capacity, current, or voltage.\nAnswer: Open Settings, expand \"More\" inside the \"Misc\" section, and adjust the measurement units (μA/mA, μAh/mAh, mV/V) or enable Wh/Watt display.\n\n</string>
+    <string name="faq_available_capacity">Question: Available capacity stopped showing or appears intermittently.\nAnswer: This can indicate fuel-gauge instability, firmware bugs, or an aging battery controller.\n\n</string>
+    <string name="faq_residual_capacity_is_higher" formatted="false">Question: Residual capacity is higher than design capacity.\nAnswer: New batteries occasionally exceed nominal design capacity by a few percent. On older batteries, calibrate by discharging to 10% or lower and charging uninterrupted to 100% (\"Charged\"). Also verify that \"Design Capacity\" in Settings matches your device.\n\n</string>
+    <string name="faq_battery_wear_changes_when_charger_is_disconnected">Question: Battery wear changes when the charger is disconnected.\nAnswer: When the charger is unplugged and current settles, the fuel gauge sometimes updates its reading slightly, resulting in a truer residual capacity measurement.\n\n</string>
+    <string name="faq_battery_wear_not_change" formatted="false">Question: Battery wear does not change even after months.\nAnswer: Wear only updates after qualifying calibration charges. Once every 1–2 months, discharge below 10% and charge fully to 100% until status shows \"Charged\" while the monitoring service is active.\n\n</string>
+    <string name="faq_with_each_charge_battery_wear_changes">Question: Battery wear fluctuates slightly with each charge.\nAnswer: This is normal due to temperature differences and ongoing chemical equilibrium inside lithium cells.\n\n</string>
+    <string name="faq_where_does_the_app_get_the_number_of_cycles_android">Question: Where does the app get \"Number of Cycles (Android)\"?\nAnswer: On Android 14+, the app first checks the system API (BatteryManager.EXTRA_CYCLE_COUNT), and falls back to supported kernel sysfs cycle nodes (such as /sys/class/power_supply/battery/cycle_count or bms/cycle_count).\n\n</string>
+    <string name="faq_not_displayed_number_of_cycles_android">Question: Why is \"Number of Cycles (Android)\" not displayed?\nAnswer: If neither the Android system API provides a positive cycle count nor any kernel cycle file is readable by normal apps, the field is omitted.\n\n</string>
     <string name="tips_menu">Tips</string>
     <string name="tips_dialog_title">Tips for extending battery life</string>
-    <string name="tip1">Tip #1: Try not to discharge the battery below 10%.\n\n</string>
-    <string name="tip2">Tip #2: Do not overcool (0°C/32°F and below) and do not overheat the battery (40+°C/104+°F). Overcooling and overheating negatively affect battery life.\n\n</string>
-    <string name="tip3">Tip #3: Avoid holding a fully charged battery for a long time. The longer you keep a fully charged battery on charge, the more often the battery recharges, and each recharge reduces the number of cycles.\n\n</string>
-    <string name="tip4">Tip #4: Try not to use the device when fully charged while the charger is connected. If you use the device with a fully charged battery when the charger is connected, then 2 things happen - heating, which negatively affects the battery life and frequent recharging, which reduces the number of cycles.</string>
+    <string name="tip1" formatted="false">Tip #1: Avoid deep discharges below 10–15%. Frequent shallow cycles (roughly 20%–80%) keep cell degradation much lower.\n\n</string>
+    <string name="tip2">Tip #2: Avoid extreme temperatures (below 0°C/32°F or above 40°C/104°F). High heat, especially combined with high charge voltage, rapidly accelerates cathode/SEI wear.\n\n</string>
+    <string name="tip3">Tip #3: Do not leave the device plugged in at 100% for extended periods. Prolonged high voltage and repeated top-up micro-charges reduce cycle longevity.\n\n</string>
+    <string name="tip4">Tip #4: Avoid heavy gaming or intensive workloads while fast charging. Combined Joule heating (I²R) and SoC heat significantly increase cell thermal stress.\n\n</string>
+    <string name="tip5">Tip #5: Check \"Idle Drain\" and \"Stress &amp; Impedance\" under Tools periodically. High standby drain (&gt; 1.5%/h) points to background wakelocks, and keeping Stress Score in the optimal zone extends battery lifespan.</string>
     <string name="developer">Developer</string>
     <string name="version">Version</string>
     <string name="build">Build</string>
     <string name="build_date">Build Date (GMT+7)</string>
-    <string name="experiment">Stress &amp; Impedance</string>
+    <string name="stress_impedance_tab">Stress &amp; Impedance</string>
     <string name="battery_status_information">Battery Status Information</string>
     <string name="battery_is_discharged_voltage">Battery is Discharged (Voltage)</string>
     <string name="battery_is_discharged_notification_voltage">Battery is discharged. %1$d mV</string>
@@ -367,7 +369,7 @@
     <string name="change_design_capacity">Change Design Capacity</string>
     <string name="change">Change</string>
     <string name="battery_technology">Technology: %1$s</string>
-    <string name="instruction_message" formatted="false">1.In order for the application to show the residual capacity, discharge the battery to 10% or lower and put the device on charge, while the service must be turned on.\n2.For a more accurate display of the remaining capacity, charge the device fully until \"Status: Charged\" is displayed.\n3.If charging occurs after reaching 100%, then this is normal. Modern devices continue to charge for some time after reaching 100%.\n4.If the design capacity is incorrect, change it in the application settings.\n5.If the current capacity and/or charge/discharge current and/or voltage is not displayed correctly, then change the unit in the application settings.\n\n</string>
+    <string name="instruction_message" formatted="false">1. To calculate residual battery capacity and wear, keep the monitoring service enabled, discharge the battery to 10% or lower, and charge uninterrupted to 100% until status shows \"Charged\".\n2. Continued charging briefly after reaching 100% is normal on modern devices (CV saturation phase).\n3. Check that \"Design Capacity\" matches your battery specification under Settings → Misc → More.\n4. If capacity, current, or voltage units look too large or small, adjust them in Settings → Misc → More. Devices with Dual-Cell (2S) batteries (~7.2V–9.0V) are detected automatically.\n5. Use the Tools tab to monitor Idle Drain (screen-off standby drain &amp; Deep Sleep) and Stress &amp; Impedance (unplug charger before running the 2s Pulse Test calibration).\n\n</string>
     <string name="service">Service</string>
     <string name="service_time">Service Time</string>
     <string name="change_design_summary" translatable="false">%1$d mAh</string>
@@ -463,7 +465,8 @@
     <string name="idle_drain_recommendation_title">Smart Recommendation</string>
     <string name="idle_drain_charging_notice">Device is currently plugged in. Idle drain metrics are recorded while running on battery power.</string>
     <string name="idle_drain_reset">Reset Data</string>
-    <string name="idle_drain_refresh">Refresh</string>
+    <string name="idle_drain_battery_usage">Battery Usage</string>
+    <string name="idle_drain_battery_usage_error">Unable to open system battery usage settings.</string>
     <string name="idle_drain_status_excellent">Optimal</string>
     <string name="idle_drain_status_normal">Normal</string>
     <string name="idle_drain_status_high">High Drain</string>
@@ -503,8 +506,13 @@
     <string name="stress_vector_current">Current C-Rate (%1$sC · %2$d mA)</string>
     <string name="stress_diag_card_title">Electrochemical Diagnostics</string>
     <string name="stress_rec_title">Longevity Recommendation</string>
-    <string name="stress_btn_sample">Sample ΔV/ΔI</string>
-    <string name="stress_btn_reset">Reset Samples</string>
+    <string name="stress_btn_pulse">Pulse Test (2s)</string>
+    <string name="stress_btn_pulse_running">Testing…</string>
+    <string name="stress_btn_reset">Reset Calibration</string>
+    <string name="stress_pulse_unplug_required">Unplug the charger first so the load pulse draws directly from the battery cell instead of the adapter.</string>
+    <string name="stress_pulse_result_title">Active Impedance Test Result</string>
+    <string name="stress_pulse_result_success">Calibration complete!\n• Current Step (ΔI): %1$d mA\n• Voltage Sag (ΔV): %2$d mV/cell\n• Measured Impedance (Rint): ~%3$d mΩ/cell</string>
+    <string name="stress_pulse_result_low_delta">The fuel-gauge sensor reported too small a delta (ΔI: %1$d mA, ΔV: %2$d mV) during the 2-second pulse. Keeping electro-thermal estimation active.</string>
     <string name="stress_diag_low">Low electrochemical stress (%1$sC, Rint ~%2$d mΩ/cell). Cell operates inside the optimal longevity window with minimal internal heat dissipation (%3$s mW).</string>
     <string name="stress_rec_low">Maintaining battery between 20–80%% at temperatures under 35°C minimizes SEI layer growth and cathode oxidation.</string>
     <string name="stress_diag_moderate">Moderate cell load (%1$sC, Rint ~%2$d mΩ/cell, sag ~%3$d mV). Chemical aging rate is currently %4$sx relative to baseline.</string>

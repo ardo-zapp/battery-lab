@@ -1,7 +1,6 @@
 package com.jacktor.batterylab.interfaces.views
 
 
-import android.os.Build
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.jacktor.batterylab.MainActivity
 import com.jacktor.batterylab.R
@@ -46,127 +45,8 @@ interface MenuInterface {
             }
 
             is ToolsFragment -> {
-                when (position) {
-                    0 -> {
-                        clearMenu()
-                        defaultMenu()
-                    }
-
-                    /*1 -> {
-                        clearMenu()
-                        toolbar.inflateMenu(R.menu.kernel_menu)
-
-                        toolbar.menu.findItem(R.id.show_command).apply {
-                            setOnMenuItemClickListener {
-                                val binding = ShowScriptDialogBinding.inflate(
-                                    LayoutInflater.from(this@inflateMenu), null, false
-                                )
-
-                                val dialog = MaterialAlertDialogBuilder(this@inflateMenu)
-                                val clipboard =
-                                    this@inflateMenu.getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager?
-
-                                binding.script.setText(getKernelFromFile(this@inflateMenu))
-                                binding.resetScript.text =
-                                    this@inflateMenu.getString(R.string.reset_script).uppercase()
-
-                                //Dialog
-                                dialog.setView(binding.root.rootView)
-                                dialog.apply {
-                                    setIcon(
-                                        AppCompatResources.getDrawable(
-                                            this@inflateMenu, R.drawable.ic_script_24dp
-                                        )
-                                    )
-                                    setTitle(getString(R.string.bash_script).uppercase())
-                                    setCancelable(false)
-                                    setNegativeButton(getString(R.string.copy_txt).uppercase()) { dialogBtn, _ ->
-                                        clipboard!!.setPrimaryClip(
-                                            ClipData.newPlainText(
-                                                SCRIPT_FILE_NAME, binding.script.text
-                                            )
-                                        )
-                                        dialogBtn.cancel()
-                                    }
-                                    setPositiveButton(getString(R.string.close).uppercase()) { dialogBtn, _ ->
-                                        dialogBtn.cancel()
-                                    }
-                                    setNeutralButton(getString(R.string.execute).uppercase()) { dialogBtn, _ ->
-                                        if (RootChecker().isDeviceRooted()) executeShellFile(
-                                            this@inflateMenu
-                                        )
-                                        dialogBtn.cancel()
-                                    }
-                                    show()
-                                }
-
-                                //Check root
-                                if (!RootChecker().isDeviceRooted()) {
-                                    binding.resetScript.isEnabled = false
-                                    binding.enableScript.isEnabled = false
-                                }
-
-                                // Reset script button
-                                binding.resetScript.setOnClickListener {
-                                    MaterialAlertDialogBuilder(this@inflateMenu).apply {
-                                        setIcon(
-                                            AppCompatResources.getDrawable(
-                                                this@inflateMenu,
-                                                R.drawable.ic_reset_all_settings_24dp
-                                            )
-                                        )
-                                        setTitle(getString(R.string.reset_script))
-                                        setMessage(getString(R.string.reset_script_dialog))
-                                        setPositiveButton(R.string.cancel) { d, _ -> d.dismiss() }
-                                        setNegativeButton(R.string.yes_continue) { dialogBtn, _ ->
-                                            resetScript(this@inflateMenu)
-                                            binding.script.setText(getKernelFromFile(this@inflateMenu))
-
-                                            // Pastikan kernelInformation dijalankan dalam coroutine
-                                            CoroutineScope(Dispatchers.Main).launch {
-                                                KernelFragment.instance?.kernelInformation()
-                                            }
-
-                                            dialogBtn.cancel()
-                                        }
-                                        show()
-                                    }
-                                }
-
-
-                                //Switch autostart script
-                                binding.enableScript.isChecked = Prefs(this@inflateMenu).getBoolean(
-                                    EXECUTE_SCRIPT_ON_BOOT, resources.getBoolean(
-                                        R.bool
-                                            .execute_script_on_boot
-                                    )
-                                )
-
-                                binding.enableScript.setOnCheckedChangeListener { _, isChecked ->
-                                    Prefs(this@inflateMenu).setBoolean(
-                                        EXECUTE_SCRIPT_ON_BOOT,
-                                        isChecked
-                                    )
-
-                                    if (isChecked) {
-                                        Toast.makeText(
-                                            this@inflateMenu,
-                                            getString(R.string.enable_execute_script_on_boot),
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                    } else {
-                                        Toast.makeText(
-                                            this@inflateMenu,
-                                            getString(R.string.disable_execute_script_on_boot),
-                                            Toast.LENGTH_SHORT
-                                        ).show()
-                                    }
-                                }
-                                true
-                            }
-                        }
-                    }*/
-                }
+                clearMenu()
+                defaultMenu()
             }
 
             else -> defaultMenu()
@@ -177,8 +57,7 @@ interface MenuInterface {
         toolbar.inflateMenu(R.menu.main_menu)
 
         toolbar.menu.findItem(R.id.instruction).apply {
-            isVisible = getAvailableCapacity(this@defaultMenu) > 0.0 &&
-                    (fragment is BatteryInfoFragment /*|| fragment is KernelFragment*/)
+            isVisible = fragment is BatteryInfoFragment || fragment is ToolsFragment
             setOnMenuItemClickListener {
                 showInstruction()
                 true
@@ -195,8 +74,11 @@ interface MenuInterface {
                 setIcon(R.drawable.ic_tips_for_extending_battery_life_24dp)
                 setTitle(getString(R.string.tips_dialog_title))
                 setMessage(
-                    getString(R.string.tip1) + getString(R.string.tip2) +
-                            getString(R.string.tip3) + getString(R.string.tip4)
+                    getString(R.string.tip1) +
+                        getString(R.string.tip2) +
+                        getString(R.string.tip3) +
+                        getString(R.string.tip4) +
+                        getString(R.string.tip5)
                 )
                 setPositiveButton(android.R.string.ok) { dialog, _ -> dialog.dismiss() }
                 show()
@@ -220,7 +102,6 @@ interface MenuInterface {
             setTitle(getString(R.string.instruction))
             setMessage(
                 getString(R.string.instruction_message) +
-                        getString(R.string.instruction_message_enable_fast_charge_option) +
                         getString(R.string.instruction_message_do_not_kill_the_service) +
                         getString(
                             R.string.instruction_message_dont_kill_my_app
@@ -240,25 +121,23 @@ interface MenuInterface {
             showFaqDialog = MaterialAlertDialogBuilder(this).apply {
                 setIcon(R.drawable.ic_faq_question_24dp)
                 setTitle(getString(R.string.faq))
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE) setMessage(
-                    getString(R.string.faq_how_does_the_app_work) + getString(R.string.faq_capacity_added) + getString(
-                        R.string.faq_where_does_the_app_get_the_ccl
-                    ) + getString(R.string.faq_why_is_ccl_not_displayed) + getString(R.string.faq_i_have_everything_in_zeros) + getString(
-                        R.string.faq_units
-                    ) + getString(R.string.faq_available_capacity) + getString(R.string.faq_residual_capacity_is_higher) + getString(
-                        R.string.faq_battery_wear_changes_when_charger_is_disconnected
-                    ) + getString(R.string.faq_battery_wear_not_change) + getString(R.string.faq_with_each_charge_battery_wear_changes)
-                )
-                else setMessage(
-                    getString(R.string.faq_how_does_the_app_work) + getString(R.string.faq_capacity_added) + getString(
-                        R.string.faq_where_does_the_app_get_the_ccl
-                    ) + getString(R.string.faq_why_is_ccl_not_displayed) + getString(R.string.faq_i_have_everything_in_zeros) + getString(
-                        R.string.faq_units
-                    ) + getString(R.string.faq_available_capacity) + getString(R.string.faq_residual_capacity_is_higher) + getString(
-                        R.string.faq_battery_wear_changes_when_charger_is_disconnected
-                    ) + getString(R.string.faq_battery_wear_not_change) + getString(R.string.faq_with_each_charge_battery_wear_changes) + getString(
-                        R.string.faq_where_does_the_app_get_the_number_of_cycles_android
-                    ) + getString(R.string.faq_not_displayed_number_of_cycles_android)
+                setMessage(
+                    getString(R.string.faq_how_does_the_app_work) +
+                        getString(R.string.faq_capacity_added) +
+                        getString(R.string.faq_dual_cell_voltage) +
+                        getString(R.string.faq_idle_drain) +
+                        getString(R.string.faq_stress_impedance) +
+                        getString(R.string.faq_where_does_the_app_get_the_ccl) +
+                        getString(R.string.faq_why_is_ccl_not_displayed) +
+                        getString(R.string.faq_i_have_everything_in_zeros) +
+                        getString(R.string.faq_units) +
+                        getString(R.string.faq_available_capacity) +
+                        getString(R.string.faq_residual_capacity_is_higher) +
+                        getString(R.string.faq_battery_wear_changes_when_charger_is_disconnected) +
+                        getString(R.string.faq_battery_wear_not_change) +
+                        getString(R.string.faq_with_each_charge_battery_wear_changes) +
+                        getString(R.string.faq_where_does_the_app_get_the_number_of_cycles_android) +
+                        getString(R.string.faq_not_displayed_number_of_cycles_android)
                 )
                 setPositiveButton(android.R.string.ok) { _, _ ->
                     showFaqDialog = null

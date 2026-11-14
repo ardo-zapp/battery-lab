@@ -34,7 +34,6 @@ object PreferencesKeys {
     const val TEXT_STYLE = "text_style"
 
     // Misc
-    const val FAST_CHARGE_SETTING = "is_fast_charge_setting"
     const val CAPACITY_IN_WH = "capacity_in_wh"
     const val CHARGING_DISCHARGE_CURRENT_IN_WATT = "charging_discharge_current_in_watt"
     const val RESET_SCREEN_TIME_AT_ANY_CHARGE_LEVEL = "reset_screen_time_at_any_charge_level"
@@ -151,4 +150,7 @@ object PreferencesKeys {
     const val IDLE_DRAIN_ACTIVE_SCREEN_DURATION_MS = "idle_drain_active_screen_duration_ms"
     const val IDLE_DRAIN_ACTIVE_SCREEN_PERCENT = "idle_drain_active_screen_percent"
     const val IDLE_DRAIN_ACTIVE_SCREEN_MAH = "idle_drain_active_screen_mah"
+
+    // Stress & Impedance Analyzer
+    const val STRESS_CALIBRATED_RINT_MOHM = "stress_calibrated_rint_mohm"
 }

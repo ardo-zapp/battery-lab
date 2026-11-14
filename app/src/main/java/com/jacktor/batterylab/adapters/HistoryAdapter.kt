@@ -22,7 +22,6 @@ import java.text.DecimalFormat
 class HistoryAdapter(private var historyList: MutableList<History>) :
     RecyclerView.Adapter<HistoryViewHolder>(), BatteryInfoInterface {
 
-    private lateinit var binding: HistoryRecyclerListItemBinding
     private lateinit var pref: SharedPreferences
 
     companion object {
@@ -33,23 +32,22 @@ class HistoryAdapter(private var historyList: MutableList<History>) :
     override fun getItemCount() = historyList.size
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): HistoryViewHolder {
-
         instance = this
 
-        binding = HistoryRecyclerListItemBinding.inflate(
+        val itemBinding = HistoryRecyclerListItemBinding.inflate(
             LayoutInflater.from(parent.context),
             parent, false
         )
 
         pref = PreferenceManager.getDefaultSharedPreferences(parent.context)
 
-        return HistoryViewHolder(binding.root.rootView)
+        return HistoryViewHolder(itemBinding)
     }
 
     override fun onBindViewHolder(holderHistory: HistoryViewHolder, position: Int) {
         updateTextAppearance(holderHistory)
 
-        binding.apply {
+        holderHistory.binding.apply {
             val historyItem = historyList[itemCount - 1 - position]
             historyDate.text = historyItem.date
             historyResidualCapacity.text = getResidualCapacity(
@@ -66,11 +64,12 @@ class HistoryAdapter(private var historyList: MutableList<History>) :
     fun getHistoryList() = historyList
 
     private fun updateTextAppearance(holderHistory: HistoryViewHolder) {
+        val itemBinding = holderHistory.binding
         TextAppearanceHelper.setTextAppearanceArray(
             holderHistory.itemView.context,
             arrayListOf(
-                binding.historyDate, binding.historyResidualCapacity,
-                binding.historyBatteryWear
+                itemBinding.historyDate, itemBinding.historyResidualCapacity,
+                itemBinding.historyBatteryWear
             ),
             pref.getString(PreferencesKeys.TEXT_STYLE, "0"),
             pref.getString(PreferencesKeys.TEXT_FONT, "6"),

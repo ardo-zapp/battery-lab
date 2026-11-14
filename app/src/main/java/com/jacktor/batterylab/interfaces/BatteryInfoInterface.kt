@@ -7,9 +7,11 @@ import android.content.IntentFilter
 import android.os.BatteryManager
 import android.os.Build
 import android.os.PowerManager
+import android.os.SystemClock
 import androidx.preference.PreferenceManager
 import com.jacktor.batterylab.MainApp.Companion.batteryIntent
 import com.jacktor.batterylab.R
+import com.jacktor.batterylab.helpers.BatteryLevelHelper
 import com.jacktor.batterylab.helpers.TimeHelper
 import com.jacktor.batterylab.utilities.Constants.CHARGING_VOLTAGE_WATT
 import com.jacktor.batterylab.utilities.Constants.NOMINAL_BATTERY_VOLTAGE
@@ -72,6 +74,9 @@ interface BatteryInfoInterface {
         var peakChargeWatt = 0.0
         var peakChargeCurrentmA = 0
         var peakVoltageV = 0.0
+        var isAutoFastChargeDetected = false
+        private var lastChargeStatSampleMs = 0L
+        private var lastDischargeStatSampleMs = 0L
 
         object Smooth {
             private const val DEFAULT_ALPHA = 0.2
@@ -122,6 +127,8 @@ interface BatteryInfoInterface {
             chargeSampleCount = 0
             runningChargeSum = 0.0
             Smooth.emaChargeCurrentMa = 0.0
+            isAutoFastChargeDetected = false
+            lastChargeStatSampleMs = 0L
             resetPeakChargingPower()
             TimeEstimator.reset()
         }
@@ -134,6 +141,7 @@ interface BatteryInfoInterface {
             dischargeSampleCount = 0
             runningDischargeSum = 0.0
             Smooth.emaDischargeCurrentMa = 0.0
+            lastDischargeStatSampleMs = 0L
             TimeEstimator.reset()
         }
 
@@ -226,21 +234,25 @@ interface BatteryInfoInterface {
         } else 0
     }
 
+    fun readRawInstantCurrentMa(context: Context): Double {
+        val pref = PreferenceManager.getDefaultSharedPreferences(context)
+        val bm = context.getSystemService(Context.BATTERY_SERVICE) as BatteryManager
+        var raw = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW) // µA or mA
+        if (raw == 0 || raw == Int.MIN_VALUE) {
+            raw = readCurrentNowFromKernel() ?: 0
+        }
+
+        val isUnitMicroAmp = pref.getString(UNIT_OF_CHARGE_DISCHARGE_CURRENT, "μA") == "μA"
+        return when {
+            abs(raw) > 50_000 -> abs(raw) / 1000.0 // definitely in µA
+            isUnitMicroAmp -> abs(raw) / 1000.0
+            else -> abs(raw).toDouble()
+        }
+    }
+
     fun getChargeDischargeCurrent(context: Context): Int {
         return try {
-            val pref = PreferenceManager.getDefaultSharedPreferences(context)
-            val bm = context.getSystemService(Context.BATTERY_SERVICE) as BatteryManager
-            var raw = bm.getIntProperty(BatteryManager.BATTERY_PROPERTY_CURRENT_NOW) // µA or mA
-            if (raw == 0 || raw == Int.MIN_VALUE) {
-                raw = readCurrentNowFromKernel() ?: 0
-            }
-
-            val isUnitMicroAmp = pref.getString(UNIT_OF_CHARGE_DISCHARGE_CURRENT, "μA") == "μA"
-            var currentMa = when {
-                abs(raw) > 50_000 -> abs(raw) / 1000.0 // definitely in µA
-                isUnitMicroAmp -> abs(raw) / 1000.0
-                else -> abs(raw).toDouble()
-            }
+            var currentMa = readRawInstantCurrentMa(context)
 
             batteryIntent = batteryIntent ?: context.registerReceiver(
                 null,
@@ -254,23 +266,43 @@ interface BatteryInfoInterface {
             val v = readBatteryVoltageVolts(context)?.also { lastMeasuredVoltageV = it }
                 ?: if (lastMeasuredVoltageV > 0) lastMeasuredVoltageV else (if (status == BatteryManager.BATTERY_STATUS_CHARGING) CHARGING_VOLTAGE_WATT else NOMINAL_BATTERY_VOLTAGE)
 
+            val nowMs = SystemClock.elapsedRealtime()
             when (status) {
                 BatteryManager.BATTERY_STATUS_CHARGING -> {
-                    currentMa = Smooth.update(Smooth.emaChargeCurrentMa, currentMa).also {
-                        Smooth.emaChargeCurrentMa = it
+                    val shouldUpdateSample =
+                        Smooth.emaChargeCurrentMa == 0.0 || (nowMs - lastChargeStatSampleMs >= 450L)
+                    if (shouldUpdateSample) {
+                        lastChargeStatSampleMs = nowMs
+                        currentMa = Smooth.update(Smooth.emaChargeCurrentMa, currentMa).also {
+                            Smooth.emaChargeCurrentMa = it
+                        }
+                        val w = (currentMa * v) / 1000.0
+                        if (w.isFinite() && w > peakChargeWatt) {
+                            peakChargeWatt = w
+                            peakChargeCurrentmA = currentMa.toInt()
+                            peakVoltageV = v
+                        }
+                        val result = currentMa.toInt().coerceAtLeast(0)
+                        getMaxAverageMinChargeDischargeCurrent(status, result)
+                        updateAutoFastChargeState(context)
+                        return result
                     }
-                    val w = (currentMa * v) / 1000.0
-                    if (w.isFinite() && w > peakChargeWatt) {
-                        peakChargeWatt = w
-                        peakChargeCurrentmA = currentMa.toInt()
-                        peakVoltageV = v
-                    }
+                    return Smooth.emaChargeCurrentMa.toInt().coerceAtLeast(0)
                 }
 
                 BatteryManager.BATTERY_STATUS_DISCHARGING -> {
-                    currentMa = Smooth.update(Smooth.emaDischargeCurrentMa, currentMa).also {
-                        Smooth.emaDischargeCurrentMa = it
+                    val shouldUpdateSample =
+                        Smooth.emaDischargeCurrentMa == 0.0 || (nowMs - lastDischargeStatSampleMs >= 450L)
+                    if (shouldUpdateSample) {
+                        lastDischargeStatSampleMs = nowMs
+                        currentMa = Smooth.update(Smooth.emaDischargeCurrentMa, currentMa).also {
+                            Smooth.emaDischargeCurrentMa = it
+                        }
+                        val result = currentMa.toInt().coerceAtLeast(0)
+                        getMaxAverageMinChargeDischargeCurrent(status, result)
+                        return result
                     }
+                    return Smooth.emaDischargeCurrentMa.toInt().coerceAtLeast(0)
                 }
             }
 
@@ -308,7 +340,7 @@ interface BatteryInfoInterface {
         chargeDischargeCurrent: Int,
         isCharging: Boolean = false
     ): Double {
-        val voltage = if (lastMeasuredVoltageV in 2.5..5.5) lastMeasuredVoltageV
+        val voltage = if (lastMeasuredVoltageV in 2.5..10.0) lastMeasuredVoltageV
         else (if (isCharging) CHARGING_VOLTAGE_WATT else NOMINAL_BATTERY_VOLTAGE)
 
         return (chargeDischargeCurrent.toDouble() * voltage) / 1000.0
@@ -333,31 +365,106 @@ interface BatteryInfoInterface {
         else context.getString(R.string.fast_charge_no_overlay_only_values)
     }
 
-    private fun isFastCharge(context: Context) =
-        maxChargeCurrent >= context.resources.getInteger(R.integer.fast_charge_min)
+    fun updateAutoFastChargeState(context: Context): Boolean {
+        val bi = try {
+            context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+        } catch (_: Throwable) {
+            batteryIntent
+        } ?: batteryIntent
+
+        val status = bi?.getIntExtra(
+            BatteryManager.EXTRA_STATUS,
+            BatteryManager.BATTERY_STATUS_UNKNOWN
+        ) ?: BatteryManager.BATTERY_STATUS_UNKNOWN
+        val plugged = bi?.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0) ?: 0
+
+        if (plugged <= 0 ||
+            (status != BatteryManager.BATTERY_STATUS_CHARGING &&
+                status != BatteryManager.BATTERY_STATUS_FULL)
+        ) {
+            isAutoFastChargeDetected = false
+            return false
+        }
+
+        if (isAutoFastChargeDetected) return true
+
+        val liveCurrentMa = if (Smooth.emaChargeCurrentMa > 0.0) Smooth.emaChargeCurrentMa
+        else readRawInstantCurrentMa(context)
+
+        val voltageV = readBatteryVoltageVolts(context)?.also { lastMeasuredVoltageV = it }
+            ?: if (lastMeasuredVoltageV > 0.0) lastMeasuredVoltageV else CHARGING_VOLTAGE_WATT
+        val liveWatt = (liveCurrentMa * voltageV) / 1000.0
+        val fastChargeMinMa = context.resources.getInteger(R.integer.fast_charge_min)
+
+        val byPower = liveWatt >= 12.0 || peakChargeWatt >= 12.0
+        val byCurrent = maxChargeCurrent >= fastChargeMinMa || liveCurrentMa >= fastChargeMinMa
+        val byHardware = isFastProtocolReportedByKernel() &&
+            (liveWatt >= 8.0 || liveCurrentMa >= 1500.0)
+
+        if (byPower || byCurrent || byHardware) {
+            isAutoFastChargeDetected = true
+        }
+        return isAutoFastChargeDetected
+    }
+
+    private fun isFastProtocolReportedByKernel(): Boolean {
+        val paths = listOf(
+            "/sys/class/power_supply/battery/charge_type",
+            "/sys/class/power_supply/usb/real_type",
+            "/sys/class/power_supply/usb/type"
+        )
+        for (path in paths) {
+            try {
+                val f = File(path)
+                if (!f.exists() || !f.canRead()) continue
+                val value = f.bufferedReader().use { it.readLine() }?.trim()?.lowercase() ?: continue
+                if (value.contains("fast") ||
+                    value.contains("adaptive") ||
+                    value.contains("quick") ||
+                    value.contains("turbo") ||
+                    value.contains("vooc") ||
+                    value.contains("dash") ||
+                    value.contains("warp") ||
+                    value.contains("flash") ||
+                    value.contains("super") ||
+                    value.contains("pd")
+                ) {
+                    return true
+                }
+            } catch (_: Throwable) {
+            }
+        }
+        return false
+    }
+
+    private fun isFastCharge(context: Context): Boolean = updateAutoFastChargeState(context)
 
     fun isTurboCharge(context: Context): Boolean {
         val pref = PreferenceManager.getDefaultSharedPreferences(context)
-        return maxChargeCurrent >= pref.getInt(
+        val minTurboCurrent = pref.getInt(
             DESIGN_CAPACITY, context.resources.getInteger(R.integer.min_design_capacity) - 250
         )
+        return maxChargeCurrent >= minTurboCurrent || peakChargeWatt >= 25.0
     }
 
     private fun getFastChargeWatt(context: Context): String {
         val samplemA = runCatching {
-            val now = getChargeDischargeCurrent(context)
-            if (now > 0) now else (if (averageChargeCurrent > 0) averageChargeCurrent else maxChargeCurrent)
-        }.getOrDefault(if (averageChargeCurrent > 0) averageChargeCurrent else maxChargeCurrent)
-            .toDouble()
-            .coerceAtLeast(0.0)
-
-        val emaMa = if (Smooth.emaChargeCurrentMa > 0) Smooth.emaChargeCurrentMa else samplemA
-        Smooth.emaChargeCurrentMa = Smooth.update(Smooth.emaChargeCurrentMa, samplemA, EMA_ALPHA)
+            val rawNow = readRawInstantCurrentMa(context)
+            when {
+                Smooth.emaChargeCurrentMa > 0.0 -> Smooth.emaChargeCurrentMa
+                rawNow > 0.0 -> rawNow
+                averageChargeCurrent > 0 -> averageChargeCurrent.toDouble()
+                else -> maxChargeCurrent.toDouble()
+            }
+        }.getOrDefault(
+            if (averageChargeCurrent > 0) averageChargeCurrent.toDouble()
+            else maxChargeCurrent.toDouble()
+        ).coerceAtLeast(0.0)
 
         val voltageV = readBatteryVoltageVolts(context)?.also { lastMeasuredVoltageV = it }
             ?: if (lastMeasuredVoltageV > 0) lastMeasuredVoltageV else CHARGING_VOLTAGE_WATT
 
-        val watt = (emaMa * voltageV) / 1000.0
+        val watt = (samplemA * voltageV) / 1000.0
         return DecimalFormat("#.#").format(if (watt.isFinite()) watt else 0.0)
     }
 
@@ -1183,11 +1290,6 @@ interface BatteryInfoInterface {
     }
 
     fun getTimeTintRes(level: Int, isCharging: Boolean, isFull: Boolean = false): Int {
-        return when {
-            isFull -> R.color.battery_info_level_normal
-            isCharging -> R.color.battery_info_level_charging
-            level <= 20 -> R.color.battery_info_level_low
-            else -> R.color.battery_info_level_normal
-        }
+        return BatteryLevelHelper.batteryLevelTintRes(level, isCharging, isFull)
     }
 }

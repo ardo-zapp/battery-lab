@@ -71,21 +71,20 @@ interface BackupSettingsInterface {
                 }
 
                 val fileInputStream = FileInputStream(prefPath)
-                val buffer = byteArrayOf((1024 * 8).toByte())
+                val buffer = ByteArray(1024 * 8)
                 var read: Int
 
-                while (true) {
-
-                    read = fileInputStream.read(buffer)
-
-                    if (read != -1)
-                        outputStream?.write(buffer, 0, read)
-                    else break
+                fileInputStream.use { input ->
+                    outputStream.use { output ->
+                        while (true) {
+                            read = input.read(buffer)
+                            if (read != -1)
+                                output?.write(buffer, 0, read)
+                            else break
+                        }
+                        output?.flush()
+                    }
                 }
-
-                fileInputStream.close()
-                outputStream?.flush()
-                outputStream?.close()
 
                 withContext(Dispatchers.Main) {
 
@@ -157,6 +156,7 @@ interface BackupSettingsInterface {
                 }
 
                 delay(2.seconds)
+                File(prefPath).parentFile?.mkdirs()
                 if (File(prefPath).exists()) File(prefPath).delete()
 
                 File(prefPath).createNewFile()
@@ -166,21 +166,20 @@ interface BackupSettingsInterface {
                     requireContext().contentResolver?.openInputStream(it)
                 }
 
-                val buffer = byteArrayOf((1024 * 8).toByte())
+                val buffer = ByteArray(1024 * 8)
                 var read: Int
 
-                while (true) {
-
-                    read = inputStream?.read(buffer) ?: -1
-
-                    if (read != -1)
-                        fileOutputStream.write(buffer, 0, read)
-                    else break
+                inputStream.use { input ->
+                    fileOutputStream.use { output ->
+                        while (true) {
+                            read = input?.read(buffer) ?: -1
+                            if (read != -1)
+                                output.write(buffer, 0, read)
+                            else break
+                        }
+                        output.flush()
+                    }
                 }
-
-                inputStream?.close()
-                fileOutputStream.flush()
-                fileOutputStream.close()
 
                 withContext(Dispatchers.Main) {
 
@@ -233,21 +232,20 @@ interface BackupSettingsInterface {
                 }
 
                 val fileInputStream = FileInputStream(dbPath)
-                val buffer = byteArrayOf((1024 * 8).toByte())
+                val buffer = ByteArray(1024 * 8)
                 var read: Int
 
-                while (true) {
-
-                    read = fileInputStream.read(buffer)
-
-                    if (read != -1)
-                        outputStream?.write(buffer, 0, read)
-                    else break
+                fileInputStream.use { input ->
+                    outputStream.use { output ->
+                        while (true) {
+                            read = input.read(buffer)
+                            if (read != -1)
+                                output?.write(buffer, 0, read)
+                            else break
+                        }
+                        output?.flush()
+                    }
                 }
-
-                fileInputStream.close()
-                outputStream?.flush()
-                outputStream?.close()
 
                 withContext(Dispatchers.Main) {
 
@@ -290,8 +288,11 @@ interface BackupSettingsInterface {
                 MainActivity.isOnBackPressed = false
 
                 delay(1.seconds)
-                File(dbPath).deleteOnExit()
-                File("$dbPath-journal").deleteOnExit()
+                File(dbPath).parentFile?.mkdirs()
+                File(dbPath).delete()
+                File("$dbPath-journal").delete()
+                File("$dbPath-wal").delete()
+                File("$dbPath-shm").delete()
 
                 File(dbPath).createNewFile()
 
@@ -300,21 +301,20 @@ interface BackupSettingsInterface {
                     requireContext().contentResolver?.openInputStream(it)
                 }
 
-                val buffer = byteArrayOf((1024 * 8).toByte())
+                val buffer = ByteArray(1024 * 8)
                 var read: Int
 
-                while (true) {
-
-                    read = inputStream?.read(buffer) ?: -1
-
-                    if (read != -1)
-                        fileOutputStream.write(buffer, 0, read)
-                    else break
+                inputStream.use { input ->
+                    fileOutputStream.use { output ->
+                        while (true) {
+                            read = input?.read(buffer) ?: -1
+                            if (read != -1)
+                                output.write(buffer, 0, read)
+                            else break
+                        }
+                        output.flush()
+                    }
                 }
-
-                inputStream?.close()
-                fileOutputStream.flush()
-                fileOutputStream.close()
 
                 MainActivity.isOnBackPressed = true
 

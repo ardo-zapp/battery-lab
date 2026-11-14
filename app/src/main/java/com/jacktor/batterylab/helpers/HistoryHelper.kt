@@ -28,6 +28,8 @@ object HistoryHelper {
     }
     fun remove(context: Context, residualCapacity: Int) = HistoryDB(context).remove(residualCapacity)
 
+    fun removeById(context: Context, id: Int) = HistoryDB(context).removeById(id)
+
     fun clearHistory(context: Context) = HistoryDB(context).clear()
 
     fun getHistoryCount(context: Context) = HistoryDB(context).getCount()

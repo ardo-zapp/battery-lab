@@ -29,4 +29,14 @@ object BatteryLevelHelper {
             else -> R.drawable.ic_discharge_navigation_full_24dp
         }
     }
+
+    /** Returns the level tint color resource; 20% stays green and only < 20% turns low/red. */
+    fun batteryLevelTintRes(level: Int, isCharging: Boolean, isFull: Boolean = false): Int {
+        return when {
+            isFull -> R.color.battery_info_level_normal
+            isCharging -> R.color.battery_info_level_charging
+            level < 20 -> R.color.battery_info_level_low
+            else -> R.color.battery_info_level_normal
+        }
+    }
 }

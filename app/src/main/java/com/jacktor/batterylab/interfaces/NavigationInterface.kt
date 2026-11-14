@@ -169,8 +169,26 @@ interface NavigationInterface : BatteryInfoInterface {
     }
 
     fun MainActivity.loadFragment(fragment: Fragment, isAddToBackStack: Boolean = false) {
+        val hasExistingFragment =
+            supportFragmentManager.findFragmentById(R.id.fragment_container) != null
 
         supportFragmentManager.beginTransaction().apply {
+            setReorderingAllowed(true)
+            if (hasExistingFragment) {
+                if (isAddToBackStack) {
+                    setCustomAnimations(
+                        R.anim.nav_slide_enter_right,
+                        R.anim.nav_slide_exit_left,
+                        R.anim.nav_slide_pop_enter_left,
+                        R.anim.nav_slide_pop_exit_right
+                    )
+                } else {
+                    setCustomAnimations(
+                        R.anim.nav_fade_through_enter,
+                        R.anim.nav_fade_through_exit
+                    )
+                }
+            }
 
             replace(R.id.fragment_container, fragment)
             if (isAddToBackStack) addToBackStack(null)

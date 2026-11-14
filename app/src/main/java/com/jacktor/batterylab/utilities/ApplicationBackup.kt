@@ -16,8 +16,8 @@ class ApplicationBackup : BackupAgent() {
 
     override fun onCreate() {
         super.onCreate()
-        val pref = PreferenceManager.getDefaultSharedPreferences(this)
-        prefArrays = pref.all
+        pref = PreferenceManager.getDefaultSharedPreferences(this)
+        prefArrays = pref?.all
     }
 
     override fun onBackup(
@@ -42,37 +42,23 @@ class ApplicationBackup : BackupAgent() {
             PreferencesKeys.PERCENT_ADDED,
             PreferencesKeys.RESIDUAL_CAPACITY
         )
-        prefsTempList.forEach { it ->
-            with(prefArrays) {
-                when {
-                    this?.containsKey(it) == false -> pref?.edit { remove(it) }
-                    else -> {
-                        this?.forEach {
-                            when (it.key) {
-                                PreferencesKeys.NUMBER_OF_CHARGES -> pref?.edit {
-                                    putLong(
-                                        it.key,
-                                        it.value as Long
-                                    )
-                                }
+        val savedMap = prefArrays ?: return
+        prefsTempList.forEach { key ->
+            if (!savedMap.containsKey(key)) {
+                pref?.edit { remove(key) }
+            } else {
+                val value = savedMap[key]
+                when (key) {
+                    PreferencesKeys.NUMBER_OF_CHARGES ->
+                        (value as? Number)?.toLong()?.let { v -> pref?.edit { putLong(key, v) } }
 
-                                PreferencesKeys.BATTERY_LEVEL_TO, PreferencesKeys.BATTERY_LEVEL_WITH, PreferencesKeys.DESIGN_CAPACITY,
-                                PreferencesKeys.RESIDUAL_CAPACITY, PreferencesKeys.PERCENT_ADDED -> pref?.edit {
-                                    putInt(
-                                        it.key,
-                                        it.value as Int
-                                    )
-                                }
+                    PreferencesKeys.BATTERY_LEVEL_TO, PreferencesKeys.BATTERY_LEVEL_WITH,
+                    PreferencesKeys.DESIGN_CAPACITY, PreferencesKeys.RESIDUAL_CAPACITY,
+                    PreferencesKeys.PERCENT_ADDED ->
+                        (value as? Number)?.toInt()?.let { v -> pref?.edit { putInt(key, v) } }
 
-                                PreferencesKeys.CAPACITY_ADDED, PreferencesKeys.NUMBER_OF_CYCLES -> pref?.edit {
-                                    putFloat(
-                                        it.key,
-                                        it.value as Float
-                                    )
-                                }
-                            }
-                        }
-                    }
+                    PreferencesKeys.CAPACITY_ADDED, PreferencesKeys.NUMBER_OF_CYCLES ->
+                        (value as? Number)?.toFloat()?.let { v -> pref?.edit { putFloat(key, v) } }
                 }
             }
         }

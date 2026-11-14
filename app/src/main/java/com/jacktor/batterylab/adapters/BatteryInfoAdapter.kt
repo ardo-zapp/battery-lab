@@ -18,6 +18,7 @@ import com.jacktor.batterylab.databinding.ItemBatteryHeaderBinding
 import com.jacktor.batterylab.databinding.ItemBatterySectionBinding
 import com.jacktor.batterylab.databinding.ItemBatteryStatBinding
 import com.jacktor.batterylab.helpers.BatteryLevelHelper
+import com.jacktor.batterylab.helpers.MotionHelper
 import com.jacktor.batterylab.helpers.TextAppearanceHelper
 import com.jacktor.batterylab.models.BatteryInfoRow
 
@@ -76,13 +77,26 @@ class BatteryInfoAdapter(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         val holder = when (viewType) {
-            TYPE_HEADER -> HeaderVH(ItemBatteryHeaderBinding.inflate(inflater, parent, false))
-            TYPE_COUNTS -> CountsVH(ItemBatteryCountsBinding.inflate(inflater, parent, false))
+            TYPE_HEADER -> HeaderVH(ItemBatteryHeaderBinding.inflate(inflater, parent, false)).also {
+                MotionHelper.bindPressScale(it.itemView, pressedScale = 0.985f)
+            }
+            TYPE_COUNTS -> CountsVH(ItemBatteryCountsBinding.inflate(inflater, parent, false)).also {
+                MotionHelper.bindPressScale(it.itemView, pressedScale = 0.985f)
+            }
             TYPE_SECTION -> SectionVH(ItemBatterySectionBinding.inflate(inflater, parent, false))
-            else -> StatVH(ItemBatteryStatBinding.inflate(inflater, parent, false))
+            else -> StatVH(ItemBatteryStatBinding.inflate(inflater, parent, false)).also {
+                MotionHelper.bindPressScale(it.itemView, pressedScale = 0.985f)
+            }
         }
         TextAppearanceHelper.applyToView(holder.itemView)
         return holder
+    }
+
+    override fun onViewDetachedFromWindow(holder: RecyclerView.ViewHolder) {
+        super.onViewDetachedFromWindow(holder)
+        if (holder is HeaderVH) {
+            clearAnimations()
+        }
     }
 
     override fun onBindViewHolder(
@@ -108,111 +122,124 @@ class BatteryInfoAdapter(
     }
 
     private var pulseAnimator: android.animation.AnimatorSet? = null
+    private var pulseTargetView: View? = null
+    private var gaugeAnimator: android.animation.AnimatorSet? = null
 
     private fun startPulseAnimation(view: View) {
-        if (pulseAnimator != null) return
-        val pulseX = android.animation.ObjectAnimator.ofFloat(view, "scaleX", 1.0f, 1.25f).apply {
-            duration = 850
-            repeatMode = android.animation.ValueAnimator.REVERSE
-            repeatCount = android.animation.ValueAnimator.INFINITE
-            interpolator = android.view.animation.AccelerateDecelerateInterpolator()
-        }
-        val pulseY = android.animation.ObjectAnimator.ofFloat(view, "scaleY", 1.0f, 1.25f).apply {
-            duration = 850
-            repeatMode = android.animation.ValueAnimator.REVERSE
-            repeatCount = android.animation.ValueAnimator.INFINITE
-            interpolator = android.view.animation.AccelerateDecelerateInterpolator()
-        }
-        pulseAnimator = android.animation.AnimatorSet().apply {
-            playTogether(pulseX, pulseY)
-            start()
-        }
+        if (pulseAnimator != null && pulseTargetView === view) return
+        stopPulseAnimation(pulseTargetView ?: view)
+        pulseTargetView = view
+        pulseAnimator = MotionHelper.startBreathingPulse(
+            view = view,
+            minScale = 1.0f,
+            maxScale = 1.14f,
+            minAlpha = 0.76f,
+            durationMs = 950L
+        )
     }
 
-    private fun stopPulseAnimation(view: View) {
-        pulseAnimator?.cancel()
+    private fun stopPulseAnimation(view: View?) {
+        if (view != null) {
+            MotionHelper.stopAnimator(pulseAnimator, view)
+        } else {
+            pulseAnimator?.cancel()
+        }
         pulseAnimator = null
-        view.scaleX = 1.0f
-        view.scaleY = 1.0f
+        pulseTargetView = null
+    }
+
+    fun clearAnimations() {
+        stopPulseAnimation(pulseTargetView)
+        gaugeAnimator?.cancel()
+        gaugeAnimator = null
     }
 
     private var lastAnimatedLevel = -1
+    private var lastChargingState: Boolean? = null
 
     fun bindHeader(b: ItemBatteryHeaderBinding, data: BatteryInfoRow.Header) {
         val targetLevel = data.level.coerceIn(0, 100)
+        val isInitialBind = lastAnimatedLevel == -1
+        val chargingChanged = lastChargingState != null && lastChargingState != data.isCharging
+        lastChargingState = data.isCharging
+
         if (lastAnimatedLevel != targetLevel) {
-            val start = if (lastAnimatedLevel == -1) 0 else lastAnimatedLevel
+            val start = if (isInitialBind) 0 else lastAnimatedLevel
             lastAnimatedLevel = targetLevel
 
-            val progressAnim = android.animation.ValueAnimator.ofInt(start, targetLevel).apply {
-                duration = 850
-                interpolator = android.view.animation.DecelerateInterpolator()
-                addUpdateListener { va ->
-                    val v = va.animatedValue as Int
-                    b.circularBatteryProgress.progress = v
+            if (MotionHelper.isAnimationsEnabled()) {
+                gaugeAnimator?.cancel()
+                val progressAnim = android.animation.ValueAnimator.ofInt(start, targetLevel).apply {
+                    duration = if (isInitialBind) 720L else 520L
+                    interpolator = MotionHelper.EMPHASIZED_DECELERATE
+                    addUpdateListener { va ->
+                        val v = va.animatedValue as Int
+                        b.circularBatteryProgress.progress = v
+                    }
                 }
-            }
-            val countAnim = android.animation.ValueAnimator.ofInt(start, targetLevel).apply {
-                duration = 850
-                interpolator = android.view.animation.DecelerateInterpolator()
-                addUpdateListener { va ->
-                    val v = va.animatedValue as Int
-                    b.tvHeroBatteryPercent.text = "$v%"
+                val countAnim = android.animation.ValueAnimator.ofInt(start, targetLevel).apply {
+                    duration = if (isInitialBind) 720L else 520L
+                    interpolator = MotionHelper.EMPHASIZED_DECELERATE
+                    addUpdateListener { va ->
+                        val v = va.animatedValue as Int
+                        b.tvHeroBatteryPercent.text = "$v%"
+                    }
                 }
-            }
-            android.animation.AnimatorSet().apply {
-                playTogether(progressAnim, countAnim)
-                start()
-            }
-
-            // Spring scale pop on center icon
-            b.imgBatteryStatusIcon.apply {
-                scaleX = 0.7f
-                scaleY = 0.7f
-                animate()
-                    .scaleX(1.0f)
-                    .scaleY(1.0f)
-                    .setDuration(500)
-                    .setInterpolator(android.view.animation.OvershootInterpolator(1.5f))
-                    .start()
+                gaugeAnimator = android.animation.AnimatorSet().apply {
+                    playTogether(progressAnim, countAnim)
+                    start()
+                }
+            } else {
+                b.circularBatteryProgress.progress = targetLevel
+                b.tvHeroBatteryPercent.text = "$targetLevel%"
             }
         } else {
             b.circularBatteryProgress.progress = targetLevel
             b.tvHeroBatteryPercent.text = "$targetLevel%"
         }
 
-        val context = b.root.context
-        val tintRes = when {
-            data.level >= 100 -> R.color.battery_info_level_normal
-            data.isCharging -> R.color.battery_info_level_charging
-            data.level <= 20 -> R.color.battery_info_level_low
-            else -> R.color.battery_info_level_normal
+        if ((isInitialBind || chargingChanged) && MotionHelper.isAnimationsEnabled()) {
+            b.imgBatteryStatusIcon.apply {
+                animate().cancel()
+                scaleX = 0.75f
+                scaleY = 0.75f
+                animate()
+                    .scaleX(1.0f)
+                    .scaleY(1.0f)
+                    .setDuration(420L)
+                    .setInterpolator(MotionHelper.GENTLE_OVERSHOOT)
+                    .start()
+            }
         }
+
+        val context = b.root.context
+        val tintRes = BatteryLevelHelper.batteryLevelTintRes(
+            level = data.level,
+            isCharging = data.isCharging,
+            isFull = data.level >= 100
+        )
         val tint = ContextCompat.getColor(context, tintRes)
 
         b.circularBatteryProgress.setIndicatorColor(tint)
         val iconRes = BatteryLevelHelper.batteryLevelIcon(data.level, data.isCharging)
         b.imgBatteryStatusIcon.setImageResource(iconRes)
-        b.imgBatteryStatusIcon.setColorFilter(tint)
+        MotionHelper.animateImageTint(b.imgBatteryStatusIcon, tint)
 
-        b.tvHeroBatteryStatus.apply {
-            text = data.statusText
-            setTextColor(tint)
-            backgroundTintList = ColorStateList.valueOf(ColorUtils.setAlphaComponent(tint, 32))
-        }
+        b.tvHeroBatteryStatus.text = data.statusText
+        MotionHelper.animateBadgeColors(b.tvHeroBatteryStatus, tint, bgAlpha = 32)
 
         b.tvHeroTemp.text = data.temperatureText
         b.tvHeroVoltage.text = data.voltageText
         b.tvHeroTime.text = data.timeHeroText
 
         val tempTint = ContextCompat.getColor(context, data.tempTint)
-        b.imgHeroTemp.setColorFilter(tempTint)
+        MotionHelper.animateImageTint(b.imgHeroTemp, tempTint)
 
         val voltageTint = ContextCompat.getColor(context, data.voltageTint)
-        b.imgHeroVoltage.setColorFilter(voltageTint)
+        MotionHelper.animateImageTint(b.imgHeroVoltage, voltageTint)
 
         val timeTint = ContextCompat.getColor(context, data.timeTint)
-        b.imgHeroTime.setColorFilter(timeTint)
+        MotionHelper.animateImageTint(b.imgHeroTime, timeTint)
 
         if (data.isCharging && data.level < 100) {
             startPulseAnimation(b.imgBatteryStatusIcon)
@@ -274,7 +301,7 @@ class BatteryInfoAdapter(
         fun bind(data: BatteryInfoRow.Stat) {
             val color = ContextCompat.getColor(b.root.context, data.iconTint)
             b.imgIcon.setImageResource(data.icon)
-            b.imgIcon.setColorFilter(color)
+            MotionHelper.animateImageTint(b.imgIcon, color)
             b.containerIcon.backgroundTintList =
                 ColorStateList.valueOf(ColorUtils.setAlphaComponent(color, 28))
 

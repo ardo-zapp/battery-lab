@@ -1,6 +1,7 @@
 package com.jacktor.batterylab.adapters
 
-import android.view.View
 import androidx.recyclerview.widget.RecyclerView
+import com.jacktor.batterylab.databinding.HistoryRecyclerListItemBinding
 
-class HistoryViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
+class HistoryViewHolder(val binding: HistoryRecyclerListItemBinding) :
+    RecyclerView.ViewHolder(binding.root)

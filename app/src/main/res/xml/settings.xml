@@ -127,12 +127,6 @@
         app:singleLineTitle="false">
 
         <SwitchPreferenceCompat
-            android:defaultValue="@bool/fast_charge_setting"
-            android:key="is_fast_charge_setting"
-            android:title="@string/fast_charge"
-            app:singleLineTitle="false" />
-
-        <SwitchPreferenceCompat
             android:key="capacity_in_wh"
             android:title="@string/capacity_in_wh"
             app:defaultValue="@bool/capacity_in_wh"

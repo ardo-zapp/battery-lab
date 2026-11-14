@@ -640,20 +640,23 @@ class MainActivity : AppCompatActivity(),
         intent.removeExtra(IMPORT_RESTORE_SETTINGS_EXTRA)
     }
 
-    @Suppress("unused")
     private fun importSinglePref(key: String, source: Map<*, *>) {
-        source.forEach {
-            when (it.key as String) {
-                NUMBER_OF_CHARGES -> pref?.edit()?.putLong(it.key as String, it.value as Long)
-                    ?.apply()
-
-                BATTERY_LEVEL_TO, BATTERY_LEVEL_WITH, LAST_CHARGE_TIME,
-                DESIGN_CAPACITY, RESIDUAL_CAPACITY, PERCENT_ADDED ->
-                    pref?.edit()?.putInt(it.key as String, it.value as Int)?.apply()
-
-                CAPACITY_ADDED, NUMBER_OF_CYCLES ->
-                    pref?.edit { putFloat(it.key as String, it.value as Float)?.apply() }
+        val value = source[key] ?: return
+        when (key) {
+            NUMBER_OF_CHARGES -> (value as? Number)?.toLong()?.let { v ->
+                pref?.edit { putLong(key, v) }
             }
+
+            BATTERY_LEVEL_TO, BATTERY_LEVEL_WITH, LAST_CHARGE_TIME,
+            DESIGN_CAPACITY, RESIDUAL_CAPACITY, PERCENT_ADDED ->
+                (value as? Number)?.toInt()?.let { v ->
+                    pref?.edit { putInt(key, v) }
+                }
+
+            CAPACITY_ADDED, NUMBER_OF_CYCLES ->
+                (value as? Number)?.toFloat()?.let { v ->
+                    pref?.edit { putFloat(key, v) }
+                }
         }
     }
 

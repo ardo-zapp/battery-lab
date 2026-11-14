@@ -302,8 +302,11 @@ interface NotificationInterface : BatteryInfoInterface {
             )
 
             val isShowBatteryInformation = pref.getBoolean(
-                IS_SHOW_BATTERY_INFORMATION,
-                context.resources.getBoolean(R.bool.is_show_battery_information)
+                SHOW_BATTERY_INFORMATION,
+                pref.getBoolean(
+                    IS_SHOW_BATTERY_INFORMATION,
+                    context.resources.getBoolean(R.bool.show_battery_information)
+                )
             )
 
             val isShowExpandedNotification = pref.getBoolean(

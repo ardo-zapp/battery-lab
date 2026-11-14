@@ -2,4 +2,5 @@
 <resources>
     <item name="tag_typeface_applied" type="id" />
     <item name="tag_typeface_listener" type="id" />
+    <item name="tag_last_tint_color" type="id" />
 </resources>

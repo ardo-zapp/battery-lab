@@ -7,6 +7,7 @@ import androidx.core.content.edit
 import androidx.preference.PreferenceManager
 import com.jacktor.batterylab.databinding.ActivityOnboardingBinding
 import com.jacktor.batterylab.databinding.ItemFeatureBinding
+import com.jacktor.batterylab.helpers.MotionHelper
 
 class OnboardingActivity : AppCompatActivity() {
 
@@ -44,6 +45,13 @@ class OnboardingActivity : AppCompatActivity() {
             R.string.welcome_feature_third_title,
             R.string.welcome_feature_third_summary
         )
+
+        MotionHelper.bindPressScale(binding.btnContinue)
+        MotionHelper.animateEntrance(binding.featureOne.root, delayMs = 40L)
+        MotionHelper.animateEntrance(binding.featureTwo.root, delayMs = 95L)
+        MotionHelper.animateEntrance(binding.featureThree.root, delayMs = 150L)
+        MotionHelper.animateEntrance(binding.featureFour.root, delayMs = 205L)
+        MotionHelper.animateEntrance(binding.btnContinue, delayMs = 260L)
 
         binding.btnContinue.setOnClickListener {
             val prefs = PreferenceManager.getDefaultSharedPreferences(this)
