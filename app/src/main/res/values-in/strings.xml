@@ -24,7 +24,7 @@
     <string name="check_update">Periksa Pembaruan</string>
     <string name="update_not_found">Pembaruan tidak ditemukan!</string>
     <string name="charging">Mengisi daya</string>
-    <string name="discharging">Sedang Digunakan</string>
+    <string name="discharging">Pemakaian</string>
     <string name="full">Penuh</string>
     <string name="not_charging">Tidak Mengisi Daya</string>
     <string name="unknown">Tidak Dikenal</string>
@@ -258,8 +258,7 @@
     <string name="full_charge_reminder_frequency">Frekuensi Pengingat Pengisian Penuh</string>
     <string name="request_notification_message">Untuk aplikasi dapat bekerja dengan benar, Anda perlu mengaktifkan notifikasi. Ini diperlukan untuk layanan yang bertanggung jawab atas sebagian besar operasi aplikasi, termasuk menghitung kapasitas baterai yang tersisa</string>
     <string name="auto_start_xiaomi_dialog">Agar aplikasi dapat berjalan dengan benar, izinkan mulai otomatis di jendela berikutnya</string>
-    <string name="background_activity_control_xiaomi_dialog"><string name="background_activity_control_xiaomi_dialog">Agar aplikasi dapat berjalan dengan baik di latar belakang, buka jendela berikutnya dan pilih \"Tidak ada pembatasan\"</string>
-</string>
+    <string name="background_activity_control_xiaomi_dialog">Agar aplikasi dapat berjalan dengan baik di latar belakang, buka jendela berikutnya dan pilih \"Tidak ada pembatasan\"</string>
     <string name="ignoring_battery_optimizations_dialog_message">Agar aplikasi dapat berfungsi dengan baik, Anda harus mengizinkan aplikasi berjalan di latar belakang.</string>
     <string name="faq">FAQ</string>
     <string name="faq_how_does_the_app_work" formatted="false">Pertanyaan: Bagaimana cara kerja aplikasi ini?\nJawaban: Kapasitas tersisa dihitung berdasarkan kapasitas saat ini ketika pengisian mencapai 100% dengan status \"Terisi\" (dirata-ratakan dari beberapa pengisian penuh terakhir). Data diambil melalui API resmi Android BatteryManager dan antarmuka power_supply kernel tanpa akses root. Akurasinya bergantung pada sensor fuel-gauge dan firmware perangkat.\n\n</string>
@@ -270,7 +269,7 @@
     <string name="faq_where_does_the_app_get_the_ccl">Pertanyaan: Dari mana aplikasi mendapatkan \"Batas Arus Pengisian\"?\nJawaban: Aplikasi membaca node kernel \"constant_charge_current_max\" di path /sys/class/power_supply/battery.\n\n</string>
     <string name="faq_why_is_ccl_not_displayed">Pertanyaan: Mengapa \"Batas Arus Pengisian\" tidak ditampilkan?\nJawaban: Tidak semua kernel menyediakan atau mengizinkan aplikasi membaca file \"constant_charge_current_max\". Jika dibatasi atau tidak ada, baris tersebut disembunyikan.\n\n</string>
     <string name="faq_i_have_everything_in_zeros" formatted="false">Pertanyaan: Kenapa semua nilai (atau hampir semua) muncul nol?\nJawaban: Beberapa produsen perangkat tidak menyediakan atau membatasi sensor telemetri baterai sehingga API Android dan kernel hanya mengembalikan nilai 0.\n\n</string>
-    <string name="faq_units">Pertanyaan: Kenapa angka kapasitas, arus, atau tegangan tampak terlalu besar atau terlalu kecil?\nJawaban: Buka Pengaturan → Lain-lain → tekan \"Selengkapnya\", lalu sesuaikan satuan pengukuran (μA/mA, μAh/mAh, mV/V) atau aktifkan tampilan Wh/Watt.\n\n</string>
+    <string name="faq_units">Pertanyaan: Kenapa angka kapasitas, arus, atau tegangan tampak terlalu besar atau terlalu kecil?\nJawaban: Buka Pengaturan → Lain-lain → tekan \"Lainnya…\", lalu sesuaikan satuan pengukuran (μA/mA, μAh/mAh, mV/V) atau aktifkan tampilan Wh/Watt.\n\n</string>
     <string name="faq_available_capacity">Pertanyaan: Kenapa kapasitas tersedia kadang tidak muncul atau berhenti tampil?\nJawaban: Hal ini bisa menandakan pengontrol baterai (fuel gauge) tidak stabil, bug kernel firmware, atau kesehatan baterai sudah menurun.\n\n</string>
     <string name="faq_residual_capacity_is_higher" formatted="false">Pertanyaan: Kenapa kapasitas sisa lebih tinggi dari kapasitas desain?\nJawaban: Baterai baru wajar memiliki kapasitas aktual sedikit di atas atau di bawah kapasitas desain. Pada baterai lama, coba kalibrasi dengan mengosongkan hingga 10% atau kurang lalu isi penuh ke 100% (\"Terisi\"), serta pastikan \"Kapasitas Desain\" di Pengaturan sudah benar.\n\n</string>
     <string name="faq_battery_wear_changes_when_charger_is_disconnected">Pertanyaan: Kenapa keausan baterai berubah setelah charger dicabut?\nJawaban: Sesaat setelah charger dilepas dan arus menjadi stabil, pembacaan kapasitas dari fuel gauge kerap terkoreksi sehingga perhitungan keausan menjadi lebih akurat.\n\n</string>
@@ -311,7 +310,7 @@
     <string name="failed_to_load_data">Gagal memuat kontributor: %1$s</string>
     <string name="failed_open_security_miui">Gagal membuka aplikasi Keamanan! Ikuti panduan di situs Don\'t kill my app</string>
     <string name="failed_request_permission">Gagal meminta izin! Ikuti panduan di situs Don\'t kill my app</string>
-    <string name="instruction_message" formatted="false">1. Untuk menghitung kapasitas tersisa dan keausan baterai, pastikan layanan pemantau aktif, habiskan baterai hingga 10% atau kurang, lalu isi penuh tanpa putus hingga 100% (status \"Terisi\").\n2. Pengisian daya singkat setelah menyentuh 100% adalah hal wajar pada perangkat modern (fase saturasi CV).\n3. Pastikan nilai \"Ubah Kapasitas Desain\" di Pengaturan → Lain-lain → Selengkapnya sesuai spesifikasi baterai perangkat Anda.\n4. Jika angka kapasitas, arus, atau tegangan tampak janggal, ubah satuannya di Pengaturan → Lain-lain → Selengkapnya. Baterai Dual-Cell (2S, ~7.2V–9.0V) terdeteksi otomatis.\n5. Manfaatkan tab Alat untuk memantau Pemakaian Diam (konsumsi standby layar mati &amp; Deep Sleep) serta Stres &amp; Impedansi (cabut charger sebelum menjalankan Uji Beban 2 dtk).\n\n</string>
+    <string name="instruction_message" formatted="false">1. Untuk menghitung kapasitas tersisa dan keausan baterai, pastikan layanan pemantau aktif, habiskan baterai hingga 10% atau kurang, lalu isi penuh tanpa putus hingga 100% (status \"Terisi\").\n2. Pengisian daya singkat setelah menyentuh 100% adalah hal wajar pada perangkat modern (fase saturasi CV).\n3. Pastikan nilai \"Ubah Kapasitas Desain\" di Pengaturan → Lain-lain → Lainnya… sesuai spesifikasi baterai perangkat Anda.\n4. Jika angka kapasitas, arus, atau tegangan tampak janggal, ubah satuannya di Pengaturan → Lain-lain → Lainnya…. Baterai Dual-Cell (2S, ~7.2V–9.0V) terdeteksi otomatis.\n5. Manfaatkan tab Alat untuk memantau Pemakaian Diam (konsumsi standby layar mati &amp; Deep Sleep) serta Stres &amp; Impedansi (cabut charger sebelum menjalankan Uji Beban 2 dtk).\n\n</string>
     <string name="instruction_message_do_not_kill_the_service">PERHATIAN! Jangan matikan layanan ini. Jika antarmuka perangkat Anda suka "mematikan" aplikasi, atau benar-benar "membunuh" aplikasi saat membersihkan aplikasi yang baru saja dibuka atau saat menghapus aplikasi dari daftar aplikasi terbaru, atau Anda menggunakan penghemat daya, tambahkan aplikasi ini ke semua daftar pengecualian yang memungkinkan. Jika firmware Anda memiliki pengaturan untuk memulai aplikasi, pastikan aplikasi ini dapat berjalan setelah OS dimuat, jika Anda ingin aplikasi berjalan otomatis setelah perangkat menyala.&#160;</string>
     <string name="instruction_message_dont_kill_my_app">Jika Anda tidak tahu harus mengatur apa dan di mana agar aplikasi tidak "dimatikan" oleh sistem, gunakan layanan "Don't kill my app!" dengan memilih produsen perangkat Anda.\n\n</string>
     <string name="huawei_honor_information">PERHATIAN! Di perangkat Huawei &amp; Honor, kapasitas saat ini mungkin tidak terbaca dengan benar. Sayangnya tidak bisa diperbaiki.</string>
@@ -386,11 +385,11 @@
     <string name="thermal_shutdown">Segera mati</string>
     <string name="peak_charge_power_verbose">Puncak: %1$s W (%2$d mA @ %3$s V)</string>
 
-    <string name="premium_purchase_success">Mantap! Premium aktif</string>
-    <string name="premium_purchase_cancelled">Yah… batal beli premium, wkwkwk</string>
-    <string name="premium_purchase_failed">Waduh, gagal beli premium. Coba lagi nanti ya.</string>
+    <string name="premium_purchase_success">Premium berhasil diaktifkan!</string>
+    <string name="premium_purchase_cancelled">Pembelian Premium dibatalkan.</string>
+    <string name="premium_purchase_failed">Pembelian Premium gagal. Silakan coba lagi nanti.</string>
     <string name="premium_restore_success">Premium berhasil dipulihkan</string>
-    <string name="premium_restore_failed">Gagal pulihkan. Kamu pernah beli premium sebelumnya?</string>
+    <string name="premium_restore_failed">Gagal memulihkan. Pastikan Anda pernah membeli versi Premium dengan akun ini.</string>
 
     <string name="welcome_title">Selamat datang di Battery Lab</string>
     <string name="welcome_feature_one_summary">Dapatkan semua informasi status terkini dan detail lengkap tentang baterai Anda.</string>
@@ -467,9 +466,9 @@
     <string name="stress_pulse_result_success">Kalibrasi selesai!\n• Lonjakan Arus (ΔI): %1$d mA\n• Drop Tegangan (ΔV): %2$d mV/sel\n• Impedansi Terukur (Rint): ~%3$d mΩ/sel</string>
     <string name="stress_pulse_result_low_delta">Sensor arus/tegangan hanya mencatat perubahan kecil (ΔI: %1$d mA, ΔV: %2$d mV) selama 2 detik. Perangkat kemungkinan membatasi pembaruan sensor baterai atau sedang dalam hemat daya; menggunakan model elektro-termal.</string>
     <string name="stress_diag_low">Tekanan elektrokimia rendah (%1$sC, Rint ~%2$d mΩ/sel). Sel bekerja pada zona keawetan optimal dengan disipasi panas internal minimal (%3$s mW).</string>
-    <string name="stress_rec_low">Menjaga baterai di rentang 20–80%% dengan suhu di bawah 35°C meminimalkan penebalan lapisan SEI dan oksidasi katoda.</string>
+    <string name="stress_rec_low">Menjaga baterai di rentang 20–80% dengan suhu di bawah 35°C meminimalkan penebalan lapisan SEI dan oksidasi katoda.</string>
     <string name="stress_diag_moderate">Beban sel moderat (%1$sC, Rint ~%2$d mΩ/sel, voltage sag ~%3$d mV). Laju keausan kimiawi saat ini berkisar %4$sx dari standar.</string>
-    <string name="stress_rec_moderate">Saat mengisi daya di atas 80%% atau menjalankan beban berat, jaga sirkulasi udara agar suhu tidak melipatgandakan tekanan tegangan.</string>
+    <string name="stress_rec_moderate">Saat mengisi daya di atas 80% atau menjalankan beban berat, jaga sirkulasi udara agar suhu tidak melipatgandakan tekanan tegangan.</string>
     <string name="stress_diag_high">Stres sel tinggi (%1$sC, Rint ~%2$d mΩ/sel, panas internal ~%3$s mW)! Kombinasi C-Rate, tegangan sel, atau suhu mempercepat degradasi (%4$sx).</string>
     <string name="stress_rec_high">Hindari beban berat saat fast charging dan biarkan suhu turun di bawah 38°C untuk mencegah kenaikan impedansi &amp; pelapisan litium.</string>
 
@@ -512,6 +511,7 @@
     <string name="app_usage_window_24h">24 Jam</string>
     <string name="app_usage_window_7d">7 Hari</string>
     <string name="app_usage_include_system">App Sistem</string>
+    <string name="app_usage_loading">Menganalisis konsumsi daya aplikasi…</string>
     <string name="app_usage_empty">Belum ada aktivitas konsumsi daya aplikasi yang tercatat pada rentang waktu ini.</string>
     <string name="app_usage_methodology_note">Catatan: Tanpa akses root, estimasi mAh dan tingkat keborosan dihitung dari Android UsageStats (durasi layar aktif, layanan latar belakang, frekuensi buka) yang diskalakan dengan kapasitas baterai perangkat.</string>
     <string name="app_usage_rank_fmt">#%1$d</string>
@@ -535,4 +535,111 @@
     <string name="app_usage_advice_normal">Konsumsi daya aplikasi ini masih tergolong wajar dan sebanding dengan waktu pemakaiannya.</string>
     <string name="app_usage_open_app_info">Atur Baterai / Info App</string>
     <string name="app_usage_open_app_info_failed">Tidak dapat membuka halaman Info Aplikasi.</string>
+
+    <!-- App Shortcuts -->
+    <string name="shortcut_disabled_message">Pintasan ini sedang tidak tersedia.</string>
+    <string name="shortcut_battery_info_short">Info Baterai</string>
+    <string name="shortcut_battery_info_long">Buka Info Baterai</string>
+    <string name="shortcut_app_power_short">Konsumsi App</string>
+    <string name="shortcut_app_power_long">Cek Konsumsi Daya App</string>
+    <string name="shortcut_idle_drain_short">Pemakaian Diam</string>
+    <string name="shortcut_idle_drain_long">Cek Pemakaian Diam</string>
+    <string name="shortcut_history_short">Riwayat</string>
+    <string name="shortcut_history_long">Buka Riwayat Pengisian</string>
+
+    <string name="battery_cell_topology_dual_2s">Arsitektur sel: Sel Ganda 2S (Otomatis %s)</string>
+    <string name="battery_cell_topology_dual_parallel">Arsitektur sel: Sel Ganda Paralel (Otomatis %s)</string>
+    <string name="battery_cell_topology_single">Arsitektur sel: Sel Tunggal</string>
+    <string name="energy_counter_hal">Penghitung energi (HAL): %s Wh</string>
+    <string name="android_capacity_level">Level kapasitas (Android): %s</string>
+    <string name="capacity_level_critical">Kritis</string>
+    <string name="capacity_level_low">Rendah</string>
+    <string name="capacity_level_normal">Normal</string>
+    <string name="capacity_level_high">Tinggi</string>
+    <string name="capacity_level_full">Penuh</string>
+    <string name="android_charging_policy">Kebijakan pengisian (Android): %s</string>
+    <string name="charging_policy_default">Standar</string>
+    <string name="charging_policy_adaptive_aon">Adaptif (Batas)</string>
+    <string name="charging_policy_adaptive_ac">Adaptif (AC)</string>
+    <string name="charging_policy_adaptive_longlife">Adaptif (Awet Baterai)</string>
+
+    <!-- Upstream Features -->
+    <string name="show_battery_level_in_status_bar">Ikon Persentase di Status Bar</string>
+    <string name="show_battery_level_in_status_bar_summary">Tampilkan ikon persentase baterai dinamis alih-alih ikon aplikasi monokrom di status bar</string>
+    <string name="open_the_app_notification_settings">Pengaturan Notifikasi Sistem</string>
+    <string name="open_the_app_notification_settings_error">Tidak dapat membuka pengaturan notifikasi sistem.</string>
+    <string name="show_number_of_history">Tampilkan Jumlah Riwayat</string>
+    <string name="alt_calc_charging_time_remaining">Kalkulasi Alternatif Sisa Waktu Cas</string>
+    <string name="alt_calc_charging_time_remaining_summary">Gunakan rumus fisika internal alih-alih estimasi bawaan sistem Android</string>
+    <string name="replace_of_device_battery">Baterai Baru Diganti</string>
+    <string name="replace_of_device_battery_summary">Hapus riwayat serta reset keausan, siklus, dan catatan cas terakhir setelah ganti baterai</string>
+    <string name="replace_of_device_battery_dialog_title">Reset Data untuk Baterai Baru?</string>
+    <string name="replace_of_device_battery_dialog_message">Ini akan menghapus seluruh riwayat pengisian, estimasi keausan, jumlah siklus, kapasitas tersisa, dan statistik pengisian terakhir. Pengaturan tampilan dan preferensi Anda tetap aman.</string>
+    <string name="battery_data_reset_successfully">Riwayat &amp; statistik baterai berhasil direset untuk baterai baru.</string>
+    <string name="lock_overlay_location">Kunci Posisi Overlay</string>
+    <string name="lock_overlay_location_summary">Cegah jendela overlay bergeser tidak sengaja saat disentuh</string>
+
+    <!-- Debug Additions -->
+    <string name="enable_wakelock">Aktifkan WakeLock Layanan</string>
+    <string name="enable_wakelock_summary">Jaga CPU tetap terjaga saat mengecas agar pencatatan tetap akurat ketika layar mati</string>
+    <string name="enable_check_update">Cek Pembaruan Google Play</string>
+    <string name="nominal_battery_voltage_title">Tegangan Nominal Baterai</string>
+    <string name="number_of_history_for_battery_wear_title">Sampel Riwayat Keausan Baterai</string>
+    <string name="number_of_history_for_battery_wear_summary">Rata-rata %s entri riwayat terakhir agar estimasi kapasitas &amp; keausan lebih stabil</string>
+
+    <!-- Last Charge Tab -->
+    <string name="last_charge_tab">Cas Terakhir</string>
+    <string name="last_charge_title">Ringkasan Cas Terakhir</string>
+    <string name="last_charge_recorded_at">Tercatat: %s</string>
+    <string name="last_charge_empty_title">Belum Ada Data Cas Terakhir</string>
+    <string name="last_charge_empty_desc">Isi daya perangkat lalu cabut charger (atau tunggu hingga 100%) saat layanan pemantauan aktif untuk merekam sesi pengisian lengkap.</string>
+    <string name="last_charge_section_overview">Ringkasan Sesi</string>
+    <string name="last_charge_section_current_power">Arus &amp; Daya</string>
+    <string name="last_charge_section_thermal_voltage">Suhu &amp; Tegangan</string>
+    <string name="last_charge_battery_level">Rentang Level</string>
+    <string name="last_charge_duration">Durasi Pengisian</string>
+    <string name="last_charge_current_capacity">Kapasitas Akhir</string>
+    <string name="last_charge_capacity_added">Kapasitas Ditambahkan</string>
+    <string name="last_charge_status">Status Akhir</string>
+    <string name="last_charge_source">Sumber Daya</string>
+    <string name="last_charge_fast_charge">Fast Charge</string>
+    <string name="last_charge_max_current">Arus Maksimum</string>
+    <string name="last_charge_avg_current">Arus Rata-rata</string>
+    <string name="last_charge_min_current">Arus Minimum</string>
+    <string name="last_charge_max_temp">Suhu Maksimum</string>
+    <string name="last_charge_avg_temp">Suhu Rata-rata</string>
+    <string name="last_charge_min_temp">Suhu Minimum</string>
+    <string name="last_charge_voltage">Tegangan Akhir</string>
+    <string name="battery_wear_multi_sample_note">Keausan dirata-rata dari %d sesi terakhir</string>
+
+    <!-- Localization & Overlay & Backup Sync -->
+    <string name="charger_disconnected">Terputus</string>
+    <string name="unit_ua_default">μA (Bawaan)</string>
+    <string name="unit_uah_default">μAh (Bawaan)</string>
+    <string name="unit_mv_default">mV (Bawaan)</string>
+    <string name="text_style_normal_default">Normal (Bawaan)</string>
+    <string name="text_style_bold">Tebal</string>
+    <string name="text_style_italic">Miring</string>
+    <string name="nominal_voltage_387_default">3.87 V (Bawaan)</string>
+    <string name="history_wear_samples_3_default">3 (Bawaan)</string>
+
+    <string name="only_values_summary">Tampilkan angka/status saja tanpa label di jendela overlay</string>
+    <string name="battery_health_overlay">Kesehatan Baterai (Kalkulasi)</string>
+    <string name="battery_health_app">Kesehatan Baterai: %1$s</string>
+    <string name="battery_cell_topology_overlay">Arsitektur Sel Baterai</string>
+    <string name="battery_cell_single_short">Sel Tunggal</string>
+    <string name="peak_charge_power_overlay">Puncak Daya Pengisian</string>
+    <string name="thermal_status_overlay">Status Thermal &amp; Penghemat</string>
+    <string name="thermal_overlay_fmt">Thermal: %1$s · Penghemat: %2$s</string>
+    <string name="idle_drain_overlay">Pemakaian Diam (Layar Mati)</string>
+    <string name="idle_drain_overlay_fmt">Pemakaian Diam: %1$s%%/jam (%2$s%% Deep Sleep)</string>
+    <string name="android_charging_policy_overlay">Kebijakan Pengisian (Android)</string>
+    <string name="android_capacity_level_overlay">Level Kapasitas (Android)</string>
+    <string name="energy_counter_hal_overlay">Penghitung Energi (HAL)</string>
+
+    <string name="export_settings_summary">Simpan seluruh pengaturan aplikasi ke file XML cadangan</string>
+    <string name="import_settings_summary">Pulihkan pengaturan aplikasi dari file XML cadangan</string>
+    <string name="export_history_summary">Simpan database SQLite riwayat pengisian (History.db)</string>
+    <string name="import_history_summary">Pulihkan riwayat pengisian dari file History.db cadangan</string>
+    <string name="error_invalid_history_file">File yang dipilih bukan database riwayat SQLite yang valid!</string>
 </resources>

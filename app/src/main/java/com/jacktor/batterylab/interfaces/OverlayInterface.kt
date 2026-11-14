@@ -17,12 +17,14 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.Toast
+import androidx.appcompat.widget.AppCompatTextView
 import androidx.appcompat.widget.LinearLayoutCompat
 import androidx.core.view.isVisible
 import androidx.preference.PreferenceManager
 import com.jacktor.batterylab.MainApp.Companion.batteryIntent
 import com.jacktor.batterylab.R
 import com.jacktor.batterylab.databinding.OverlayLayoutBinding
+import com.jacktor.batterylab.helpers.IdleDrainHelper
 import com.jacktor.batterylab.helpers.ServiceHelper
 import com.jacktor.batterylab.helpers.TextAppearanceHelper
 import com.jacktor.batterylab.helpers.TimeHelper
@@ -30,9 +32,13 @@ import com.jacktor.batterylab.services.BatteryLabService
 import com.jacktor.batterylab.services.OverlayService
 import com.jacktor.batterylab.utilities.Constants.NUMBER_OF_CYCLES_PATH
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.ANDROID_CAPACITY_LEVEL_OVERLAY
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.ANDROID_CHARGING_POLICY_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.AVERAGE_CHARGE_DISCHARGE_CURRENT_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.AVERAGE_TEMPERATURE_OVERLAY
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.BATTERY_CELL_TOPOLOGY_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.BATTERY_HEALTH_ANDROID_OVERLAY
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.BATTERY_HEALTH_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.BATTERY_LEVEL_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.BATTERY_LEVEL_TO
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.BATTERY_LEVEL_WITH
@@ -44,7 +50,9 @@ import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGING_TIM
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGING_TIME_REMAINING_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.available_capacity_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.ENABLED_OVERLAY
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.ENERGY_COUNTER_HAL_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.FAST_CHARGE_OVERLAY
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.IDLE_DRAIN_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.LAST_CHARGE_TIME_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.MAXIMUM_TEMPERATURE_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.MAX_CHARGE_DISCHARGE_CURRENT_OVERLAY
@@ -64,12 +72,14 @@ import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.OVERLAY_OPAC
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.OVERLAY_SIZE
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.OVERLAY_TEXT_COLOR
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.OVERLAY_TEXT_STYLE
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.PEAK_CHARGE_POWER_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.REMAINING_BATTERY_TIME_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.RESIDUAL_CAPACITY_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.SCREEN_TIME_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.SOURCE_OF_POWER
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.STATUS_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.TEMPERATURE_OVERLAY
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.THERMAL_STATUS_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.VOLTAGE_OVERLAY
 import java.io.File
 import java.text.DecimalFormat
@@ -204,6 +214,38 @@ interface OverlayInterface : BatteryInfoInterface {
                     ), getBoolean(
                         BATTERY_WEAR_OVERLAY, context.resources.getBoolean(
                             R.bool.battery_wear_overlay
+                        )
+                    ), getBoolean(
+                        BATTERY_HEALTH_OVERLAY, context.resources.getBoolean(
+                            R.bool.battery_health_overlay
+                        )
+                    ), getBoolean(
+                        BATTERY_CELL_TOPOLOGY_OVERLAY, context.resources.getBoolean(
+                            R.bool.battery_cell_topology_overlay
+                        )
+                    ), getBoolean(
+                        PEAK_CHARGE_POWER_OVERLAY, context.resources.getBoolean(
+                            R.bool.peak_charge_power_overlay
+                        )
+                    ), getBoolean(
+                        THERMAL_STATUS_OVERLAY, context.resources.getBoolean(
+                            R.bool.thermal_status_overlay
+                        )
+                    ), getBoolean(
+                        IDLE_DRAIN_OVERLAY, context.resources.getBoolean(
+                            R.bool.idle_drain_overlay
+                        )
+                    ), getBoolean(
+                        ANDROID_CHARGING_POLICY_OVERLAY, context.resources.getBoolean(
+                            R.bool.android_charging_policy_overlay
+                        )
+                    ), getBoolean(
+                        ANDROID_CAPACITY_LEVEL_OVERLAY, context.resources.getBoolean(
+                            R.bool.android_capacity_level_overlay
+                        )
+                    ), getBoolean(
+                        ENERGY_COUNTER_HAL_OVERLAY, context.resources.getBoolean(
+                            R.bool.energy_counter_hal_overlay
                         )
                     )
                 )
@@ -341,11 +383,13 @@ interface OverlayInterface : BatteryInfoInterface {
             onUpdateAvailableCapacityOverlay()
             onUpdateCapacityAddedOverlay()
             onUpdateBatteryHealthOverlay()
+            onUpdateCalculatedBatteryHealthOverlay()
             onUpdateResidualCapacityOverlay()
             onUpdateStatusOverlay(status)
             onUpdateSourceOfPowerOverlay(sourceOfPower)
             onUpdateChargeDischargeCurrentOverlay(status)
             onUpdateFastChargeOverlay(status)
+            onUpdatePeakChargePowerOverlay(status)
             onUpdateMaxChargeDischargeCurrentOverlay(status)
             onUpdateAverageChargeDischargeCurrentOverlay(status)
             onUpdateMinChargeDischargeCurrentOverlay(status)
@@ -354,9 +398,15 @@ interface OverlayInterface : BatteryInfoInterface {
             onUpdateMaximumTemperatureOverlay()
             onUpdateAverageTemperatureOverlay()
             onUpdateMinimumTemperatureOverlay()
+            onUpdateThermalStatusOverlay()
             onUpdateVoltageOverlay()
             onUpdateLastChargeTimeOverlay()
             onUpdateBatteryWearOverlay()
+            onUpdateBatteryCellTopologyOverlay()
+            onUpdateIdleDrainOverlay()
+            onUpdateAndroidChargingPolicyOverlay()
+            onUpdateAndroidCapacityLevelOverlay()
+            onUpdateEnergyCounterHalOverlay()
         } catch (_: Exception) {
             return
         }
@@ -466,7 +516,7 @@ interface OverlayInterface : BatteryInfoInterface {
 
         if (pref.getBoolean(
                 NUMBER_OF_FULL_CHARGES_OVERLAY, binding.numberOfFullChargesOverlay
-                    .context.resources.getBoolean(R.bool.number_of_charges_overlay)
+                    .context.resources.getBoolean(R.bool.number_of_full_charges_overlay)
             )
             || binding.numberOfFullChargesOverlay.isVisible
         )
@@ -781,7 +831,7 @@ interface OverlayInterface : BatteryInfoInterface {
                     ) R.string.available_capacity_overlay_wh
                     else R.string.available_capacity_wh_overlay_only_values,
                     DecimalFormat("#.#").format(
-                        getCapacityInWh(getAvailableCapacity(context))
+                        getCapacityInWh(context, getAvailableCapacity(context))
                     )
                 )
                 else context.getString(
@@ -838,6 +888,23 @@ interface OverlayInterface : BatteryInfoInterface {
             }
     }
 
+    private fun applyOverlayTextStyle(textView: AppCompatTextView) {
+        TextAppearanceHelper.setTextAppearance(
+            textView.context, textView,
+            pref.getString(OVERLAY_TEXT_STYLE, "0"),
+            pref.getString(OVERLAY_FONT, "6"),
+            pref.getString(OVERLAY_SIZE, "2"),
+            false
+        )
+        textView.setTextColor(pref.getInt(OVERLAY_TEXT_COLOR, Color.WHITE))
+    }
+
+    private fun isOnlyValuesOverlay(context: Context): Boolean =
+        pref.getBoolean(
+            ONLY_VALUES_OVERLAY,
+            context.resources.getBoolean(R.bool.only_values_overlay)
+        )
+
     private fun onUpdateBatteryHealthOverlay() {
 
         if (pref.getBoolean(
@@ -849,23 +916,12 @@ interface OverlayInterface : BatteryInfoInterface {
         )
             binding.batteryHealthAndroidOverlay.apply {
 
-                TextAppearanceHelper.setTextAppearance(
-                    context, this,
-                    pref.getString(OVERLAY_TEXT_STYLE, "0"),
-                    pref.getString(OVERLAY_FONT, "6"),
-                    pref.getString(OVERLAY_SIZE, "2"),
-                    false
-                )
-
-                setTextColor(pref.getInt(OVERLAY_TEXT_COLOR, Color.WHITE))
+                applyOverlayTextStyle(this)
 
                 text = context.getString(
-                    if (!pref.getBoolean(
-                            ONLY_VALUES_OVERLAY, context.resources
-                                .getBoolean(R.bool.only_values_overlay)
-                        )
-                    ) R.string.battery_health_android
-                    else R.string.battery_health_overlay_only_values, getBatteryHealth(context)
+                    if (!isOnlyValuesOverlay(context)) R.string.battery_health_android
+                    else R.string.battery_health_overlay_only_values,
+                    getBatteryHealthAndroid(context)
                 )
 
                 visibility = if (pref.getBoolean(
@@ -874,6 +930,27 @@ interface OverlayInterface : BatteryInfoInterface {
                     )
                 ) View.VISIBLE else View.GONE
             }
+    }
+
+    private fun onUpdateCalculatedBatteryHealthOverlay() {
+
+        val textView = binding.batteryHealthOverlay
+        val enabled = pref.getBoolean(
+            BATTERY_HEALTH_OVERLAY,
+            textView.context.resources.getBoolean(R.bool.battery_health_overlay)
+        )
+        if (enabled || textView.isVisible) {
+            textView.apply {
+                applyOverlayTextStyle(this)
+                val healthStr = context.getString(getBatteryHealth(context) ?: R.string.unknown)
+                text = context.getString(
+                    if (!isOnlyValuesOverlay(context)) R.string.battery_health_app
+                    else R.string.battery_health_overlay_only_values,
+                    healthStr
+                )
+                visibility = if (enabled) View.VISIBLE else View.GONE
+            }
+        }
     }
 
     private fun onUpdateResidualCapacityOverlay() {
@@ -1769,6 +1846,193 @@ interface OverlayInterface : BatteryInfoInterface {
             }
     }
 
+    private fun onUpdatePeakChargePowerOverlay(status: Int) {
+
+        val textView = binding.peakChargePowerOverlay
+        val enabled = pref.getBoolean(
+            PEAK_CHARGE_POWER_OVERLAY,
+            textView.context.resources.getBoolean(R.bool.peak_charge_power_overlay)
+        )
+        if (enabled || textView.isVisible) {
+            textView.apply {
+                applyOverlayTextStyle(this)
+                val (peakW, peakMa, peakV) = BatteryInfoInterface.getPeakMetrics()
+                val peakWFormatted = DecimalFormat("#.#").format(peakW)
+                val peakVFormatted = DecimalFormat("#.##").format(peakV)
+                text = context.getString(
+                    if (!isOnlyValuesOverlay(context)) R.string.peak_charge_power_verbose
+                    else R.string.peak_charge_power_overlay_only_values,
+                    peakWFormatted,
+                    peakMa,
+                    peakVFormatted
+                )
+                visibility = if (enabled && status == BatteryManager.BATTERY_STATUS_CHARGING && peakW > 0.0) {
+                    View.VISIBLE
+                } else {
+                    View.GONE
+                }
+            }
+        }
+    }
+
+    private fun onUpdateThermalStatusOverlay() {
+
+        val textView = binding.thermalStatusOverlay
+        val enabled = pref.getBoolean(
+            THERMAL_STATUS_OVERLAY,
+            textView.context.resources.getBoolean(R.bool.thermal_status_overlay)
+        )
+        if (enabled || textView.isVisible) {
+            textView.apply {
+                applyOverlayTextStyle(this)
+                val thermal = getThermalStatusLabel(context)
+                val saverLabel = context.getString(
+                    if (isPowerSaveEnabled(context)) R.string.on
+                    else R.string.off
+                )
+                text = context.getString(
+                    if (!isOnlyValuesOverlay(context)) R.string.thermal_overlay_fmt
+                    else R.string.thermal_overlay_only_values,
+                    thermal,
+                    saverLabel
+                )
+                visibility = if (enabled) View.VISIBLE else View.GONE
+            }
+        }
+    }
+
+    private fun onUpdateBatteryCellTopologyOverlay() {
+
+        val textView = binding.batteryCellTopologyOverlay
+        val enabled = pref.getBoolean(
+            BATTERY_CELL_TOPOLOGY_OVERLAY,
+            textView.context.resources.getBoolean(R.bool.battery_cell_topology_overlay)
+        )
+        if (enabled || textView.isVisible) {
+            textView.apply {
+                applyOverlayTextStyle(this)
+                val cellProfile = getBatteryCellProfile(context)
+                val onlyValues = isOnlyValuesOverlay(context)
+                text = if (cellProfile.isDualCell) {
+                    val scaleLabel = "${cellProfile.chargeCounterMultiplier.coerceAtLeast(1)}×"
+                    if (onlyValues) {
+                        context.getString(R.string.battery_cell_dual_short, scaleLabel)
+                    } else {
+                        val topologyRes = if (cellProfile.seriesCellCount >= 2) {
+                            R.string.battery_cell_topology_dual_2s
+                        } else {
+                            R.string.battery_cell_topology_dual_parallel
+                        }
+                        context.getString(topologyRes, scaleLabel)
+                    }
+                } else {
+                    context.getString(
+                        if (onlyValues) R.string.battery_cell_single_short
+                        else R.string.battery_cell_topology_single
+                    )
+                }
+                visibility = if (enabled) View.VISIBLE else View.GONE
+            }
+        }
+    }
+
+    private fun onUpdateIdleDrainOverlay() {
+
+        val textView = binding.idleDrainOverlay
+        val enabled = pref.getBoolean(
+            IDLE_DRAIN_OVERLAY,
+            textView.context.resources.getBoolean(R.bool.idle_drain_overlay)
+        )
+        if (enabled || textView.isVisible) {
+            textView.apply {
+                applyOverlayTextStyle(this)
+                val stats = IdleDrainHelper.getIdleDrainStats(context)
+                val hasData = stats.totalDurationMs >= IdleDrainHelper.MIN_IDLE_DURATION_MS
+                val drainStr = if (hasData) DecimalFormat("#.##").format(stats.totalDrainRatePercentPerHour) else "--"
+                val deepSleepStr = if (hasData) DecimalFormat("#.#").format(stats.deepSleepPercent) else "--"
+                text = context.getString(
+                    if (!isOnlyValuesOverlay(context)) R.string.idle_drain_overlay_fmt
+                    else R.string.idle_drain_overlay_only_values,
+                    drainStr,
+                    deepSleepStr
+                )
+                visibility = if (enabled) View.VISIBLE else View.GONE
+            }
+        }
+    }
+
+    private fun onUpdateAndroidChargingPolicyOverlay() {
+
+        val textView = binding.androidChargingPolicyOverlay
+        val enabled = pref.getBoolean(
+            ANDROID_CHARGING_POLICY_OVERLAY,
+            textView.context.resources.getBoolean(R.bool.android_charging_policy_overlay)
+        )
+        if (enabled || textView.isVisible) {
+            textView.apply {
+                applyOverlayTextStyle(this)
+                val resId = getAndroidChargingPolicyRes(context)
+                if (resId != null) {
+                    val valueStr = context.getString(resId)
+                    text = if (isOnlyValuesOverlay(context)) {
+                        valueStr
+                    } else {
+                        context.getString(R.string.android_charging_policy, valueStr)
+                    }
+                }
+                visibility = if (enabled && resId != null) View.VISIBLE else View.GONE
+            }
+        }
+    }
+
+    private fun onUpdateAndroidCapacityLevelOverlay() {
+
+        val textView = binding.androidCapacityLevelOverlay
+        val enabled = pref.getBoolean(
+            ANDROID_CAPACITY_LEVEL_OVERLAY,
+            textView.context.resources.getBoolean(R.bool.android_capacity_level_overlay)
+        )
+        if (enabled || textView.isVisible) {
+            textView.apply {
+                applyOverlayTextStyle(this)
+                val resId = getAndroidCapacityLevelRes(context)
+                if (resId != null) {
+                    val valueStr = context.getString(resId)
+                    text = if (isOnlyValuesOverlay(context)) {
+                        valueStr
+                    } else {
+                        context.getString(R.string.android_capacity_level, valueStr)
+                    }
+                }
+                visibility = if (enabled && resId != null) View.VISIBLE else View.GONE
+            }
+        }
+    }
+
+    private fun onUpdateEnergyCounterHalOverlay() {
+
+        val textView = binding.energyCounterHalOverlay
+        val enabled = pref.getBoolean(
+            ENERGY_COUNTER_HAL_OVERLAY,
+            textView.context.resources.getBoolean(R.bool.energy_counter_hal_overlay)
+        )
+        if (enabled || textView.isVisible) {
+            textView.apply {
+                applyOverlayTextStyle(this)
+                val energyWh = getHardwareEnergyCounterWh(context)
+                if (energyWh != null) {
+                    val formatted = DecimalFormat("#.##").format(energyWh)
+                    text = context.getString(
+                        if (!isOnlyValuesOverlay(context)) R.string.energy_counter_hal
+                        else R.string.energy_counter_hal_overlay_only_values,
+                        formatted
+                    )
+                }
+                visibility = if (enabled && energyWh != null) View.VISIBLE else View.GONE
+            }
+        }
+    }
+
     private fun onLinearLayoutOnTouchListener(parameters: WindowManager.LayoutParams) =
 
         object : View.OnTouchListener {
@@ -1781,6 +2045,13 @@ interface OverlayInterface : BatteryInfoInterface {
 
             @SuppressLint("ClickableViewAccessibility")
             override fun onTouch(v: View, event: MotionEvent): Boolean {
+                val ctx = v.context
+                val pref = PreferenceManager.getDefaultSharedPreferences(ctx)
+                val isLocked = pref.getBoolean(
+                    PreferencesKeys.IS_LOCK_OVERLAY_LOCATION,
+                    ctx.resources.getBoolean(R.bool.is_lock_overlay_location)
+                )
+                if (isLocked) return false
 
                 when (event.action) {
                     MotionEvent.ACTION_DOWN -> {

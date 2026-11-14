@@ -217,6 +217,7 @@ class BatteryInfoFragment : Fragment(R.layout.battery_info_fragment), SettingsIn
     }
 
     private fun updateToolbar(status: Int) {
+        if (!isAdded || mainContext?.fragment !is BatteryInfoFragment) return
         mainContext?.toolbar?.title = getString(R.string.battery_info)
         mainContext?.navigation?.menu?.findItem(R.id.charge_discharge_navigation)?.apply {
             title = getString(R.string.battery_info)
@@ -234,7 +235,6 @@ class BatteryInfoFragment : Fragment(R.layout.battery_info_fragment), SettingsIn
     private fun buildRows(status: Int, sourceOfPower: Int): List<BatteryInfoRow> {
         val rows = mutableListOf<BatteryInfoRow>()
 
-        // ===== HEADER: CHARGING TIME, BATTERY TIME, SCREEN TIME, LAST CHARGE =====
         val isPlugged = sourceOfPower > 0
         val isCharging = status == BatteryManager.BATTERY_STATUS_CHARGING
         val isFull = status == BatteryManager.BATTERY_STATUS_FULL || (isPlugged && (getBatteryLevel(requireContext()) ?: 0) >= 100)
@@ -317,11 +317,9 @@ class BatteryInfoFragment : Fragment(R.layout.battery_info_fragment), SettingsIn
             timeTint = timeTint
         )
 
-        // ===== SECTION: CHARGING & HEALTH =====
         rows += BatteryInfoRow.Section(getString(R.string.section_charging_health))
 
-        // ===== BATTERY CYCLE COUNTS =====
-        val androidCycles = getNumberOfCyclesAndroid()
+        val androidCycles = getNumberOfCyclesAndroid(requireContext())
         rows += BatteryInfoRow.Counts(
             charges = pref.getLong(Keys.NUMBER_OF_CHARGES, 0).toString(),
             fullCharges = pref.getLong(Keys.NUMBER_OF_FULL_CHARGES, 0).toString(),
@@ -330,7 +328,6 @@ class BatteryInfoFragment : Fragment(R.layout.battery_info_fragment), SettingsIn
             showCyclesAndroid = androidCycles != null
         )
 
-        // ===== POWER SOURCE =====
         run {
             val ctx = requireContext()
             val plugged = isPlugged(sourceOfPower)
@@ -362,6 +359,9 @@ class BatteryInfoFragment : Fragment(R.layout.battery_info_fragment), SettingsIn
                             )
                         )
                     }
+                }
+                getAndroidChargingPolicyRes(ctx)?.let { policyRes ->
+                    add(getString(R.string.android_charging_policy, getString(policyRes)))
                 }
             }
 
@@ -431,7 +431,6 @@ class BatteryInfoFragment : Fragment(R.layout.battery_info_fragment), SettingsIn
             )
         }
 
-        // ===== HEALTH =====
         rows += BatteryInfoRow.Stat(
             icon = R.drawable.ic_health_24,
             iconTint = getBatteryHealthTintRes(requireContext()),
@@ -448,14 +447,12 @@ class BatteryInfoFragment : Fragment(R.layout.battery_info_fragment), SettingsIn
             )
         )
 
-        // ===== SECTION: HARDWARE & POWER =====
         rows += BatteryInfoRow.Section(getString(R.string.section_hardware_power))
 
-        // ===== CAPACITY =====
         val designCapacityMah =
             pref.getInt(Keys.DESIGN_CAPACITY, resources.getInteger(R.integer.min_design_capacity))
         val designCapacityWh =
-            (designCapacityMah.toDouble() * Constants.NOMINAL_BATTERY_VOLTAGE) / 1000.0
+            getCapacityInWh(requireContext(), designCapacityMah.toDouble())
         val isCapacityInWh =
             pref.getBoolean(Keys.CAPACITY_IN_WH, resources.getBoolean(R.bool.capacity_in_wh))
         val designText = if (isCapacityInWh)
@@ -469,7 +466,7 @@ class BatteryInfoFragment : Fragment(R.layout.battery_info_fragment), SettingsIn
             val currentText = if (isCapacityInWh)
                 getString(
                     R.string.available_capacity_wh,
-                    DecimalFormat("#.#").format(getCapacityInWh(currentCap))
+                    DecimalFormat("#.#").format(getCapacityInWh(requireContext(), currentCap))
                 )
             else
                 getString(R.string.available_capacity, DecimalFormat("#.#").format(currentCap))
@@ -478,11 +475,40 @@ class BatteryInfoFragment : Fragment(R.layout.battery_info_fragment), SettingsIn
         }
         capSecondary += getResidualCapacity(requireContext())
         capSecondary += getBatteryWear(requireContext())
+        val wearSamples = getWearSampleCountUsed(requireContext())
+        if (wearSamples > 1) {
+            capSecondary += getString(R.string.battery_wear_multi_sample_note, wearSamples)
+        }
         capSecondary += getString(
             R.string.battery_technology,
             batteryIntent?.getStringExtra(BatteryManager.EXTRA_TECHNOLOGY)
                 ?: getString(R.string.unknown)
         )
+        val cellProfile = getBatteryCellProfile(requireContext())
+        if (cellProfile.isDualCell) {
+            val scaleLabel = if (cellProfile.chargeCounterMultiplier > 1) {
+                "${cellProfile.chargeCounterMultiplier}×"
+            } else {
+                "1×"
+            }
+            val topologyRes = if (cellProfile.seriesCellCount > 1) {
+                R.string.battery_cell_topology_dual_2s
+            } else {
+                R.string.battery_cell_topology_dual_parallel
+            }
+            capSecondary += getString(topologyRes, scaleLabel)
+        } else {
+            capSecondary += getString(R.string.battery_cell_topology_single)
+        }
+        getHardwareEnergyCounterWh(requireContext())?.let { energyWh ->
+            capSecondary += getString(
+                R.string.energy_counter_hal,
+                DecimalFormat("#.##").format(energyWh)
+            )
+        }
+        getAndroidCapacityLevelRes(requireContext())?.let { capLevelRes ->
+            capSecondary += getString(R.string.android_capacity_level, getString(capLevelRes))
+        }
         rows += BatteryInfoRow.Stat(
             icon = R.drawable.ic_battery_capacity_24,
             iconTint = R.color.battery_info_capacity,
@@ -491,7 +517,6 @@ class BatteryInfoFragment : Fragment(R.layout.battery_info_fragment), SettingsIn
             secondary = capSecondary
         )
 
-        // ===== TEMPERATURE =====
         val tempC = DecimalFormat("#.#").format(tempCDouble)
         val tempF = DecimalFormat("#.#").format(getTemperatureInFahrenheit(tempCDouble))
         rows += BatteryInfoRow.Stat(
@@ -518,7 +543,6 @@ class BatteryInfoFragment : Fragment(R.layout.battery_info_fragment), SettingsIn
             )
         )
 
-        // ===== THERMAL & POWER SAVE =====
         run {
             val thermal = getThermalStatusLabel(requireContext())
             val saverOn = isPowerSaveEnabled(requireContext())
@@ -536,7 +560,6 @@ class BatteryInfoFragment : Fragment(R.layout.battery_info_fragment), SettingsIn
             )
         }
 
-        // ===== POWER MONITOR =====
         val voltagePrimary = getString(
             R.string.voltage, DecimalFormat("#.#").format(rawVoltage)
         )

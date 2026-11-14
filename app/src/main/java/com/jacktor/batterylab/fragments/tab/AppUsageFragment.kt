@@ -37,6 +37,7 @@ class AppUsageFragment : Fragment(R.layout.app_usage_fragment) {
     private var loadJob: Job? = null
     private var selectedWindow = AppUsageWindow.LAST_24H
     private var includeSystemApps = false
+    private var hasLoadedReportOnce = false
     private var hasAnimatedEntrance = false
 
     private val pctFormat = DecimalFormat("#.#")
@@ -56,8 +57,11 @@ class AppUsageFragment : Fragment(R.layout.app_usage_fragment) {
         adapter = AppUsageAdapter { entry ->
             showAppDetailDialog(entry)
         }
-        binding.rvAppUsage.layoutManager = LinearLayoutManager(requireContext())
-        binding.rvAppUsage.adapter = adapter
+        binding.rvAppUsage.apply {
+            layoutManager = LinearLayoutManager(requireContext())
+            itemAnimator = null
+            adapter = this@AppUsageFragment.adapter
+        }
 
         binding.swipeRefreshAppUsage.apply {
             setColorSchemeResources(R.color.swipe_refresh_layout_progress)
@@ -112,7 +116,15 @@ class AppUsageFragment : Fragment(R.layout.app_usage_fragment) {
 
         loadJob?.cancel()
         if (showSpinner) {
-            binding.progressLoadingApps.visibility = View.VISIBLE
+            binding.cardUsagePermission.isVisible = false
+            binding.cardAppUsageEmpty.isVisible = false
+            binding.rvAppUsage.isVisible = false
+            binding.tvAppUsageNote.isVisible = false
+            if (!hasLoadedReportOnce) {
+                binding.cardAppUsageOverview.isVisible = false
+                binding.scrollUsageFilters.isVisible = false
+            }
+            binding.cardLoadingApps.isVisible = true
         }
 
         val window = selectedWindow
@@ -128,18 +140,19 @@ class AppUsageFragment : Fragment(R.layout.app_usage_fragment) {
 
     private fun bindReport(report: AppPowerReport) {
         val ctx = context ?: return
-        binding.progressLoadingApps.visibility = View.GONE
+        hasLoadedReportOnce = true
+        binding.cardLoadingApps.isVisible = false
         binding.swipeRefreshAppUsage.isRefreshing = false
 
         val hasPermission = report.hasPermission
         binding.cardUsagePermission.isVisible = !hasPermission
         binding.cardAppUsageOverview.isVisible = hasPermission
         binding.scrollUsageFilters.isVisible = hasPermission
-        binding.tvAppUsageNote.isVisible = hasPermission
 
         if (!hasPermission) {
-            binding.rvAppUsage.visibility = View.GONE
-            binding.cardAppUsageEmpty.visibility = View.GONE
+            binding.rvAppUsage.isVisible = false
+            binding.cardAppUsageEmpty.isVisible = false
+            binding.tvAppUsageNote.isVisible = false
             adapter.submitEntries(emptyList())
             maybeAnimateEntrance()
             return
@@ -196,6 +209,7 @@ class AppUsageFragment : Fragment(R.layout.app_usage_fragment) {
         binding.cardAppUsageEmpty.isVisible = isEmpty
         binding.rvAppUsage.isVisible = !isEmpty
         adapter.submitEntries(report.entries)
+        binding.tvAppUsageNote.isVisible = true
 
         maybeAnimateEntrance()
     }
@@ -203,7 +217,11 @@ class AppUsageFragment : Fragment(R.layout.app_usage_fragment) {
     private fun maybeAnimateEntrance() {
         if (!hasAnimatedEntrance) {
             hasAnimatedEntrance = true
-            MotionHelper.animateStaggeredChildren(binding.containerAppUsage)
+            MotionHelper.animateEntrance(
+                view = binding.containerAppUsage,
+                translateDp = 8f,
+                startScale = 0.99f
+            )
         }
     }
 

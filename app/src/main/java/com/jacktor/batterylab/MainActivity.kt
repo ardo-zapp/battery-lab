@@ -21,8 +21,10 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
+import androidx.core.content.pm.ShortcutManagerCompat
 import androidx.core.net.toUri
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.FragmentManager
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import com.google.android.gms.ads.AdError
@@ -61,9 +63,11 @@ import com.jacktor.batterylab.interfaces.ManufacturerInterface
 import com.jacktor.batterylab.interfaces.NavigationInterface
 import com.jacktor.batterylab.interfaces.NavigationInterface.Companion.mainActivityRef
 import com.jacktor.batterylab.interfaces.SettingsInterface
+import com.jacktor.batterylab.security.NativeCore
 import com.jacktor.batterylab.services.BatteryLabService
 import com.jacktor.batterylab.services.OverlayService
 import com.jacktor.batterylab.utilities.AdMob
+import com.jacktor.batterylab.utilities.ApplicationBackup
 import com.jacktor.batterylab.utilities.Constants
 import com.jacktor.batterylab.utilities.Constants.IMPORT_RESTORE_SETTINGS_EXTRA
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.BATTERY_LEVEL_TO
@@ -187,12 +191,19 @@ class MainActivity : AppCompatActivity(),
         loadPreferences()
         applyTheme()
         loadAdsIfNeeded()
-        setupFragment()
+        val shortcutNavId = setupFragment(intent)
         setupToolbar()
         setupBottomNavigation(getBatteryStatus())
+        shortcutNavId?.let { navigation.menu.findItem(it)?.isChecked = true }
         loadInitialFragment()
         handleBackPressed()
         checkNotificationPermissionOrBatteryOptimization()
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        handleShortcutIntent(intent)
     }
 
     private fun initViewBinding() {
@@ -274,7 +285,10 @@ class MainActivity : AppCompatActivity(),
         }
     }
 
-    private fun setupFragment() {
+    private fun setupFragment(launchIntent: Intent?): Int? {
+        val shortcutNavId = applyShortcutDestination(launchIntent)
+        if (shortcutNavId != null) return shortcutNavId
+
         fragment = tempFragment ?: when {
             isLoadChargeDischarge || shouldLoadChargeDischarge() -> BatteryInfoFragment()
             isLoadHistory || shouldLoadHistory() -> HistoryFragment()
@@ -283,6 +297,105 @@ class MainActivity : AppCompatActivity(),
             shouldLoadDebug() -> DebugFragment()
             else -> SettingsFragment()
         }
+        return null
+    }
+
+    private fun applyShortcutDestination(targetIntent: Intent?): Int? {
+        return when (targetIntent?.action) {
+            Constants.SHORTCUT_ACTION_BATTERY_INFO -> {
+                ShortcutManagerCompat.reportShortcutUsed(this, Constants.SHORTCUT_ID_BATTERY_INFO)
+                isLoadChargeDischarge = true
+                isLoadTools = false
+                isLoadHistory = false
+                isLoadSettings = false
+                isLoadDebug = false
+                fragment = BatteryInfoFragment()
+                R.id.charge_discharge_navigation
+            }
+
+            Constants.SHORTCUT_ACTION_IDLE_DRAIN -> {
+                ShortcutManagerCompat.reportShortcutUsed(this, Constants.SHORTCUT_ID_IDLE_DRAIN)
+                isLoadChargeDischarge = false
+                isLoadTools = true
+                isLoadHistory = false
+                isLoadSettings = false
+                isLoadDebug = false
+                fragment = ToolsFragment.newInstance(0)
+                R.id.tools_navigation
+            }
+
+            Constants.SHORTCUT_ACTION_STRESS_IMPEDANCE -> {
+                isLoadChargeDischarge = false
+                isLoadTools = true
+                isLoadHistory = false
+                isLoadSettings = false
+                isLoadDebug = false
+                fragment = ToolsFragment.newInstance(1)
+                R.id.tools_navigation
+            }
+
+            Constants.SHORTCUT_ACTION_APP_POWER -> {
+                ShortcutManagerCompat.reportShortcutUsed(this, Constants.SHORTCUT_ID_APP_POWER)
+                isLoadChargeDischarge = false
+                isLoadTools = true
+                isLoadHistory = false
+                isLoadSettings = false
+                isLoadDebug = false
+                fragment = ToolsFragment.newInstance(2)
+                R.id.tools_navigation
+            }
+
+            Constants.SHORTCUT_ACTION_HISTORY -> {
+                ShortcutManagerCompat.reportShortcutUsed(this, Constants.SHORTCUT_ID_HISTORY)
+                isLoadChargeDischarge = false
+                isLoadTools = false
+                isLoadHistory = true
+                isLoadSettings = false
+                isLoadDebug = false
+                fragment = HistoryFragment()
+                R.id.history_navigation
+            }
+
+            else -> null
+        }
+    }
+
+    private fun handleShortcutIntent(targetIntent: Intent?) {
+        val action = targetIntent?.action ?: return
+        if (!::navigation.isInitialized) return
+
+        val toolsTabIndex = when (action) {
+            Constants.SHORTCUT_ACTION_IDLE_DRAIN -> 0
+            Constants.SHORTCUT_ACTION_STRESS_IMPEDANCE -> 1
+            Constants.SHORTCUT_ACTION_APP_POWER -> 2
+            else -> -1
+        }
+
+        if (supportFragmentManager.backStackEntryCount > 0) {
+            supportFragmentManager.popBackStack(null, FragmentManager.POP_BACK_STACK_INCLUSIVE)
+        }
+
+        val currentFragment = fragment
+        if (toolsTabIndex >= 0 && currentFragment is ToolsFragment) {
+            val shortcutId = when (toolsTabIndex) {
+                0 -> Constants.SHORTCUT_ID_IDLE_DRAIN
+                2 -> Constants.SHORTCUT_ID_APP_POWER
+                else -> null
+            }
+            shortcutId?.let { ShortcutManagerCompat.reportShortcutUsed(this, it) }
+            currentFragment.selectTab(toolsTabIndex)
+            navigation.menu.findItem(R.id.tools_navigation)?.isChecked = true
+            toolbar.title = getString(R.string.tools)
+            toolbar.navigationIcon = null
+            return
+        }
+
+        val navId = applyShortcutDestination(targetIntent) ?: return
+        navigation.menu.findItem(navId)?.isChecked = true
+        setupToolbar()
+        clearMenu()
+        if (fragment !is SettingsFragment) inflateMenu(-1)
+        loadFragment(fragment ?: BatteryInfoFragment())
     }
 
     private fun tabOnLaunch(): String? = pref?.getString(TAB_ON_APPLICATION_LAUNCH, "0")
@@ -321,7 +434,7 @@ class MainActivity : AppCompatActivity(),
         toolbar.title = when (fragment) {
             is BatteryInfoFragment -> getString(R.string.battery_info)
             is ToolsFragment -> getString(R.string.tools)
-            is HistoryFragment -> getString(R.string.history)
+            is HistoryFragment -> com.jacktor.batterylab.helpers.HistoryHelper.getHistoryTitle(this)
             is SettingsFragment -> getString(R.string.settings)
             is DebugFragment -> getString(R.string.debug)
             else -> getString(R.string.app_name)
@@ -451,7 +564,7 @@ class MainActivity : AppCompatActivity(),
         }
         toolbar.title = when (fragment) {
             is BatteryInfoFragment -> getString(R.string.battery_info)
-            is HistoryFragment -> getString(R.string.history)
+            is HistoryFragment -> com.jacktor.batterylab.helpers.HistoryHelper.getHistoryTitle(this)
             is ToolsFragment -> getString(R.string.tools)
             is SettingsFragment -> getString(R.string.settings)
             is BatteryStatusInformationFragment -> getString(R.string.battery_status_information)
@@ -550,7 +663,11 @@ class MainActivity : AppCompatActivity(),
     }
 
     private fun checkForUpdatesIfNeeded() {
-        if (isInstalledGooglePlay && isGooglePlay(this) && isCheckUpdateFromGooglePlay) {
+        val enabledCheckUpdate = pref?.getBoolean(
+            com.jacktor.batterylab.utilities.preferences.PreferencesKeys.IS_ENABLE_CHECK_UPDATE,
+            resources.getBoolean(R.bool.is_enable_check_update)
+        ) ?: true
+        if (enabledCheckUpdate && isInstalledGooglePlay && isGooglePlay(this) && isCheckUpdateFromGooglePlay) {
             checkUpdateFromGooglePlay()
         }
     }
@@ -621,43 +738,11 @@ class MainActivity : AppCompatActivity(),
     }
 
     private fun importSettings(prefArrays: HashMap<*, *>?) {
-        val prefsToImport = listOf(
-            BATTERY_LEVEL_TO, BATTERY_LEVEL_WITH, DESIGN_CAPACITY,
-            CAPACITY_ADDED, LAST_CHARGE_TIME, PERCENT_ADDED, RESIDUAL_CAPACITY
-        )
-        prefArrays?.let {
-            prefsToImport.forEach { key ->
-                if (!it.containsKey(key)) {
-                    pref?.edit { remove(key)?.apply() }
-                } else {
-                    importSinglePref(key, it)
-                }
-            }
-        }
+        ApplicationBackup.restorePreservedPrefs(pref, prefArrays)
         toolbar.menu.clear()
         isRestoreImportSettings = true
         this.prefArrays = null
         intent.removeExtra(IMPORT_RESTORE_SETTINGS_EXTRA)
-    }
-
-    private fun importSinglePref(key: String, source: Map<*, *>) {
-        val value = source[key] ?: return
-        when (key) {
-            NUMBER_OF_CHARGES -> (value as? Number)?.toLong()?.let { v ->
-                pref?.edit { putLong(key, v) }
-            }
-
-            BATTERY_LEVEL_TO, BATTERY_LEVEL_WITH, LAST_CHARGE_TIME,
-            DESIGN_CAPACITY, RESIDUAL_CAPACITY, PERCENT_ADDED ->
-                (value as? Number)?.toInt()?.let { v ->
-                    pref?.edit { putInt(key, v) }
-                }
-
-            CAPACITY_ADDED, NUMBER_OF_CYCLES ->
-                (value as? Number)?.toFloat()?.let { v ->
-                    pref?.edit { putFloat(key, v) }
-                }
-        }
     }
 
     fun backPressed() {
@@ -733,9 +818,9 @@ class MainActivity : AppCompatActivity(),
     }
 
     fun showInterstitialAd(force: Boolean = false) {
-        val isPremiumUser = Premium.isPremium().value
         val premiumReady = Premium.premiumStatusReady().value
-        if (isPremiumUser && premiumReady) return
+        val suppressAds = NativeCore.shouldSuppressAds(this, premiumReady)
+        if (suppressAds) return
 
         adsCounter++
         val now = android.os.SystemClock.elapsedRealtime()
@@ -745,7 +830,7 @@ class MainActivity : AppCompatActivity(),
         if ((adsCounter >= AD_COUNTER_THRESHOLD || force) &&
             (isGracePassed || force) &&
             (isCooldownPassed || force) &&
-            !isPremiumUser &&
+            !suppressAds &&
             premiumReady &&
             interstitialAd != null
         ) {

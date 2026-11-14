@@ -37,5 +37,16 @@ object Constants {
     const val CHARGING_VOLTAGE_WATT = 5.0
     const val DONT_KILL_MY_APP_LINK = "https://dontkillmyapp.com"
 
+    const val SHORTCUT_ACTION_BATTERY_INFO = "com.jacktor.batterylab.shortcut.BATTERY_INFO"
+    const val SHORTCUT_ACTION_APP_POWER = "com.jacktor.batterylab.shortcut.APP_POWER"
+    const val SHORTCUT_ACTION_IDLE_DRAIN = "com.jacktor.batterylab.shortcut.IDLE_DRAIN"
+    const val SHORTCUT_ACTION_STRESS_IMPEDANCE = "com.jacktor.batterylab.shortcut.STRESS_IMPEDANCE"
+    const val SHORTCUT_ACTION_HISTORY = "com.jacktor.batterylab.shortcut.HISTORY"
+
+    const val SHORTCUT_ID_BATTERY_INFO = "shortcut_battery_info"
+    const val SHORTCUT_ID_APP_POWER = "shortcut_app_power"
+    const val SHORTCUT_ID_IDLE_DRAIN = "shortcut_idle_drain"
+    const val SHORTCUT_ID_HISTORY = "shortcut_history"
+
     val SERVICE_WAKELOCK_TIMEOUT = 1.minutes.inWholeMilliseconds
 }

@@ -62,6 +62,7 @@ import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CAPACITY_ADD
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGING_START_LEVEL
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.DESIGN_CAPACITY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.FULL_CHARGE_REMINDER_FREQUENCY
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.IS_ENABLE_WAKELOCK
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.LAST_CHARGE_TIME
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.NOTIFY_BATTERY_IS_CHARGED
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.NOTIFY_BATTERY_IS_DISCHARGED
@@ -78,6 +79,7 @@ import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.POWER_CONNEC
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.RESIDUAL_CAPACITY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.UNIT_OF_MEASUREMENT_OF_available_capacity
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.UPDATE_TEMP_SCREEN_TIME
+import com.jacktor.batterylab.security.NativeCore
 import com.jacktor.premium.Premium
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -301,7 +303,7 @@ class BatteryLabService : Service(), NotificationInterface, BatteryInfoInterface
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         // Premium
-        isPremium = Premium.isPremium().value
+        isPremium = NativeCore.hasPremiumAccess(this)
         Premium.revalidate(this) //Revalidate
 
         // PowerConnectionReceiver on/off
@@ -335,19 +337,27 @@ class BatteryLabService : Service(), NotificationInterface, BatteryInfoInterface
             while (isJob && !isStopService) {
                 if (instance == null) instance = this@BatteryLabService
 
-                if (powerManager == null)
-                    powerManager = getSystemService(POWER_SERVICE) as PowerManager
-                if (wakeLock == null)
-                    wakeLock = powerManager?.newWakeLock(
-                        PowerManager.PARTIAL_WAKE_LOCK,
-                        "${packageName}:service_wakelock"
-                    )
+                val useWakeLock = pref.getBoolean(
+                    IS_ENABLE_WAKELOCK,
+                    resources.getBoolean(R.bool.is_enable_wakelock)
+                )
+                if (useWakeLock) {
+                    if (powerManager == null)
+                        powerManager = getSystemService(POWER_SERVICE) as PowerManager
+                    if (wakeLock == null)
+                        wakeLock = powerManager?.newWakeLock(
+                            PowerManager.PARTIAL_WAKE_LOCK,
+                            "${packageName}:service_wakelock"
+                        )
 
-                if (wakeLock?.isHeld != true && !isFull && isPowerConnected) {
-                    try {
-                        wakeLock?.acquire(SERVICE_WAKELOCK_TIMEOUT)
-                    } catch (_: Throwable) {
+                    if (wakeLock?.isHeld != true && !isFull && isPowerConnected) {
+                        try {
+                            wakeLock?.acquire(SERVICE_WAKELOCK_TIMEOUT)
+                        } catch (_: Throwable) {
+                        }
                     }
+                } else {
+                    wakeLockRelease()
                 }
 
                 if (isPowerConnected) {
@@ -528,6 +538,9 @@ class BatteryLabService : Service(), NotificationInterface, BatteryInfoInterface
             PreferenceManager.getDefaultSharedPreferences(applicationContext)
 
         if (!isFull && seconds > 1) {
+            BatteryInfoInterface.saveLastChargeSnapshot(
+                this, applicationContext, pref, seconds, startLevel, batteryLevel, false
+            )
             pref.edit {
                 putInt(LAST_CHARGE_TIME, seconds)
                 putInt(BATTERY_LEVEL_WITH, startLevel)
@@ -549,6 +562,7 @@ class BatteryLabService : Service(), NotificationInterface, BatteryInfoInterface
                         RESIDUAL_CAPACITY,
                         (getAvailableCapacity(applicationContext) * factor).toInt()
                     )
+                    putBoolean(BatteryInfoInterface.RESIDUAL_DUAL_CELL_VERIFIED_PREF, true)
                 }
             }
             HistoryHelper.addHistory(
@@ -679,9 +693,15 @@ class BatteryLabService : Service(), NotificationInterface, BatteryInfoInterface
             val numberOfCharges = getLong(NUMBER_OF_CHARGES, 0)
             if (seconds > 1) edit { putLong(NUMBER_OF_CHARGES, numberOfCharges + 1) }
 
+            BatteryInfoInterface.saveLastChargeSnapshot(
+                this@BatteryLabService, applicationContext, this,
+                seconds, startLevel, batteryLevel, true
+            )
+
             edit {
                 putInt(LAST_CHARGE_TIME, seconds)
                 putInt(RESIDUAL_CAPACITY, residualCapacity)
+                putBoolean(BatteryInfoInterface.RESIDUAL_DUAL_CELL_VERIFIED_PREF, true)
                 putInt(BATTERY_LEVEL_WITH, startLevel)
                 putInt(BATTERY_LEVEL_TO, batteryLevel)
                 putLong(NUMBER_OF_FULL_CHARGES, getLong(NUMBER_OF_FULL_CHARGES, 0) + 1)

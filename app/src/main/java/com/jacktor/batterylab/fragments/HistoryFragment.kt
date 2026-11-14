@@ -22,6 +22,7 @@ import com.jacktor.batterylab.helpers.HistoryHelper
 import com.jacktor.batterylab.helpers.MotionHelper
 import com.jacktor.batterylab.interfaces.NavigationInterface.Companion.mainActivityRef
 import com.jacktor.batterylab.interfaces.views.MenuInterface
+import com.jacktor.batterylab.security.NativeCore
 import com.jacktor.premium.Premium
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -49,7 +50,7 @@ class HistoryFragment : Fragment(R.layout.history_fragment), MenuInterface {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        isPremium = Premium.isPremium().value
+        isPremium = NativeCore.hasPremiumAccess(requireContext())
         binding = HistoryFragmentBinding.inflate(inflater, container, false)
         pref = PreferenceManager.getDefaultSharedPreferences(requireContext())
         return binding?.root?.rootView
@@ -58,7 +59,7 @@ class HistoryFragment : Fragment(R.layout.history_fragment), MenuInterface {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         instance = this
-        isPremium = Premium.isPremium().value
+        isPremium = NativeCore.hasPremiumAccess(requireContext())
 
         updateHistoryUI()
 
@@ -70,7 +71,7 @@ class HistoryFragment : Fragment(R.layout.history_fragment), MenuInterface {
 
     override fun onResume() {
         super.onResume()
-        isPremium = Premium.isPremium().value
+        isPremium = NativeCore.hasPremiumAccess(requireContext())
         updateHistoryUI()
     }
 
@@ -102,7 +103,8 @@ class HistoryFragment : Fragment(R.layout.history_fragment), MenuInterface {
             hasAnimatedEmptyState = false
 
             val rawList = historyDB.readAll() as MutableList<History>
-            val displayList = if (isPremium) rawList else rawList.takeLast(10).toMutableList()
+            val allowedCount = NativeCore.resolveHistoryDisplayCount(ctx, rawList.size)
+            val displayList = rawList.takeLast(allowedCount).toMutableList()
 
             binding?.emptyHistoryLayout?.visibility = View.GONE
             binding?.refreshEmptyHistory?.visibility = View.GONE
@@ -122,6 +124,7 @@ class HistoryFragment : Fragment(R.layout.history_fragment), MenuInterface {
                 }
             }
 
+            mainActivityRef?.get()?.toolbar?.title = HistoryHelper.getHistoryTitle(ctx)
             mainActivityRef?.get()?.toolbar?.menu?.findItem(R.id.history_premium)?.isVisible = !isPremium
             mainActivityRef?.get()?.toolbar?.menu?.findItem(R.id.clear_history)?.isVisible = isPremium
         } else {
@@ -130,6 +133,9 @@ class HistoryFragment : Fragment(R.layout.history_fragment), MenuInterface {
     }
 
     fun emptyHistory() {
+        context?.let { ctx ->
+            mainActivityRef?.get()?.toolbar?.title = HistoryHelper.getHistoryTitle(ctx)
+        }
         mainActivityRef?.get()?.toolbar?.menu?.findItem(R.id.history_premium)?.isVisible = !isPremium
         mainActivityRef?.get()?.toolbar?.menu?.findItem(R.id.clear_history)?.isVisible = false
 

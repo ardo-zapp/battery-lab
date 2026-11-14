@@ -23,8 +23,16 @@ class ToolsFragment : Fragment(R.layout.tools_fragment), MenuInterface {
     private var pref: SharedPreferences? = null
 
     companion object {
-        //var instance: ToolsFragment? = null
+        private const val ARG_INITIAL_TAB = "initial_tab"
+
+        fun newInstance(initialTab: Int = 0): ToolsFragment = ToolsFragment().apply {
+            arguments = Bundle().apply {
+                putInt(ARG_INITIAL_TAB, initialTab)
+            }
+        }
     }
+
+    private var pendingTabIndex: Int = -1
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -38,8 +46,7 @@ class ToolsFragment : Fragment(R.layout.tools_fragment), MenuInterface {
 
         pref = PreferenceManager.getDefaultSharedPreferences(requireContext())
 
-        // Setup ViewPager2 dan TabLayout
-        val viewPagerAdapter = ViewPagerAdapter(requireActivity())
+        val viewPagerAdapter = ViewPagerAdapter(this)
         binding.viewPager.adapter = viewPagerAdapter
         binding.viewPager.isUserInputEnabled = false
         binding.viewPager.setPageTransformer { page, position ->
@@ -51,29 +58,53 @@ class ToolsFragment : Fragment(R.layout.tools_fragment), MenuInterface {
                 return@setPageTransformer
             }
             val absPos = abs(position)
-            page.alpha = (1f - absPos * 0.45f).coerceIn(0f, 1f)
-            val scale = (0.965f + (1f - absPos) * 0.035f).coerceIn(0.965f, 1f)
-            page.scaleX = scale
-            page.scaleY = scale
-            page.translationX = -position * page.width * 0.08f
+            // Keep translationX zeroed so switching across ViewPager2 pages never overlaps neighbors.
+            page.translationX = 0f
+            page.scaleX = 1f
+            page.scaleY = 1f
+            page.alpha = (1f - absPos).coerceIn(0f, 1f)
         }
 
-        // Hubungkan TabLayout dengan ViewPager2
         TabLayoutMediator(binding.tabLayout, binding.viewPager) { tab, position ->
             when (position) {
                 0 -> tab.text = getString(R.string.idle_drain)
                 1 -> tab.text = getString(R.string.stress_impedance_tab)
                 2 -> tab.text = getString(R.string.app_usage_tab)
+                3 -> tab.text = getString(R.string.last_charge_tab)
             }
         }.attach()
 
-        // Callback untuk mendeteksi perubahan halaman
         binding.viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
-                (activity as? MainActivity)?.inflateMenu(position) // Panggil dari MenuInterface
+                (activity as? MainActivity)?.inflateMenu(position)
             }
         })
+
+        val initialTab = if (pendingTabIndex >= 0) {
+            pendingTabIndex
+        } else {
+            arguments?.getInt(ARG_INITIAL_TAB, -1) ?: -1
+        }
+        pendingTabIndex = -1
+        if (initialTab in 0 until viewPagerAdapter.itemCount) {
+            binding.viewPager.post {
+                if (isAdded) binding.viewPager.setCurrentItem(initialTab, false)
+            }
+        }
+    }
+
+    fun selectTab(index: Int) {
+        if (!::binding.isInitialized) {
+            pendingTabIndex = index
+            return
+        }
+        val count = binding.viewPager.adapter?.itemCount ?: return
+        if (index in 0 until count) {
+            binding.viewPager.post {
+                if (isAdded) binding.viewPager.setCurrentItem(index, false)
+            }
+        }
     }
 
     /*override fun onResume() {

@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<com.jacktor.batterylab.views.QuietNestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true">
+    android:fadeScrollbars="true"
+    android:fillViewport="true"
+    android:scrollbars="vertical">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -12,7 +14,6 @@
         android:orientation="vertical"
         android:padding="12dp">
 
-        <!-- Notice when charging -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardChargingNotice"
             android:layout_width="match_parent"
@@ -49,7 +50,6 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Main Overview Card -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardOverview"
             android:layout_width="match_parent"
@@ -116,7 +116,6 @@
                     android:layout_marginVertical="12dp"
                     android:background="@color/canvas_bg" />
 
-                <!-- Primary metric -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -150,7 +149,6 @@
                         tools:text="~28 mA" />
                 </LinearLayout>
 
-                <!-- Deep Sleep Progress info -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -186,7 +184,6 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Since Unplugged Details Card -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardSinceUnplugged"
             android:layout_width="match_parent"
@@ -210,7 +207,6 @@
                     android:text="@string/idle_drain_since_unplugged"
                     android:textAppearance="@style/TextAppearance.Material3.TitleMedium" />
 
-                <!-- Grid Row 1 -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -267,7 +263,6 @@
                     android:layout_marginVertical="10dp"
                     android:background="@color/canvas_bg" />
 
-                <!-- Grid Row 2 -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -320,7 +315,6 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Latest Session Card -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardLastSession"
             android:layout_width="match_parent"
@@ -428,7 +422,6 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Diagnostics Card -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardDiagnostics"
             android:layout_width="match_parent"
@@ -493,7 +486,6 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Action Buttons -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -526,4 +518,4 @@
         </LinearLayout>
 
     </LinearLayout>
-</androidx.core.widget.NestedScrollView>
+</com.jacktor.batterylab.views.QuietNestedScrollView>

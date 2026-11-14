@@ -11,6 +11,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.edit
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
+import androidx.preference.PreferenceManager
 import com.jacktor.batterylab.R
 import com.jacktor.batterylab.helpers.HistoryHelper
 import com.jacktor.batterylab.interfaces.BackupSettingsInterface
@@ -31,6 +32,8 @@ class BackupSettingsFragment : PreferenceFragmentCompat(), BackupSettingsInterfa
 
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
+
+        pref = PreferenceManager.getDefaultSharedPreferences(requireContext())
 
         addPreferencesFromResource(R.xml.backup_settings)
 
@@ -128,7 +131,16 @@ class BackupSettingsFragment : PreferenceFragmentCompat(), BackupSettingsInterfa
                 requestCode = Constants.IMPORT_HISTORY_REQUEST_CODE
                 getResult.launch(Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
                     addCategory(Intent.CATEGORY_OPENABLE)
-                    type = "application/octet-stream"
+                    type = "*/*"
+                    putExtra(
+                        Intent.EXTRA_MIME_TYPES,
+                        arrayOf(
+                            "application/octet-stream",
+                            "application/x-sqlite3",
+                            "application/vnd.sqlite3",
+                            "*/*"
+                        )
+                    )
                 })
             } catch (e: ActivityNotFoundException) {
 

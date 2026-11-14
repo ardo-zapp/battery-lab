@@ -235,13 +235,13 @@
     <string name="appearance">Appearance</string>
     <string name="tools">Tools</string>
     <string name="pref_show_toast_title">Show toast</string>
-    <string name="pref_show_toast_smry">Show toast power is connected or disconnected</string>
+    <string name="pref_show_toast_smry">Show toast when power is connected or disconnected</string>
     <string name="toast_power_connected">Power is connected!</string>
     <string name="toast_power_disconnected">Power is disconnected!</string>
     <string name="sound_not_selected">Sound not selected</string>
     <string name="pref_power_connected_ac_sound_title">Select sound for AC</string>
     <string name="pref_power_connected_usb_sound_title">Select sound for USB</string>
-    <string name="pref_power_disconnected_sound_title">Select sound for power is disconnected</string>
+    <string name="pref_power_disconnected_sound_title">Select sound when power is disconnected</string>
     <string name="pref_sound_delay_title">Sound delay</string>
     <string name="reset_sound">Reset Sound</string>
     <string name="pref_enable_vibration_title">Enable vibration</string>
@@ -514,9 +514,9 @@
     <string name="stress_pulse_result_success">Calibration complete!\n• Current Step (ΔI): %1$d mA\n• Voltage Sag (ΔV): %2$d mV/cell\n• Measured Impedance (Rint): ~%3$d mΩ/cell</string>
     <string name="stress_pulse_result_low_delta">The fuel-gauge sensor reported too small a delta (ΔI: %1$d mA, ΔV: %2$d mV) during the 2-second pulse. Keeping electro-thermal estimation active.</string>
     <string name="stress_diag_low">Low electrochemical stress (%1$sC, Rint ~%2$d mΩ/cell). Cell operates inside the optimal longevity window with minimal internal heat dissipation (%3$s mW).</string>
-    <string name="stress_rec_low">Maintaining battery between 20–80%% at temperatures under 35°C minimizes SEI layer growth and cathode oxidation.</string>
+    <string name="stress_rec_low">Maintaining battery between 20–80% at temperatures under 35°C minimizes SEI layer growth and cathode oxidation.</string>
     <string name="stress_diag_moderate">Moderate cell load (%1$sC, Rint ~%2$d mΩ/cell, sag ~%3$d mV). Chemical aging rate is currently %4$sx relative to baseline.</string>
-    <string name="stress_rec_moderate">If charging above 80%% or running heavy apps, keep device ventilated so thermal stress does not compound voltage pressure.</string>
+    <string name="stress_rec_moderate">If charging above 80% or running heavy apps, keep device ventilated so thermal stress does not compound voltage pressure.</string>
     <string name="stress_diag_high">Elevated cell stress (%1$sC, Rint ~%2$d mΩ/cell, internal heat ~%3$s mW)! Combination of high C-Rate, cell voltage, or heat accelerates wear (%4$sx).</string>
     <string name="stress_rec_high">Avoid heavy gaming while fast-charging and let the battery cool below 38°C to prevent lithium plating and impedance rise.</string>
 
@@ -559,6 +559,7 @@
     <string name="app_usage_window_24h">24 Hours</string>
     <string name="app_usage_window_7d">7 Days</string>
     <string name="app_usage_include_system">System Apps</string>
+    <string name="app_usage_loading">Analyzing app battery usage…</string>
     <string name="app_usage_empty">No measurable app power activity recorded in this time window yet.</string>
     <string name="app_usage_methodology_note">Note: Without root access, per-app mAh and intensity tiers are estimated from Android UsageStats (foreground time, foreground-service runtime, launch frequency) combined with device battery capacity.</string>
     <string name="app_usage_rank_fmt">#%1$d</string>
@@ -582,4 +583,116 @@
     <string name="app_usage_advice_normal">Power usage for this app is within normal expected range relative to its active time.</string>
     <string name="app_usage_open_app_info">App Battery Settings</string>
     <string name="app_usage_open_app_info_failed">Unable to open App Info settings.</string>
+
+    <!-- App Shortcuts -->
+    <string name="shortcut_disabled_message">This shortcut is currently unavailable.</string>
+    <string name="shortcut_battery_info_short">Battery Info</string>
+    <string name="shortcut_battery_info_long">Open Battery Info</string>
+    <string name="shortcut_app_power_short">App Power</string>
+    <string name="shortcut_app_power_long">Inspect App Power Usage</string>
+    <string name="shortcut_idle_drain_short">Idle Drain</string>
+    <string name="shortcut_idle_drain_long">Inspect Idle Drain</string>
+    <string name="shortcut_history_short">History</string>
+    <string name="shortcut_history_long">Open Charge History</string>
+
+    <string name="battery_cell_topology_dual_2s">Cell architecture: Dual-Cell 2S (Auto %s)</string>
+    <string name="battery_cell_topology_dual_parallel">Cell architecture: Dual-Cell Parallel (Auto %s)</string>
+    <string name="battery_cell_topology_single">Cell architecture: Single-Cell</string>
+    <string name="energy_counter_hal">Energy counter (HAL): %s Wh</string>
+    <string name="android_capacity_level">Capacity level (Android): %s</string>
+    <string name="capacity_level_critical">Critical</string>
+    <string name="capacity_level_low">Low</string>
+    <string name="capacity_level_normal">Normal</string>
+    <string name="capacity_level_high">High</string>
+    <string name="capacity_level_full">Full</string>
+    <string name="android_charging_policy">Charging policy (Android): %s</string>
+    <string name="charging_policy_default">Standard</string>
+    <string name="charging_policy_adaptive_aon">Adaptive (Threshold)</string>
+    <string name="charging_policy_adaptive_ac">Adaptive (AC)</string>
+    <string name="charging_policy_adaptive_longlife">Adaptive (Long-life)</string>
+
+    <!-- Upstream Features -->
+    <string name="show_battery_level_in_status_bar">Battery Level Icon in Status Bar</string>
+    <string name="show_battery_level_in_status_bar_summary">Show dynamic battery percentage icon instead of monochrome app icon in status bar</string>
+    <string name="open_the_app_notification_settings">System Notification Settings</string>
+    <string name="open_the_app_notification_settings_error">Unable to open system notification settings.</string>
+    <string name="show_number_of_history">Show History Entry Count</string>
+    <string name="alt_calc_charging_time_remaining">Alternative Charging ETA Calculation</string>
+    <string name="alt_calc_charging_time_remaining_summary">Use internal physics model instead of Android system charge time estimation</string>
+    <string name="replace_of_device_battery">Battery Replaced</string>
+    <string name="replace_of_device_battery_summary">Clear history and reset wear, cycles, and last-charge records after replacing the battery</string>
+    <string name="replace_of_device_battery_dialog_title">Reset Data for New Battery?</string>
+    <string name="replace_of_device_battery_dialog_message">This will permanently clear all charge history, wear estimates, cycle counts, residual capacity, and last charge statistics. Your app preferences will remain unchanged.</string>
+    <string name="battery_data_reset_successfully">Battery statistics and history reset for new battery.</string>
+    <string name="lock_overlay_location">Lock Overlay Position</string>
+    <string name="lock_overlay_location_summary">Prevent accidental dragging of the floating overlay window</string>
+
+    <!-- Debug Additions -->
+    <string name="enable_wakelock">Enable Service WakeLock</string>
+    <string name="enable_wakelock_summary">Keep CPU awake while charging so statistics stay accurate when screen is off</string>
+    <string name="enable_check_update">Check Updates via Google Play</string>
+    <string name="nominal_battery_voltage_title">Nominal Battery Voltage</string>
+    <string name="number_of_history_for_battery_wear_title">History Samples for Battery Wear</string>
+    <string name="number_of_history_for_battery_wear_summary">Average last %s history entries to stabilize residual capacity &amp; wear</string>
+
+    <!-- Last Charge Tab -->
+    <string name="last_charge_tab">Last Charge</string>
+    <string name="last_charge_title">Last Charge Summary</string>
+    <string name="last_charge_recorded_at">Recorded: %s</string>
+    <string name="last_charge_empty_title">No Last Charge Data Yet</string>
+    <string name="last_charge_empty_desc">Charge your device and unplug (or reach 100%) with the monitoring service active to record a complete charge session.</string>
+    <string name="last_charge_section_overview">Session Overview</string>
+    <string name="last_charge_section_current_power">Current &amp; Power</string>
+    <string name="last_charge_section_thermal_voltage">Thermal &amp; Voltage</string>
+    <string name="last_charge_battery_level">Level Range</string>
+    <string name="last_charge_duration">Charging Duration</string>
+    <string name="last_charge_current_capacity">Capacity at End</string>
+    <string name="last_charge_capacity_added">Capacity Added</string>
+    <string name="last_charge_status">End Status</string>
+    <string name="last_charge_source">Power Source</string>
+    <string name="last_charge_fast_charge">Fast Charge</string>
+    <string name="last_charge_max_current">Max Current</string>
+    <string name="last_charge_avg_current">Average Current</string>
+    <string name="last_charge_min_current">Min Current</string>
+    <string name="last_charge_max_temp">Max Temperature</string>
+    <string name="last_charge_avg_temp">Average Temperature</string>
+    <string name="last_charge_min_temp">Min Temperature</string>
+    <string name="last_charge_voltage">Voltage at End</string>
+    <string name="battery_wear_multi_sample_note">Wear smoothed over last %d sessions</string>
+
+    <!-- Localization & Overlay & Backup Sync -->
+    <string name="charger_disconnected">Disconnected</string>
+    <string name="unit_ua_default">μA (Default)</string>
+    <string name="unit_uah_default">μAh (Default)</string>
+    <string name="unit_mv_default">mV (Default)</string>
+    <string name="text_style_normal_default">Normal (Default)</string>
+    <string name="text_style_bold">Bold</string>
+    <string name="text_style_italic">Italic</string>
+    <string name="nominal_voltage_387_default">3.87 V (Default)</string>
+    <string name="history_wear_samples_3_default">3 (Default)</string>
+
+    <string name="only_values_summary">Display values without field labels in the floating overlay</string>
+    <string name="battery_health_overlay">Battery Health (Calculated)</string>
+    <string name="battery_health_app">Battery Health: %1$s</string>
+    <string name="battery_cell_topology_overlay">Cell Architecture</string>
+    <string name="battery_cell_dual_short" translatable="false">Dual-Cell (%s)</string>
+    <string name="battery_cell_single_short">Single-Cell</string>
+    <string name="peak_charge_power_overlay">Peak Charge Power</string>
+    <string name="peak_charge_power_overlay_only_values" translatable="false">%1$s W (%2$d mA @ %3$s V)</string>
+    <string name="thermal_status_overlay">Thermal &amp; Power Saver</string>
+    <string name="thermal_overlay_fmt">Thermal: %1$s · Saver: %2$s</string>
+    <string name="thermal_overlay_only_values" translatable="false">%1$s / %2$s</string>
+    <string name="idle_drain_overlay">Idle Drain (Screen Off)</string>
+    <string name="idle_drain_overlay_fmt">Idle Drain: %1$s%%/h (%2$s%% Deep Sleep)</string>
+    <string name="idle_drain_overlay_only_values" translatable="false">%1$s%%/h (%2$s%%)</string>
+    <string name="android_charging_policy_overlay">Charging Policy (Android)</string>
+    <string name="android_capacity_level_overlay">Capacity Level (Android)</string>
+    <string name="energy_counter_hal_overlay">Energy Counter (HAL)</string>
+    <string name="energy_counter_hal_overlay_only_values" translatable="false">%s Wh</string>
+
+    <string name="export_settings_summary">Save app preferences and configuration to XML file</string>
+    <string name="import_settings_summary">Restore app preferences from an exported XML file</string>
+    <string name="export_history_summary">Save charging history SQLite database (History.db)</string>
+    <string name="import_history_summary">Restore charging history from a backed-up History.db file</string>
+    <string name="error_invalid_history_file">Selected file is not a valid SQLite history database!</string>
 </resources>

@@ -4,6 +4,7 @@ import android.content.Context
 import android.view.MenuItem
 import android.view.View
 import android.widget.Toast
+import androidx.preference.PreferenceManager
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.jacktor.batterylab.R
 import com.jacktor.batterylab.adapters.HistoryAdapter
@@ -11,6 +12,7 @@ import com.jacktor.batterylab.databases.History
 import com.jacktor.batterylab.databases.HistoryDB
 import com.jacktor.batterylab.fragments.HistoryFragment
 import com.jacktor.batterylab.utilities.Constants
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys
 import java.lang.Exception
 
 object HistoryHelper {
@@ -33,6 +35,18 @@ object HistoryHelper {
     fun clearHistory(context: Context) = HistoryDB(context).clear()
 
     fun getHistoryCount(context: Context) = HistoryDB(context).getCount()
+
+    fun getHistoryTitle(context: Context): String {
+        val baseTitle = context.getString(R.string.history)
+        val pref = PreferenceManager.getDefaultSharedPreferences(context)
+        val showCount = pref.getBoolean(
+            PreferencesKeys.IS_SHOW_NUMBER_OF_HISTORY,
+            context.resources.getBoolean(R.bool.is_show_number_of_history)
+        )
+        if (!showCount) return baseTitle
+        val count = getHistoryCount(context)
+        return if (count > 0L) "$baseTitle ($count)" else baseTitle
+    }
 
     fun isHistoryMax(context: Context) = getHistoryCount(context).toInt() == Constants.HISTORY_COUNT_MAX
 

@@ -1,10 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.core.widget.NestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<com.jacktor.batterylab.views.QuietNestedScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:fillViewport="true">
+    android:fadeScrollbars="true"
+    android:fillViewport="true"
+    android:scrollbars="vertical">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -12,7 +14,6 @@
         android:orientation="vertical"
         android:padding="12dp">
 
-        <!-- Card 1: Main Overview (C-Rate & Stress Score) -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardStressOverview"
             android:layout_width="match_parent"
@@ -80,7 +81,6 @@
                     android:layout_marginVertical="12dp"
                     android:background="@color/canvas_bg" />
 
-                <!-- Primary Metric: C-Rate & Power -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -113,7 +113,6 @@
                         tools:text="2.45 W · Single-Cell" />
                 </LinearLayout>
 
-                <!-- Cell Stress Score Progress -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -150,7 +149,6 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Card 2: Internal Impedance & Cell Physics -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardCellPhysics"
             android:layout_width="match_parent"
@@ -174,7 +172,6 @@
                     android:text="@string/stress_physics_card_title"
                     android:textAppearance="@style/TextAppearance.Material3.TitleMedium" />
 
-                <!-- Grid Row 1 -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -231,7 +228,6 @@
                     android:layout_marginVertical="10dp"
                     android:background="@color/canvas_bg" />
 
-                <!-- Grid Row 2 -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -284,7 +280,6 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Card 3: 3-Vector Stress Breakdown -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardStressVectors"
             android:layout_width="match_parent"
@@ -308,7 +303,6 @@
                     android:text="@string/stress_vectors_card_title"
                     android:textAppearance="@style/TextAppearance.Material3.TitleMedium" />
 
-                <!-- Vector 1: Thermal -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -342,7 +336,6 @@
                     app:trackCornerRadius="4dp"
                     tools:progress="22" />
 
-                <!-- Vector 2: Voltage -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -376,7 +369,6 @@
                     app:trackCornerRadius="4dp"
                     tools:progress="30" />
 
-                <!-- Vector 3: Current C-Rate -->
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
@@ -411,7 +403,6 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Card 4: Electrochemical Diagnostics & Longevity Recommendation -->
         <com.google.android.material.card.MaterialCardView
             android:id="@+id/cardStressDiagnostics"
             android:layout_width="match_parent"
@@ -475,7 +466,6 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Action Buttons -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -508,4 +498,4 @@
         </LinearLayout>
 
     </LinearLayout>
-</androidx.core.widget.NestedScrollView>
+</com.jacktor.batterylab.views.QuietNestedScrollView>

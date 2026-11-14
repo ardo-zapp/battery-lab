@@ -12,6 +12,7 @@ import androidx.preference.PreferenceManager
 import com.jacktor.batterylab.MainApp.Companion.batteryIntent
 import com.jacktor.batterylab.R
 import com.jacktor.batterylab.interfaces.BatteryInfoInterface
+import com.jacktor.batterylab.security.NativeCore
 import com.jacktor.batterylab.services.BatteryLabService
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.IDLE_DRAIN_ACTIVE_SCREEN_DURATION_MS
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.IDLE_DRAIN_ACTIVE_SCREEN_MAH
@@ -80,8 +81,8 @@ data class IdleDrainStats(
 
 object IdleDrainHelper : BatteryInfoInterface {
 
-    const val MIN_IDLE_DURATION_MS = 20_000L // Minimal 20 detik untuk validasi sesi
-    private const val BRIEF_WAKE_THRESHOLD_MS = 30_000L // Layar menyala <= 30 detik (notifikasi singkat)
+    const val MIN_IDLE_DURATION_MS = 20_000L
+    private const val BRIEF_WAKE_THRESHOLD_MS = 30_000L
 
     private fun isPluggedOrCharging(context: Context): Boolean {
         val bi = try {
@@ -139,12 +140,7 @@ object IdleDrainHelper : BatteryInfoInterface {
     }
 
     /**
-     * Menghitung penurunan baterai per sesi secara cerdas tanpa bias pembulatan 1% pada sesi pendek:
-     * - Jika sensor coulomb counter (CHARGE_COUNTER) tersedia, prioritaskan presisi mAh karena bebas
-     *   dari loncatan angka bulat 1% (misal 98.05% -> 97.95% dalam 3 menit).
-     * - Untuk sesi panjang (>= 30 menit), kombinasikan mAh dengan pembacaan level % agar tetap akurat
-     *   meski charge counter mengalami drift.
-     * - Jika tidak ada coulomb counter, redam loncatan 1% pada sesi pendek berdasarkan durasi & rasio awake.
+     * Computes per-session drain without 1% integer quantization bias on short idle windows.
      */
     private fun computeSessionDrain(
         context: Context,
@@ -156,58 +152,16 @@ object IdleDrainHelper : BatteryInfoInterface {
         endCapacity: Float,
         designCap: Float
     ): Pair<Float, Float> {
-        val hours = (durationMs / 3_600_000f).coerceAtLeast(0.001f)
-        val sleepRatio = if (durationMs > 0L) {
-            (deepSleepMs.toFloat() / durationMs.toFloat()).coerceIn(0f, 1f)
-        } else 0.8f
-        val awakeRatio = 1f - sleepRatio
-
-        val levelDrop = if (startLevel in 0..100 && endLevel in 0..100) {
-            (startLevel - endLevel).coerceAtLeast(0)
-        } else 0
-
-        val rawMahDrop = if (startCapacity > 0f && endCapacity > 0f) {
-            (startCapacity - endCapacity).coerceAtLeast(0f)
-        } else 0f
-
-        val mahPercent = if (designCap > 0f) (rawMahDrop / designCap) * 100f else 0f
-        val hasCounter = hasHardwareChargeCounter(context) && rawMahDrop >= 0f
-
-        // Batas fisik wajar maksimum konsumsi siaga (misal ~0.45%/jam saat deep sleep + ~3.2%/jam saat awake)
-        val maxPlausibleIdlePct = hours * (sleepRatio * 0.65f + awakeRatio * 3.8f) + 0.35f
-
-        val effectivePercent: Float = when {
-            hasCounter && mahPercent > 0f -> {
-                if (durationMs < 30 * 60_000L) {
-                    // Sesi < 30 menit: coulomb counter jauh lebih akurat daripada step integer 1%
-                    mahPercent.coerceAtMost(maxOf(levelDrop.toFloat() + 0.4f, maxPlausibleIdlePct))
-                } else {
-                    // Sesi >= 30 menit: gabungkan presisi coulomb counter & level baterai
-                    if (levelDrop > 0) {
-                        (mahPercent * 0.65f + levelDrop.toFloat() * 0.35f)
-                    } else {
-                        mahPercent
-                    }
-                }
-            }
-            levelDrop > 0 -> {
-                if (durationMs < 25 * 60_000L && levelDrop == 1) {
-                    // Redam efek kuantisasi batas 1% pada sesi singkat (misal 98.1% -> 97.9%)
-                    minOf(1.0f, maxPlausibleIdlePct)
-                } else {
-                    levelDrop.toFloat()
-                }
-            }
-            else -> 0f
-        }
-
-        val effectiveMah = if (hasCounter && rawMahDrop > 0f) {
-            rawMahDrop
-        } else {
-            (effectivePercent / 100f) * designCap
-        }
-
-        return effectivePercent to effectiveMah
+        return NativeCore.computeIdleSessionDrain(
+            durationMs = durationMs,
+            deepSleepMs = deepSleepMs,
+            startLevel = startLevel,
+            endLevel = endLevel,
+            startCap = startCapacity,
+            endCap = endCapacity,
+            designCap = designCap,
+            hasCounter = hasHardwareChargeCounter(context)
+        )
     }
 
     private fun ensureBaselineInitialized(
@@ -293,7 +247,6 @@ object IdleDrainHelper : BatteryInfoInterface {
             return
         }
 
-        // Catat pemakaian selama layar menyala sejak akhir sesi siaga sebelumnya
         val lastScreenOnRealtime = pref.getLong(IDLE_DRAIN_LAST_SCREEN_ON_REALTIME, 0L)
         val lastEndLevel = pref.getInt(IDLE_DRAIN_LAST_END_LEVEL, -1)
         val lastEndCapacity = pref.getFloat(IDLE_DRAIN_LAST_END_CAPACITY, 0f)
@@ -309,12 +262,10 @@ object IdleDrainHelper : BatteryInfoInterface {
             val lastIdleDuration = pref.getLong(IDLE_DRAIN_LAST_DURATION_MS, 0L)
 
             if (screenOnGapMs <= BRIEF_WAKE_THRESHOLD_MS && lastIdleDuration >= 10 * 60_000L) {
-                // Jeda layar menyala sangat singkat (<= 30 detik) setelah siaga cukup lama (>= 10 menit):
-                // Ambil hanya selisih coulomb counter (atau porsi proporsional) agar tidak menduplikasi loncatan 1%
+                // Attribute only the fractional coulomb delta on brief wakes to avoid 1% boundary overlap
                 val carryPct = if (gapMahPercent > 0f) {
                     gapMahPercent.coerceAtMost(0.35f)
                 } else if (gapLevelDrop == 1 && pref.getFloat(IDLE_DRAIN_LAST_PERCENT_FLOAT, 0f) < 0.2f) {
-                    // Hanya jika sesi siaga sebelumnya >= 10 menit tercatat < 0.2% karena belum melewati batas integer
                     val maxCarry = ((lastIdleDuration / 3_600_000f) * 1.2f).coerceIn(0.15f, 0.8f)
                     maxCarry
                 } else 0f
@@ -345,7 +296,6 @@ object IdleDrainHelper : BatteryInfoInterface {
                     }
                 }
             } else {
-                // Pemakaian layar aktif: catat baik % maupun mAh agar tidak bocor ke perhitungan siaga
                 val activeGapPct = maxOf(gapLevelDrop.toFloat(), gapMahPercent)
                 val activeGapMah = maxOf(gapRawMahDrop, (activeGapPct / 100f) * designCap)
                 val oldActiveDuration = pref.getLong(IDLE_DRAIN_ACTIVE_SCREEN_DURATION_MS, 0L)
@@ -611,8 +561,7 @@ object IdleDrainHelper : BatteryInfoInterface {
             }
         }
 
-        // Rekonsiliasi baseline HANYA jika benar-benar ada durasi standby yang terlewat oleh service (> 3 menit),
-        // serta pisahkan secara ketat konsumsi mAh & % selama layar menyala agar tidak bocor ke pemakaian diam.
+        // Reconcile baseline only when service missed > 3 minutes of standby, separating screen-on drain.
         val baseRealtime = pref.getLong(IDLE_DRAIN_BASELINE_REALTIME, 0L)
         val baseUptime = pref.getLong(IDLE_DRAIN_BASELINE_UPTIME, 0L)
         val baseLevel = pref.getInt(IDLE_DRAIN_BASELINE_LEVEL, -1)
@@ -708,70 +657,27 @@ object IdleDrainHelper : BatteryInfoInterface {
             totalDrainPercent = (totalDrainMah / designCap) * 100f
         }
 
-        val totalHours = totalDurationMs / 3_600_000.0
-        val rawDrainRatePercentPerHour = if (totalHours > 0.0) totalDrainPercent / totalHours else 0.0
-        val deepSleepPercent = if (totalDurationMs > 0L) {
-            ((totalDeepSleepMs.toDouble() / totalDurationMs) * 100.0).coerceIn(0.0, 100.0)
-        } else 0.0
-
-        // Algoritma Bayesian & Kinematik Multi-Faktor:
-        // Menstabilkan laju %/jam pada durasi siaga singkat (< 30 menit) dengan memadukan hasil ukur sensor
-        // terhadap ekspektasi fisik dari rasio Deep Sleep vs Wakelock kernel, sehingga tidak gampang
-        // menghakimi "Boros semua" (akibat fluktuasi sesaat) ataupun "Optimal semua" (saat % belum bergeser).
-        val sleepFraction = (deepSleepPercent / 100.0).coerceIn(0.0, 1.0)
-        val awakeFraction = 1.0 - sleepFraction
-        val kinematicExpectedRate = (sleepFraction * 0.36) + (awakeFraction * 2.10)
-
-        val totalMinutes = totalDurationMs / 60_000.0
         val hasHwCounter = hasHardwareChargeCounter(context) && totalDrainMah > 0.5f
-        val sensorConfidence = if (hasHwCounter) {
-            (totalMinutes / 12.0).coerceIn(0.55, 1.0)
-        } else {
-            (totalMinutes / 30.0).coerceIn(0.25, 1.0)
-        }
+        val diag = NativeCore.evaluateIdleDiagnostics(
+            context = context,
+            totalDurationMs = totalDurationMs,
+            totalDeepSleepMs = totalDeepSleepMs,
+            totalAwakeMs = totalAwakeMs,
+            totalDrainPct = totalDrainPercent,
+            totalDrainMah = totalDrainMah,
+            lastDurationMs = lastDurationMs,
+            lastDeepSleepMs = lastDeepSleepMs,
+            lastDrainPct = lastDrainPercent,
+            lastDrainMah = lastDrainMah,
+            designCap = designCap,
+            hasHwCounter = hasHwCounter
+        )
 
-        val totalDrainRatePercentPerHour = if (totalDurationMs >= MIN_IDLE_DURATION_MS) {
-            if (rawDrainRatePercentPerHour <= 0.01 && totalMinutes < 40.0) {
-                // Jika sensor belum mencatat penurunan signifikan pada durasi pendek/menengah,
-                // gunakan estimasi kinematik berbasis rasio Deep Sleep & Wakelock nyata
-                kinematicExpectedRate * (1.0 - sensorConfidence * 0.6)
-            } else {
-                (rawDrainRatePercentPerHour * sensorConfidence) +
-                        (kinematicExpectedRate * (1.0 - sensorConfidence))
-            }
-        } else 0.0
-
-        val totalDrainRateMa = if (totalHours > 0.0) {
-            (totalDrainRatePercentPerHour / 100.0) * designCap
-        } else 0.0
-
-        val lastHours = lastDurationMs / 3_600_000.0
-        val rawLastRate = if (lastHours > 0.0) lastDrainPercent / lastHours else 0.0
-        val lastDeepSleepPercent = if (lastDurationMs > 0L) {
-            ((lastDeepSleepMs.toDouble() / lastDurationMs) * 100.0).coerceIn(0.0, 100.0)
-        } else 0.0
-        val lastSleepFrac = (lastDeepSleepPercent / 100.0).coerceIn(0.0, 1.0)
-        val lastKinematicRate = (lastSleepFrac * 0.36) + ((1.0 - lastSleepFrac) * 2.10)
-        val lastConfidence = if (hasHwCounter && lastDrainMah > 0.5f) {
-            ((lastDurationMs / 60_000.0) / 12.0).coerceIn(0.55, 1.0)
-        } else {
-            ((lastDurationMs / 60_000.0) / 30.0).coerceIn(0.25, 1.0)
-        }
-        val lastDrainRatePercentPerHour = if (lastDurationMs >= MIN_IDLE_DURATION_MS) {
-            if (rawLastRate <= 0.01 && (lastDurationMs / 60_000.0) < 40.0) {
-                lastKinematicRate * (1.0 - lastConfidence * 0.6)
-            } else {
-                (rawLastRate * lastConfidence) + (lastKinematicRate * (1.0 - lastConfidence))
-            }
-        } else 0.0
-
-        // Skor Komposit Efisiensi Siaga (0..100):
-        // - Skor Laju Konsumsi (bobot 60%): <=0.6%/j = 100, 1.2%/j = 70, 2.0%/j = 40, >=3.0%/j = 0
-        // - Skor Deep Sleep (bobot 40%): >=90% = 100, 75% = 70, 55% = 40, <=30% = 0
-        val rateScore = (100.0 - ((totalDrainRatePercentPerHour - 0.45).coerceAtLeast(0.0) * 38.0))
-            .coerceIn(0.0, 100.0)
-        val sleepScore = ((deepSleepPercent - 30.0) / 60.0 * 100.0).coerceIn(0.0, 100.0)
-        val compositeScore = (rateScore * 0.60) + (sleepScore * 0.40)
+        val totalDrainRatePercentPerHour = diag.totalDrainRatePercentPerHour
+        val totalDrainRateMa = diag.totalDrainRateMa
+        val deepSleepPercent = diag.deepSleepPercent
+        val lastDrainRatePercentPerHour = diag.lastDrainRatePercentPerHour
+        val lastDeepSleepPercent = diag.lastDeepSleepPercent
 
         val evalStatus: IdleDrainStatus
         val diagnosticSummary: String
@@ -779,37 +685,42 @@ object IdleDrainHelper : BatteryInfoInterface {
 
         val df = DecimalFormat("#.#")
 
-        if (totalDurationMs < MIN_IDLE_DURATION_MS) {
-            evalStatus = IdleDrainStatus.NO_DATA
-            diagnosticSummary = context.getString(R.string.idle_drain_diag_no_data)
-            recommendation = context.getString(R.string.idle_drain_rec_no_data)
-        } else if (compositeScore >= 76.0 && totalDrainRatePercentPerHour <= 0.95 && deepSleepPercent >= 78.0) {
-            evalStatus = IdleDrainStatus.EXCELLENT
-            diagnosticSummary = context.getString(
-                R.string.idle_drain_diag_excellent,
-                df.format(totalDrainRatePercentPerHour),
-                df.format(deepSleepPercent)
-            )
-            recommendation = context.getString(R.string.idle_drain_rec_excellent)
-        } else if (compositeScore >= 48.0 && totalDrainRatePercentPerHour <= 1.85 && deepSleepPercent >= 52.0) {
-            evalStatus = IdleDrainStatus.NORMAL
-            diagnosticSummary = context.getString(
-                R.string.idle_drain_diag_normal,
-                df.format(totalDrainRatePercentPerHour),
-                df.format(deepSleepPercent)
-            )
-            recommendation = context.getString(R.string.idle_drain_rec_normal)
-        } else {
-            evalStatus = IdleDrainStatus.HIGH_DRAIN
-            diagnosticSummary = context.getString(
-                R.string.idle_drain_diag_high,
-                df.format(totalDrainRatePercentPerHour),
-                df.format(deepSleepPercent)
-            )
-            recommendation = context.getString(
-                R.string.idle_drain_rec_high,
-                formatDuration(context, totalAwakeMs)
-            )
+        when (diag.statusCode) {
+            1 -> {
+                evalStatus = IdleDrainStatus.EXCELLENT
+                diagnosticSummary = context.getString(
+                    R.string.idle_drain_diag_excellent,
+                    df.format(totalDrainRatePercentPerHour),
+                    df.format(deepSleepPercent)
+                )
+                recommendation = context.getString(R.string.idle_drain_rec_excellent)
+            }
+            2 -> {
+                evalStatus = IdleDrainStatus.NORMAL
+                diagnosticSummary = context.getString(
+                    R.string.idle_drain_diag_normal,
+                    df.format(totalDrainRatePercentPerHour),
+                    df.format(deepSleepPercent)
+                )
+                recommendation = context.getString(R.string.idle_drain_rec_normal)
+            }
+            3 -> {
+                evalStatus = IdleDrainStatus.HIGH_DRAIN
+                diagnosticSummary = context.getString(
+                    R.string.idle_drain_diag_high,
+                    df.format(totalDrainRatePercentPerHour),
+                    df.format(deepSleepPercent)
+                )
+                recommendation = context.getString(
+                    R.string.idle_drain_rec_high,
+                    formatDuration(context, totalAwakeMs)
+                )
+            }
+            else -> {
+                evalStatus = IdleDrainStatus.NO_DATA
+                diagnosticSummary = context.getString(R.string.idle_drain_diag_no_data)
+                recommendation = context.getString(R.string.idle_drain_rec_no_data)
+            }
         }
 
         return IdleDrainStats(

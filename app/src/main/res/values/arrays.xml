@@ -15,7 +15,7 @@
 
     <string-array name="vibrate_mode_key">
         <item>@string/charger_connected</item>
-        <item>@string/charger_connected</item>
+        <item>@string/charger_disconnected</item>
         <item>@string/both</item>
     </string-array>
     <string-array name="vibrate_mode_value">
@@ -25,7 +25,7 @@
     </string-array>
 
     <string-array name="unit_of_charge_discharge_current_list">
-        <item>μA (Default)</item>
+        <item>@string/unit_ua_default</item>
         <item>mA</item>
     </string-array>
 
@@ -35,7 +35,7 @@
     </string-array>
 
     <string-array name="unit_of_measurement_of_available_capacity_list">
-        <item>μAh (Default)</item>
+        <item>@string/unit_uah_default</item>
         <item>mAh</item>
     </string-array>
 
@@ -46,7 +46,7 @@
 
     <string-array name="voltage_unit_list">
         <item>μV</item>
-        <item>mV (Default)</item>
+        <item>@string/unit_mv_default</item>
     </string-array>
 
     <string-array name="voltage_unit_values">// Do Not Translation
@@ -79,9 +79,9 @@
     </string-array>
 
     <string-array name="text_style_list">
-        <item>Normal (Default)</item>
-        <item>Bold</item>
-        <item>Italic</item>
+        <item>@string/text_style_normal_default</item>
+        <item>@string/text_style_bold</item>
+        <item>@string/text_style_italic</item>
     </string-array>
 
     <string-array name="text_style_values">// Do Not Translation
@@ -181,7 +181,7 @@
     <string-array name="tab_on_application_launch_list">
         <item>@string/charge_discharge</item>
         <item>@string/history</item>
-        <item>Kernel</item>
+        <item>@string/tools</item>
     </string-array>
 
     <string-array name="tab_on_application_launch_values">// Do Not Translation
@@ -226,6 +226,42 @@
         <item>30</item>
         <item>45</item>
         <item>60</item>
+    </string-array>
+
+    <string-array name="nominal_battery_voltage_list">
+        <item>3.7 V</item>
+        <item>3.8 V</item>
+        <item>3.85 V</item>
+        <item>@string/nominal_voltage_387_default</item>
+        <item>3.88 V</item>
+        <item>3.9 V</item>
+    </string-array>
+
+    <string-array name="nominal_battery_voltage_values">// Do Not Translation
+        <item>3.7</item>
+        <item>3.8</item>
+        <item>3.85</item>
+        <item>3.87</item>
+        <item>3.88</item>
+        <item>3.9</item>
+    </string-array>
+
+    <string-array name="number_of_history_for_battery_wear_list">
+        <item>1</item>
+        <item>@string/history_wear_samples_3_default</item>
+        <item>5</item>
+        <item>10</item>
+        <item>15</item>
+        <item>20</item>
+    </string-array>
+
+    <string-array name="number_of_history_for_battery_wear_values">// Do Not Translation
+        <item>1</item>
+        <item>3</item>
+        <item>5</item>
+        <item>10</item>
+        <item>15</item>
+        <item>20</item>
     </string-array>
 
 </resources>

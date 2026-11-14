@@ -8,6 +8,7 @@ import com.jacktor.batterylab.fragments.BatteryInfoFragment
 import com.jacktor.batterylab.fragments.HistoryFragment
 import com.jacktor.batterylab.fragments.ToolsFragment
 import com.jacktor.batterylab.helpers.HistoryHelper
+import com.jacktor.batterylab.security.NativeCore
 import com.jacktor.premium.Premium
 
 
@@ -22,9 +23,8 @@ interface MenuInterface {
 
                 toolbar.menu.findItem(R.id.clear_history).apply {
 
-                    isVisible = Premium.isPremium().value && HistoryHelper.isHistoryNotEmpty(
-                        this@inflateMenu
-                    )
+                    isVisible = NativeCore.hasPremiumAccess(this@inflateMenu) &&
+                            HistoryHelper.isHistoryNotEmpty(this@inflateMenu)
 
                     setOnMenuItemClickListener {
 
@@ -35,7 +35,7 @@ interface MenuInterface {
                 }
 
                 toolbar.menu.findItem(R.id.history_premium).apply {
-                    isVisible = !Premium.isPremium().value
+                    isVisible = !NativeCore.hasPremiumAccess(this@inflateMenu)
 
                     setOnMenuItemClickListener {
                         premiumLauncher.launch(Premium.intentForPremium(this@inflateMenu))

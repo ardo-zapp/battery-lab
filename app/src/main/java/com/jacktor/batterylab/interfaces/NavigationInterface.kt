@@ -52,6 +52,8 @@ interface NavigationInterface : BatteryInfoInterface {
 
                         fragment = BatteryInfoFragment()
 
+                        toolbar.title = getString(R.string.battery_info)
+
                         toolbar.navigationIcon = null
 
                         MainActivity.isLoadChargeDischarge = true
@@ -110,7 +112,7 @@ interface NavigationInterface : BatteryInfoInterface {
 
                         fragment = HistoryFragment()
 
-                        toolbar.title = getString(R.string.history)
+                        toolbar.title = com.jacktor.batterylab.helpers.HistoryHelper.getHistoryTitle(this)
 
                         toolbar.navigationIcon = null
 

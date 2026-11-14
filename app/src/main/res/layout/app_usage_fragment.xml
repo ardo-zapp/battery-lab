@@ -6,11 +6,13 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <androidx.core.widget.NestedScrollView
+    <com.jacktor.batterylab.views.QuietNestedScrollView
         android:id="@+id/scrollAppUsage"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:fillViewport="true">
+        android:fadeScrollbars="true"
+        android:fillViewport="true"
+        android:scrollbars="vertical">
 
         <LinearLayout
             android:id="@+id/containerAppUsage"
@@ -19,7 +21,6 @@
             android:orientation="vertical"
             android:padding="12dp">
 
-            <!-- Usage Access Permission Card -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardUsagePermission"
                 android:layout_width="match_parent"
@@ -82,16 +83,17 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Summary Overview Card -->
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardAppUsageOverview"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="10dp"
+                android:visibility="gone"
                 app:cardBackgroundColor="@color/card_bg"
                 app:cardCornerRadius="@dimen/card_corner_radius"
                 app:cardElevation="@dimen/card_elevation"
-                app:strokeWidth="0dp">
+                app:strokeWidth="0dp"
+                tools:visibility="visible">
 
                 <LinearLayout
                     android:layout_width="match_parent"
@@ -240,13 +242,14 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Time Window & System Filter Chips -->
             <HorizontalScrollView
                 android:id="@+id/scrollUsageFilters"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
-                android:scrollbars="none">
+                android:scrollbars="none"
+                android:visibility="gone"
+                tools:visibility="visible">
 
                 <LinearLayout
                     android:layout_width="wrap_content"
@@ -296,15 +299,41 @@
                 </LinearLayout>
             </HorizontalScrollView>
 
-            <com.google.android.material.progressindicator.LinearProgressIndicator
-                android:id="@+id/progressLoadingApps"
+            <com.google.android.material.card.MaterialCardView
+                android:id="@+id/cardLoadingApps"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="8dp"
-                android:indeterminate="true"
-                android:visibility="gone" />
+                android:visibility="gone"
+                app:cardBackgroundColor="@color/card_bg"
+                app:cardCornerRadius="@dimen/card_corner_radius"
+                app:cardElevation="@dimen/card_elevation"
+                app:strokeWidth="0dp">
 
-            <!-- Empty State Card -->
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:orientation="vertical"
+                    android:padding="24dp">
+
+                    <com.google.android.material.progressindicator.CircularProgressIndicator
+                        android:id="@+id/progressLoadingApps"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:indeterminate="true" />
+
+                    <com.google.android.material.textview.MaterialTextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="12dp"
+                        android:gravity="center"
+                        android:text="@string/app_usage_loading"
+                        android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
+                        android:textColor="@color/card_subtitle_text" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
+
             <com.google.android.material.card.MaterialCardView
                 android:id="@+id/cardAppUsageEmpty"
                 android:layout_width="match_parent"
@@ -327,14 +356,15 @@
                     android:textColor="@color/card_subtitle_text" />
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Ranked App List -->
             <androidx.recyclerview.widget.RecyclerView
                 android:id="@+id/rvAppUsage"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:nestedScrollingEnabled="false" />
+                android:nestedScrollingEnabled="false"
+                android:scrollbars="none"
+                android:visibility="gone"
+                tools:visibility="visible" />
 
-            <!-- Non-root Estimation Methodology Note -->
             <com.google.android.material.textview.MaterialTextView
                 android:id="@+id/tvAppUsageNote"
                 android:layout_width="match_parent"
@@ -343,8 +373,10 @@
                 android:layout_marginBottom="8dp"
                 android:text="@string/app_usage_methodology_note"
                 android:textColor="@color/card_subtitle_text"
-                android:textSize="11.5sp" />
+                android:textSize="11.5sp"
+                android:visibility="gone"
+                tools:visibility="visible" />
 
         </LinearLayout>
-    </androidx.core.widget.NestedScrollView>
+    </com.jacktor.batterylab.views.QuietNestedScrollView>
 </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>

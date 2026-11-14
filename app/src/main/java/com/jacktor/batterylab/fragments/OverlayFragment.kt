@@ -22,9 +22,13 @@ import com.jacktor.batterylab.interfaces.BatteryInfoInterface
 import com.jacktor.batterylab.interfaces.OverlayInterface
 import com.jacktor.batterylab.services.OverlayService
 import com.jacktor.batterylab.utilities.Constants.NUMBER_OF_CYCLES_PATH
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.ANDROID_CAPACITY_LEVEL_OVERLAY
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.ANDROID_CHARGING_POLICY_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.AVERAGE_CHARGE_DISCHARGE_CURRENT_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.AVERAGE_TEMPERATURE_OVERLAY
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.BATTERY_CELL_TOPOLOGY_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.BATTERY_HEALTH_ANDROID_OVERLAY
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.BATTERY_HEALTH_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.BATTERY_LEVEL_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.BATTERY_WEAR_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CAPACITY_ADDED_OVERLAY
@@ -34,7 +38,10 @@ import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGING_TIM
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGING_TIME_REMAINING_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.available_capacity_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.ENABLED_OVERLAY
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.ENERGY_COUNTER_HAL_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.FAST_CHARGE_OVERLAY
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.IDLE_DRAIN_OVERLAY
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.IS_LOCK_OVERLAY_LOCATION
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.LAST_CHARGE_TIME_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.MAXIMUM_TEMPERATURE_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.MAX_CHARGE_DISCHARGE_CURRENT_OVERLAY
@@ -50,12 +57,14 @@ import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.OVERLAY_LOCA
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.OVERLAY_OPACITY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.OVERLAY_SIZE
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.OVERLAY_TEXT_STYLE
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.PEAK_CHARGE_POWER_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.REMAINING_BATTERY_TIME_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.RESIDUAL_CAPACITY_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.SCREEN_TIME_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.SOURCE_OF_POWER
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.STATUS_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.TEMPERATURE_OVERLAY
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.THERMAL_STATUS_OVERLAY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.VOLTAGE_OVERLAY
 import java.io.File
 import java.text.DecimalFormat
@@ -71,6 +80,7 @@ class OverlayFragment : PreferenceFragmentCompat(), BatteryInfoInterface {
     private var enableOverlay: SwitchPreferenceCompat? = null
     private var onlyValuesOverlay: SwitchPreferenceCompat? = null
     private var overlayLocation: ListPreference? = null
+    private var lockOverlayLocation: SwitchPreferenceCompat? = null
 
     // Appearance
     private var appearanceCategory: PreferenceCategory? = null
@@ -110,6 +120,13 @@ class OverlayFragment : PreferenceFragmentCompat(), BatteryInfoInterface {
     private var voltageOverlay: SwitchPreferenceCompat? = null
     private var lastChargeTimeOverlay: SwitchPreferenceCompat? = null
     private var batteryWearOverlay: SwitchPreferenceCompat? = null
+    private var batteryCellTopologyOverlay: SwitchPreferenceCompat? = null
+    private var peakChargePowerOverlay: SwitchPreferenceCompat? = null
+    private var thermalStatusOverlay: SwitchPreferenceCompat? = null
+    private var idleDrainOverlay: SwitchPreferenceCompat? = null
+    private var androidChargingPolicyOverlay: SwitchPreferenceCompat? = null
+    private var androidCapacityLevelOverlay: SwitchPreferenceCompat? = null
+    private var energyCounterHalOverlay: SwitchPreferenceCompat? = null
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
 
@@ -130,6 +147,8 @@ class OverlayFragment : PreferenceFragmentCompat(), BatteryInfoInterface {
         onlyValuesOverlay = findPreference(ONLY_VALUES_OVERLAY)
 
         overlayLocation = findPreference(OVERLAY_LOCATION)
+
+        lockOverlayLocation = findPreference(IS_LOCK_OVERLAY_LOCATION)
 
         enableOverlay?.setOnPreferenceChangeListener { _, newValue ->
 
@@ -165,7 +184,7 @@ class OverlayFragment : PreferenceFragmentCompat(), BatteryInfoInterface {
             summary = getOverlayLocationSummary()
             setOnPreferenceChangeListener { preference, newValue ->
                 if (OverlayService.instance != null && OverlayInterface.isEnabledOverlay(
-                        requireContext(), enableOverlay?.isEnabled == true
+                        requireContext(), enableOverlay?.isChecked == true
                     )
                 )
                     ServiceHelper.restartService(context, OverlayService::class.java)
@@ -248,7 +267,7 @@ class OverlayFragment : PreferenceFragmentCompat(), BatteryInfoInterface {
         availableCapacityOverlay = findPreference(available_capacity_OVERLAY)
         capacityAddedOverlay = findPreference(CAPACITY_ADDED_OVERLAY)
         batteryHealthAndroidOverlay = findPreference(BATTERY_HEALTH_ANDROID_OVERLAY)
-        batteryHealthOverlay = findPreference(BATTERY_HEALTH_ANDROID_OVERLAY)
+        batteryHealthOverlay = findPreference(BATTERY_HEALTH_OVERLAY)
         residualCapacityOverlay = findPreference(RESIDUAL_CAPACITY_OVERLAY)
         statusOverlay = findPreference(STATUS_OVERLAY)
         sourceOfPowerOverlay = findPreference(SOURCE_OF_POWER)
@@ -266,10 +285,23 @@ class OverlayFragment : PreferenceFragmentCompat(), BatteryInfoInterface {
         voltageOverlay = findPreference(VOLTAGE_OVERLAY)
         lastChargeTimeOverlay = findPreference(LAST_CHARGE_TIME_OVERLAY)
         batteryWearOverlay = findPreference(BATTERY_WEAR_OVERLAY)
+        batteryCellTopologyOverlay = findPreference(BATTERY_CELL_TOPOLOGY_OVERLAY)
+        peakChargePowerOverlay = findPreference(PEAK_CHARGE_POWER_OVERLAY)
+        thermalStatusOverlay = findPreference(THERMAL_STATUS_OVERLAY)
+        idleDrainOverlay = findPreference(IDLE_DRAIN_OVERLAY)
+        androidChargingPolicyOverlay = findPreference(ANDROID_CHARGING_POLICY_OVERLAY)
+        androidCapacityLevelOverlay = findPreference(ANDROID_CAPACITY_LEVEL_OVERLAY)
+        energyCounterHalOverlay = findPreference(ENERGY_COUNTER_HAL_OVERLAY)
 
         numberOfCyclesAndroidOverlay?.isVisible = File(NUMBER_OF_CYCLES_PATH).exists() // WARNING
         chargingCurrentLimitOverlay?.isVisible = chargingCurrentLimit != null &&
                 chargingCurrentLimit.toInt() > 0
+        androidChargingPolicyOverlay?.isVisible =
+            getAndroidChargingPolicyRes(requireContext()) != null
+        androidCapacityLevelOverlay?.isVisible =
+            getAndroidCapacityLevelRes(requireContext()) != null
+        energyCounterHalOverlay?.isVisible =
+            getHardwareEnergyCounterWh(requireContext()) != null
 
         enableAllOverlay(
             pref.getBoolean(
@@ -279,227 +311,50 @@ class OverlayFragment : PreferenceFragmentCompat(), BatteryInfoInterface {
             )
         )
 
-        batteryLevelOverlay?.setOnPreferenceChangeListener { _, newValue ->
+        listOf(
+            batteryLevelOverlay,
+            numberOfChargesOverlay,
+            numberOfFullChargesOverlay,
+            numberOfCyclesOverlay,
+            numberOfCyclesAndroidOverlay,
+            chargingTimeOverlay,
+            chargingTimeRemainingOverlay,
+            remainingBatteryTimeOverlay,
+            screenTimeOverlay,
+            availableCapacityOverlay,
+            capacityAddedOverlay,
+            batteryHealthAndroidOverlay,
+            batteryHealthOverlay,
+            residualCapacityOverlay,
+            statusOverlay,
+            sourceOfPowerOverlay,
+            chargeDischargeCurrentOverlay,
+            fastChargeOverlay,
+            peakChargePowerOverlay,
+            maxChargeDischargeCurrentOverlay,
+            averageChargeDischargeCurrentOverlay,
+            minChargeDischargeCurrentOverlay,
+            chargingCurrentLimitOverlay,
+            temperatureOverlay,
+            maximumTemperatureOverlay,
+            averageTemperatureOverlay,
+            minimumTemperatureOverlay,
+            thermalStatusOverlay,
+            voltageOverlay,
+            lastChargeTimeOverlay,
+            batteryWearOverlay,
+            batteryCellTopologyOverlay,
+            idleDrainOverlay,
+            androidChargingPolicyOverlay,
+            androidCapacityLevelOverlay,
+            energyCounterHalOverlay
+        ).forEach(::bindOverlayToggle)
+    }
 
+    private fun bindOverlayToggle(toggle: SwitchPreferenceCompat?) {
+        toggle?.setOnPreferenceChangeListener { _, newValue ->
             if (newValue as? Boolean == true && OverlayService.instance == null)
                 ServiceHelper.startService(requireContext(), OverlayService::class.java)
-
-            true
-        }
-
-        numberOfChargesOverlay?.setOnPreferenceChangeListener { _, newValue ->
-
-            if (newValue as? Boolean == true && OverlayService.instance == null)
-                ServiceHelper.startService(requireContext(), OverlayService::class.java)
-
-            true
-        }
-
-        numberOfFullChargesOverlay?.setOnPreferenceChangeListener { _, newValue ->
-
-            if (newValue as? Boolean == true && OverlayService.instance == null)
-                ServiceHelper.startService(requireContext(), OverlayService::class.java)
-
-            true
-        }
-
-        numberOfCyclesOverlay?.setOnPreferenceChangeListener { _, newValue ->
-
-            if (newValue as? Boolean == true && OverlayService.instance == null)
-                ServiceHelper.startService(requireContext(), OverlayService::class.java)
-
-            true
-        }
-
-        numberOfCyclesAndroidOverlay?.setOnPreferenceChangeListener { _, newValue ->
-
-            if (newValue as? Boolean == true && OverlayService.instance == null)
-                ServiceHelper.startService(requireContext(), OverlayService::class.java)
-
-            true
-        }
-
-        chargingTimeOverlay?.setOnPreferenceChangeListener { _, newValue ->
-
-            if (newValue as? Boolean == true && OverlayService.instance == null)
-                ServiceHelper.startService(requireContext(), OverlayService::class.java)
-
-            true
-        }
-
-        chargingTimeRemainingOverlay?.setOnPreferenceChangeListener { _, newValue ->
-
-            if (newValue as? Boolean == true && OverlayService.instance == null)
-                ServiceHelper.startService(requireContext(), OverlayService::class.java)
-
-            true
-        }
-
-        remainingBatteryTimeOverlay?.setOnPreferenceChangeListener { _, newValue ->
-
-            if (newValue as? Boolean == true && OverlayService.instance == null)
-                ServiceHelper.startService(requireContext(), OverlayService::class.java)
-
-            true
-        }
-
-        screenTimeOverlay?.setOnPreferenceChangeListener { _, newValue ->
-
-            if (newValue as? Boolean == true && OverlayService.instance == null)
-                ServiceHelper.startService(requireContext(), OverlayService::class.java)
-
-            true
-        }
-
-        availableCapacityOverlay?.setOnPreferenceChangeListener { _, newValue ->
-
-            if (newValue as? Boolean == true && OverlayService.instance == null)
-                ServiceHelper.startService(requireContext(), OverlayService::class.java)
-
-            true
-        }
-
-        capacityAddedOverlay?.setOnPreferenceChangeListener { _, newValue ->
-
-            if (newValue as? Boolean == true && OverlayService.instance == null)
-                ServiceHelper.startService(requireContext(), OverlayService::class.java)
-
-            true
-        }
-
-        batteryHealthAndroidOverlay?.setOnPreferenceChangeListener { _, newValue ->
-
-            if (newValue as? Boolean == true && OverlayService.instance == null)
-                ServiceHelper.startService(requireContext(), OverlayService::class.java)
-
-            true
-        }
-
-        residualCapacityOverlay?.setOnPreferenceChangeListener { _, newValue ->
-
-            if (newValue as? Boolean == true && OverlayService.instance == null)
-                ServiceHelper.startService(requireContext(), OverlayService::class.java)
-
-            true
-        }
-
-        statusOverlay?.setOnPreferenceChangeListener { _, newValue ->
-
-            if (newValue as? Boolean == true && OverlayService.instance == null)
-                ServiceHelper.startService(requireContext(), OverlayService::class.java)
-
-            true
-        }
-
-        sourceOfPowerOverlay?.setOnPreferenceChangeListener { _, newValue ->
-
-            if (newValue as? Boolean == true && OverlayService.instance == null)
-                ServiceHelper.startService(requireContext(), OverlayService::class.java)
-
-            true
-        }
-
-        chargeDischargeCurrentOverlay?.setOnPreferenceChangeListener { _, newValue ->
-
-            if (newValue as? Boolean == true && OverlayService.instance == null)
-                ServiceHelper.startService(requireContext(), OverlayService::class.java)
-
-            true
-        }
-
-        fastChargeOverlay?.setOnPreferenceChangeListener { _, newValue ->
-
-            if (newValue as? Boolean == true && OverlayService.instance == null)
-                ServiceHelper.startService(requireContext(), OverlayService::class.java)
-
-            true
-        }
-
-        maxChargeDischargeCurrentOverlay?.setOnPreferenceChangeListener { _, newValue ->
-
-            if (newValue as? Boolean == true && OverlayService.instance == null)
-                ServiceHelper.startService(requireContext(), OverlayService::class.java)
-
-            true
-        }
-
-        averageChargeDischargeCurrentOverlay?.setOnPreferenceChangeListener { _, newValue ->
-
-            if (newValue as? Boolean == true && OverlayService.instance == null)
-                ServiceHelper.startService(requireContext(), OverlayService::class.java)
-
-            true
-        }
-
-        minChargeDischargeCurrentOverlay?.setOnPreferenceChangeListener { _, newValue ->
-
-            if (newValue as? Boolean == true && OverlayService.instance == null)
-                ServiceHelper.startService(requireContext(), OverlayService::class.java)
-
-            true
-        }
-
-        chargingCurrentLimitOverlay?.setOnPreferenceChangeListener { _, newValue ->
-
-            if (newValue as? Boolean == true && OverlayService.instance == null)
-                ServiceHelper.startService(requireContext(), OverlayService::class.java)
-
-            true
-        }
-
-        temperatureOverlay?.setOnPreferenceChangeListener { _, newValue ->
-
-            if (newValue as? Boolean == true && OverlayService.instance == null)
-                ServiceHelper.startService(requireContext(), OverlayService::class.java)
-
-            true
-        }
-
-        maximumTemperatureOverlay?.setOnPreferenceChangeListener { _, newValue ->
-
-            if (newValue as? Boolean == true && OverlayService.instance == null)
-                ServiceHelper.startService(requireContext(), OverlayService::class.java)
-
-            true
-        }
-
-        averageTemperatureOverlay?.setOnPreferenceChangeListener { _, newValue ->
-
-            if (newValue as? Boolean == true && OverlayService.instance == null)
-                ServiceHelper.startService(requireContext(), OverlayService::class.java)
-
-            true
-        }
-
-        minimumTemperatureOverlay?.setOnPreferenceChangeListener { _, newValue ->
-
-            if (newValue as? Boolean == true && OverlayService.instance == null)
-                ServiceHelper.startService(requireContext(), OverlayService::class.java)
-
-            true
-        }
-
-        voltageOverlay?.setOnPreferenceChangeListener { _, newValue ->
-
-            if (newValue as? Boolean == true && OverlayService.instance == null)
-                ServiceHelper.startService(requireContext(), OverlayService::class.java)
-
-            true
-        }
-
-        lastChargeTimeOverlay?.setOnPreferenceChangeListener { _, newValue ->
-
-            if (newValue as? Boolean == true && OverlayService.instance == null)
-                ServiceHelper.startService(requireContext(), OverlayService::class.java)
-
-            true
-        }
-
-        batteryWearOverlay?.setOnPreferenceChangeListener { _, newValue ->
-
-            if (newValue as? Boolean == true && OverlayService.instance == null)
-                ServiceHelper.startService(requireContext(), OverlayService::class.java)
-
             true
         }
     }
@@ -517,8 +372,18 @@ class OverlayFragment : PreferenceFragmentCompat(), BatteryInfoInterface {
 
         chargingCurrentLimitOverlay?.isVisible = chargingCurrentLimit != null &&
                 chargingCurrentLimit.toInt() > 0
+        androidChargingPolicyOverlay?.isVisible =
+            getAndroidChargingPolicyRes(requireContext()) != null
+        androidCapacityLevelOverlay?.isVisible =
+            getAndroidCapacityLevelRes(requireContext()) != null
+        energyCounterHalOverlay?.isVisible =
+            getHardwareEnergyCounterWh(requireContext()) != null
+
+        overlayLocation?.summary = getOverlayLocationSummary()
 
         overlaySize?.summary = getOverlayTextSizeSummary()
+
+        overlayFont?.summary = getOverlayTextFontSummary()
 
         overlayTextStyle?.summary = getOverlayTextStyleSummary()
 
@@ -662,6 +527,7 @@ class OverlayFragment : PreferenceFragmentCompat(), BatteryInfoInterface {
 
         onlyValuesOverlay?.isEnabled = (isEnable ?: onlyValuesOverlay?.isEnabled) == true
         overlayLocation?.isEnabled = (isEnable ?: overlayLocation?.isEnabled) == true
+        lockOverlayLocation?.isEnabled = (isEnable ?: lockOverlayLocation?.isEnabled) == true
         appearanceCategory?.isEnabled = (isEnable ?: appearanceCategory?.isEnabled) == true
         overlayCategory?.isEnabled = (isEnable ?: overlayCategory?.isEnabled) == true
     }

@@ -15,7 +15,6 @@
         android:paddingEnd="24dp"
         android:paddingBottom="8dp">
 
-        <!-- Header: App Icon (Untinted!) + App Name + Package Name + Severity Badge -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -79,7 +78,6 @@
             </LinearLayout>
         </LinearLayout>
 
-        <!-- Primary Metrics Grid Card -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -151,7 +149,6 @@
             </LinearLayout>
         </com.google.android.material.card.MaterialCardView>
 
-        <!-- Recommendation Card -->
         <com.google.android.material.card.MaterialCardView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

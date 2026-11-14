@@ -3,6 +3,7 @@ package com.jacktor.batterylab.fragments
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.widget.Toast
+import androidx.preference.ListPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceManager
@@ -19,6 +20,10 @@ import com.jacktor.batterylab.services.OverlayService
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.DESIGN_CAPACITY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.FORCIBLY_SHOW_RATE_THE_APP
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.IS_ENABLE_CHECK_UPDATE
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.IS_ENABLE_WAKELOCK
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.NOMINAL_BATTERY_VOLTAGE_PREF
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.NUMBER_OF_HISTORY_FOR_BATTERY_WEAR_NEW
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -31,6 +36,10 @@ class DebugFragment : PreferenceFragmentCompat(), DebugOptionsInterface {
     private lateinit var pref: SharedPreferences
 
     private var forciblyShowRateTheApp: SwitchPreferenceCompat? = null
+    private var isEnableWakelock: SwitchPreferenceCompat? = null
+    private var isEnableCheckUpdate: SwitchPreferenceCompat? = null
+    private var nominalBatteryVoltage: ListPreference? = null
+    private var numberOfHistoryForBatteryWearNew: ListPreference? = null
     private var addSetting: Preference? = null
     private var changeSetting: Preference? = null
     private var resetSetting: Preference? = null
@@ -54,6 +63,14 @@ class DebugFragment : PreferenceFragmentCompat(), DebugOptionsInterface {
         addPreferencesFromResource(R.xml.debug_settings)
 
         forciblyShowRateTheApp = findPreference(FORCIBLY_SHOW_RATE_THE_APP)
+
+        isEnableWakelock = findPreference(IS_ENABLE_WAKELOCK)
+
+        isEnableCheckUpdate = findPreference(IS_ENABLE_CHECK_UPDATE)
+
+        nominalBatteryVoltage = findPreference(NOMINAL_BATTERY_VOLTAGE_PREF)
+
+        numberOfHistoryForBatteryWearNew = findPreference(NUMBER_OF_HISTORY_FOR_BATTERY_WEAR_NEW)
 
         addSetting = findPreference("add_setting")
 
@@ -86,6 +103,35 @@ class DebugFragment : PreferenceFragmentCompat(), DebugOptionsInterface {
         restartOverlayService = findPreference("restart_overlay_service")
 
         forciblyShowRateTheApp?.isVisible = !isGooglePlay(requireContext())
+
+        isEnableWakelock?.setOnPreferenceChangeListener { _, newValue ->
+            if (newValue == false) BatteryLabService.instance?.wakeLockRelease()
+            true
+        }
+
+        nominalBatteryVoltage?.apply {
+            summary = "${pref.getString(NOMINAL_BATTERY_VOLTAGE_PREF, "3.87")} V"
+            setOnPreferenceChangeListener { prefView, newValue ->
+                prefView.summary = "${newValue ?: "3.87"} V"
+                true
+            }
+        }
+
+        numberOfHistoryForBatteryWearNew?.apply {
+            val defaultSamples =
+                "${resources.getInteger(R.integer.number_of_history_for_battery_wear_new_default)}"
+            val currentSamples = pref.getString(
+                NUMBER_OF_HISTORY_FOR_BATTERY_WEAR_NEW, defaultSamples
+            ) ?: defaultSamples
+            summary = getString(R.string.number_of_history_for_battery_wear_summary, currentSamples)
+            setOnPreferenceChangeListener { prefView, newValue ->
+                prefView.summary = getString(
+                    R.string.number_of_history_for_battery_wear_summary,
+                    (newValue as? String) ?: defaultSamples
+                )
+                true
+            }
+        }
 
         resetScreenTime?.isEnabled = (BatteryLabService.instance?.screenTime ?: 0) > 0L
 
@@ -468,6 +514,18 @@ class DebugFragment : PreferenceFragmentCompat(), DebugOptionsInterface {
         addFiftyHistory?.isEnabled = !HistoryHelper.isHistoryMax(requireContext())
 
         historyCount?.summary = "${HistoryHelper.getHistoryCount(requireContext())}"
+
+        nominalBatteryVoltage?.summary =
+            "${pref.getString(NOMINAL_BATTERY_VOLTAGE_PREF, "3.87")} V"
+
+        val defaultSamples =
+            "${resources.getInteger(R.integer.number_of_history_for_battery_wear_new_default)}"
+        val currentSamples = pref.getString(
+            NUMBER_OF_HISTORY_FOR_BATTERY_WEAR_NEW, defaultSamples
+        ) ?: defaultSamples
+        numberOfHistoryForBatteryWearNew?.summary = getString(
+            R.string.number_of_history_for_battery_wear_summary, currentSamples
+        )
 
         startBatteryLabService?.isEnabled = BatteryLabService.instance == null && !ServiceHelper
             .isStartedBatteryLabService()

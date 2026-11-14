@@ -23,7 +23,6 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <!-- Circular Hero Battery Gauge Container -->
         <FrameLayout
             android:layout_width="210dp"
             android:layout_height="210dp"
@@ -32,7 +31,6 @@
             android:clipChildren="false"
             android:clipToPadding="false">
 
-            <!-- Background Track -->
             <com.google.android.material.progressindicator.CircularProgressIndicator
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -43,7 +41,6 @@
                 app:trackColor="@android:color/transparent"
                 app:trackThickness="12dp" />
 
-            <!-- Active Animated Battery Level Arc -->
             <com.google.android.material.progressindicator.CircularProgressIndicator
                 android:id="@+id/circularBatteryProgress"
                 android:layout_width="wrap_content"
@@ -56,7 +53,6 @@
                 app:trackThickness="12dp"
                 tools:progress="65" />
 
-            <!-- Center Content: Only Icon and Percentage -->
             <LinearLayout
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
@@ -83,7 +79,6 @@
             </LinearLayout>
         </FrameLayout>
 
-        <!-- Status Pill below Gauge (Ample width, never clips with circle) -->
         <com.google.android.material.textview.MaterialTextView
             android:id="@+id/tvHeroBatteryStatus"
             android:layout_width="wrap_content"
@@ -102,7 +97,6 @@
             android:textColor="@color/md_theme_primary"
             tools:text="Mengisi Daya Cepat" />
 
-        <!-- Quick 3-Metric Unified Bar (Temp | Voltage | Time) - Pill Chips -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -110,7 +104,6 @@
             android:gravity="center_vertical"
             android:orientation="horizontal">
 
-            <!-- Metric 1: Temp -->
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -140,7 +133,6 @@
                     tools:text="37.6°C" />
             </LinearLayout>
 
-            <!-- Metric 2: Voltage -->
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -170,7 +162,6 @@
                     tools:text="3.77 V" />
             </LinearLayout>
 
-            <!-- Metric 3: Time -->
             <LinearLayout
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
@@ -201,14 +192,12 @@
             </LinearLayout>
         </LinearLayout>
 
-        <!-- Divider -->
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:layout_marginVertical="12dp"
             android:background="@color/canvas_bg" />
 
-        <!-- Timing Rows (Charging Time, Screen Time, Last Charge) -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

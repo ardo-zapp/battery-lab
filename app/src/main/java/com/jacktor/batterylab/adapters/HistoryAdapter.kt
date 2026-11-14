@@ -16,7 +16,7 @@ import com.jacktor.batterylab.helpers.HistoryHelper
 import com.jacktor.batterylab.helpers.TextAppearanceHelper
 import com.jacktor.batterylab.interfaces.BatteryInfoInterface
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys
-import com.jacktor.premium.Premium
+import com.jacktor.batterylab.security.NativeCore
 import java.text.DecimalFormat
 
 class HistoryAdapter(private var historyList: MutableList<History>) :
@@ -101,7 +101,7 @@ class HistoryAdapter(private var historyList: MutableList<History>) :
 
         return if (isCapacityInWh) context.getString(
             R.string.residual_capacity_wh,
-            DecimalFormat("#.#").format(getCapacityInWh(newResidualCapacity)),
+            DecimalFormat("#.#").format(getCapacityInWh(context, newResidualCapacity)),
             "${
                 DecimalFormat("#.#").format(
                     ((newResidualCapacity / designCapacity)) * 100.0
@@ -152,7 +152,7 @@ class HistoryAdapter(private var historyList: MutableList<History>) :
                 }%" else "0%",
             if (newResidualCapacity > 0 && newResidualCapacity < designCapacity)
                 DecimalFormat("#.#").format(
-                    getCapacityInWh(designCapacity - newResidualCapacity)
+                    getCapacityInWh(context, designCapacity - newResidualCapacity)
                 ) else "0"
         )
         else context.getString(
@@ -172,8 +172,8 @@ class HistoryAdapter(private var historyList: MutableList<History>) :
     fun update(context: Context) {
         pref = PreferenceManager.getDefaultSharedPreferences(context)
         val rawList = HistoryDB(context).readAll() as MutableList<History>
-        val isPrem = Premium.isPremium().value
-        historyList = if (isPrem) rawList else rawList.takeLast(10).toMutableList()
+        val allowedCount = NativeCore.resolveHistoryDisplayCount(context, rawList.size)
+        historyList = rawList.takeLast(allowedCount).toMutableList()
         notifyDataSetChanged()
     }
 
@@ -190,8 +190,8 @@ class HistoryAdapter(private var historyList: MutableList<History>) :
     fun undoRemoving(context: Context, position: Int) {
         if (position >= 0) {
             val rawList = HistoryDB(context).readAll() as MutableList<History>
-            val isPrem = Premium.isPremium().value
-            historyList = if (isPrem) rawList else rawList.takeLast(10).toMutableList()
+            val allowedCount = NativeCore.resolveHistoryDisplayCount(context, rawList.size)
+            historyList = rawList.takeLast(allowedCount).toMutableList()
             notifyItemInserted(position)
         }
     }

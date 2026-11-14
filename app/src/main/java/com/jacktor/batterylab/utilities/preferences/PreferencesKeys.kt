@@ -68,11 +68,13 @@ object PreferencesKeys {
     const val available_capacity_OVERLAY = "available_capacity_overlay"
     const val CAPACITY_ADDED_OVERLAY = "capacity_added_overlay"
     const val BATTERY_HEALTH_ANDROID_OVERLAY = "battery_health_android_overlay"
+    const val BATTERY_HEALTH_OVERLAY = "battery_health_overlay"
     const val RESIDUAL_CAPACITY_OVERLAY = "residual_capacity_overlay"
     const val STATUS_OVERLAY = "status_overlay"
     const val SOURCE_OF_POWER = "source_of_power_overlay"
     const val CHARGE_DISCHARGE_CURRENT_OVERLAY = "charge_discharge_current_overlay"
     const val FAST_CHARGE_OVERLAY = "fast_charge_overlay"
+    const val PEAK_CHARGE_POWER_OVERLAY = "peak_charge_power_overlay"
     const val MAX_CHARGE_DISCHARGE_CURRENT_OVERLAY = "max_charge_discharge_current_overlay"
     const val AVERAGE_CHARGE_DISCHARGE_CURRENT_OVERLAY =
         "average_charge_discharge_current_overlay"
@@ -82,9 +84,15 @@ object PreferencesKeys {
     const val MAXIMUM_TEMPERATURE_OVERLAY = "maximum_temperature_overlay"
     const val AVERAGE_TEMPERATURE_OVERLAY = "average_temperature_overlay"
     const val MINIMUM_TEMPERATURE_OVERLAY = "minimum_temperature_overlay"
+    const val THERMAL_STATUS_OVERLAY = "thermal_status_overlay"
     const val VOLTAGE_OVERLAY = "voltage_overlay"
     const val LAST_CHARGE_TIME_OVERLAY = "last_charge_time_overlay"
     const val BATTERY_WEAR_OVERLAY = "battery_wear_overlay"
+    const val BATTERY_CELL_TOPOLOGY_OVERLAY = "battery_cell_topology_overlay"
+    const val IDLE_DRAIN_OVERLAY = "idle_drain_overlay"
+    const val ANDROID_CHARGING_POLICY_OVERLAY = "android_charging_policy_overlay"
+    const val ANDROID_CAPACITY_LEVEL_OVERLAY = "android_capacity_level_overlay"
+    const val ENERGY_COUNTER_HAL_OVERLAY = "energy_counter_hal_overlay"
 
     // Debug
     const val ENABLED_DEBUG_OPTIONS = "enabled_debug_options"
@@ -119,7 +127,7 @@ object PreferencesKeys {
     const val IS_REQUEST_RATE_THE_APP = "is_request_rate_the_app"
     const val UPDATE_TEMP_SCREEN_TIME = "update_temp_screen_time"
 
-    // Idle Drain (Pemakaian Diam)
+    // Idle Drain
     const val IDLE_DRAIN_TOTAL_DURATION_MS = "idle_drain_total_duration_ms"
     const val IDLE_DRAIN_TOTAL_DEEP_SLEEP_MS = "idle_drain_total_deep_sleep_ms"
     const val IDLE_DRAIN_TOTAL_AWAKE_MS = "idle_drain_total_awake_ms"
@@ -153,4 +161,36 @@ object PreferencesKeys {
 
     // Stress & Impedance Analyzer
     const val STRESS_CALIBRATED_RINT_MOHM = "stress_calibrated_rint_mohm"
+
+    // Upstream CapacityInfo parity
+    const val IS_SHOW_BATTERY_LEVEL_IN_STATUS_BAR = "is_show_battery_level_in_status_bar"
+    const val IS_SHOW_NUMBER_OF_HISTORY = "is_show_number_of_history"
+    const val IS_ALT_CALC_CHARGING_TIME_REMAINING = "is_alt_calc_charging_time_remaining"
+    const val IS_LOCK_OVERLAY_LOCATION = "is_lock_overlay_location"
+    const val IS_ENABLE_WAKELOCK = "is_enable_wakelock"
+    const val IS_ENABLE_CHECK_UPDATE = "is_enable_check_update"
+    const val NOMINAL_BATTERY_VOLTAGE_PREF = "nominal_battery_voltage"
+    const val NUMBER_OF_HISTORY_FOR_BATTERY_WEAR_NEW = "number_of_history_for_battery_wear_new"
+
+    // Last Charge snapshot
+    const val BATTERY_LEVEL_LAST_CHARGE = "battery_level_last_charge"
+    const val CHARGING_TIME_LAST_CHARGE = "charging_time_last_charge"
+    const val CURRENT_CAPACITY_LAST_CHARGE = "current_capacity_last_charge"
+    const val CAPACITY_ADDED_LAST_CHARGE = "capacity_added_last_charge"
+    const val PERCENT_ADDED_LAST_CHARGE = "percent_added_last_charge"
+    const val STATUS_LAST_CHARGE = "status_last_charge"
+    const val SOURCE_OF_POWER_LAST_CHARGE = "source_of_power_last_charge"
+    const val IS_FAST_CHARGE_LAST_CHARGE = "is_fast_charge_last_charge"
+    const val FAST_CHARGE_WATTS_LAST_CHARGE = "fast_charge_watts_last_charge"
+    const val MAX_CHARGE_LAST_CHARGE = "max_charge_last_charge"
+    const val AVERAGE_CHARGE_LAST_CHARGE = "average_charge_last_charge"
+    const val MIN_CHARGE_LAST_CHARGE = "min_charge_last_charge"
+    const val MAX_TEMP_CELSIUS_LAST_CHARGE = "max_temp_celsius_last_charge"
+    const val MAX_TEMP_FAHRENHEIT_LAST_CHARGE = "max_temp_fahrenheit_last_charge"
+    const val AVERAGE_TEMP_CELSIUS_LAST_CHARGE = "average_temp_celsius_last_charge"
+    const val AVERAGE_TEMP_FAHRENHEIT_LAST_CHARGE = "average_temp_fahrenheit_last_charge"
+    const val MIN_TEMP_CELSIUS_LAST_CHARGE = "min_temp_celsius_last_charge"
+    const val MIN_TEMP_FAHRENHEIT_LAST_CHARGE = "min_temp_fahrenheit_last_charge"
+    const val VOLTAGE_LAST_CHARGE = "voltage_last_charge"
+    const val LAST_CHARGE_TIMESTAMP = "last_charge_timestamp"
 }

@@ -26,3 +26,7 @@ include(":app")
 if (file("premium/build.gradle.kts").exists()) {
     include(":premium")
 }
+
+if (file("core/build.gradle.kts").exists()) {
+    include(":core")
+}

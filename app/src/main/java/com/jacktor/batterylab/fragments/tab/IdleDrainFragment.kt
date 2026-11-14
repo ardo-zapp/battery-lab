@@ -189,10 +189,8 @@ class IdleDrainFragment : Fragment(R.layout.idle_drain_fragment) {
             }
         }
 
-        // 1. Charging Notice
         binding.cardChargingNotice.visibility = if (stats.isCharging) View.VISIBLE else View.GONE
 
-        // 2. Status Badge
         val badgeColorRes = when (stats.status) {
             IdleDrainStatus.EXCELLENT -> {
                 binding.tvStatusBadge.text = getString(R.string.idle_drain_status_excellent)
@@ -218,7 +216,6 @@ class IdleDrainFragment : Fragment(R.layout.idle_drain_fragment) {
 
         val hasData = stats.totalDurationMs >= IdleDrainHelper.MIN_IDLE_DURATION_MS || stats.totalDrainPercent > 0f
 
-        // 3. Overview Primary Metrics
         if (hasData) {
             binding.tvDrainRateValue.text = df.format(stats.totalDrainRatePercentPerHour)
             binding.tvDrainRateMa.text = "~${df.format(stats.totalDrainRateMa)} mA"
@@ -231,7 +228,6 @@ class IdleDrainFragment : Fragment(R.layout.idle_drain_fragment) {
             binding.progressDeepSleep.setProgressCompat(0, true)
         }
 
-        // 4. Since Unplugged Details
         if (hasData) {
             val totalPctStr = IdleDrainHelper.formatPercent(stats.totalDrainPercent)
             binding.tvTotalDuration.text = IdleDrainHelper.formatDuration(context, stats.totalDurationMs)
@@ -245,7 +241,6 @@ class IdleDrainFragment : Fragment(R.layout.idle_drain_fragment) {
             binding.tvTotalAwake.text = "—"
         }
 
-        // 5. Latest Session
         if (stats.lastDurationMs >= IdleDrainHelper.MIN_IDLE_DURATION_MS) {
             binding.cardLastSession.visibility = View.VISIBLE
             val formattedTime = if (stats.lastTimestamp > 0L) {
@@ -265,7 +260,6 @@ class IdleDrainFragment : Fragment(R.layout.idle_drain_fragment) {
             binding.cardLastSession.visibility = View.GONE
         }
 
-        // 6. Diagnostics & Recommendations
         binding.tvDiagnosticSummary.text = stats.diagnosticSummary
         binding.tvRecommendation.text = stats.recommendation
     }

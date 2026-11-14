@@ -19,3 +19,6 @@ local.properties
 
 # Premium module
 premium/
+
+# Closed NDK C++ core module
+core/

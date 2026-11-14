@@ -6,6 +6,7 @@
 
     <Preference
         android:title="@string/export_settings"
+        android:summary="@string/export_settings_summary"
         app:singleLineTitle="false"
         app:isPreferenceVisible="@bool/export_settings_visible"
         app:icon="@drawable/ic_export_settings_24dp"
@@ -13,6 +14,7 @@
 
     <Preference
         android:title="@string/import_settings"
+        android:summary="@string/import_settings_summary"
         app:singleLineTitle="false"
         app:isPreferenceVisible="@bool/import_settings_visible"
         app:icon="@drawable/ic_import_settings_24dp"
@@ -21,14 +23,18 @@
 
     <Preference
         android:title="@string/export_history"
+        android:summary="@string/export_history_summary"
         app:singleLineTitle="false"
         app:isPreferenceVisible="@bool/export_history_visible"
+        app:icon="@drawable/ic_export_settings_24dp"
         android:key="export_history"/>
 
     <Preference
         android:title="@string/import_history"
+        android:summary="@string/import_history_summary"
         app:singleLineTitle="false"
         app:isPreferenceVisible="@bool/import_history_visible"
+        app:icon="@drawable/ic_import_settings_24dp"
         android:key="import_history"/>
 
 </PreferenceScreen>

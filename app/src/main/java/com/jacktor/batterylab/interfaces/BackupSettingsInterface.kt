@@ -10,11 +10,13 @@ import androidx.preference.PreferenceManager
 import com.jacktor.batterylab.MainActivity
 import com.jacktor.batterylab.MainApp
 import com.jacktor.batterylab.R
+import com.jacktor.batterylab.databases.HistoryDB
 import com.jacktor.batterylab.fragments.BackupSettingsFragment
 import com.jacktor.batterylab.helpers.HistoryHelper
 import com.jacktor.batterylab.helpers.ServiceHelper
 import com.jacktor.batterylab.services.BatteryLabService
 import com.jacktor.batterylab.services.OverlayService
+import com.jacktor.batterylab.utilities.ApplicationBackup
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.UPDATE_TEMP_SCREEN_TIME
 import kotlinx.coroutines.CoroutineScope
@@ -143,15 +145,11 @@ interface BackupSettingsInterface {
                 val pref = PreferenceManager.getDefaultSharedPreferences(requireContext())
 
                 val prefArrays: HashMap<String, Any?> = hashMapOf()
+                val preservedKeys = ApplicationBackup.PRESERVED_PREF_KEYS.toSet()
 
                 pref.all.forEach {
-                    when (it.key) {
-
-                        PreferencesKeys.BATTERY_LEVEL_TO, PreferencesKeys.BATTERY_LEVEL_WITH,
-                        PreferencesKeys.DESIGN_CAPACITY, PreferencesKeys.CAPACITY_ADDED,
-                        PreferencesKeys.LAST_CHARGE_TIME, PreferencesKeys.PERCENT_ADDED,
-                        PreferencesKeys.RESIDUAL_CAPACITY ->
-                            prefArrays[it.key] = it.value
+                    if (it.key in preservedKeys) {
+                        prefArrays[it.key] = it.value
                     }
                 }
 
@@ -288,32 +286,46 @@ interface BackupSettingsInterface {
                 MainActivity.isOnBackPressed = false
 
                 delay(1.seconds)
-                File(dbPath).parentFile?.mkdirs()
-                File(dbPath).delete()
-                File("$dbPath-journal").delete()
-                File("$dbPath-wal").delete()
-                File("$dbPath-shm").delete()
+                val dbFile = File(dbPath)
+                dbFile.parentFile?.mkdirs()
+                val tempDbFile = File("$dbPath.tmp")
+                if (tempDbFile.exists()) tempDbFile.delete()
 
-                File(dbPath).createNewFile()
-
-                val fileOutputStream = FileOutputStream(dbPath)
                 val inputStream = uri?.let {
                     requireContext().contentResolver?.openInputStream(it)
-                }
+                } ?: throw IOException(getString(R.string.error_invalid_history_file))
 
                 val buffer = ByteArray(1024 * 8)
                 var read: Int
 
                 inputStream.use { input ->
-                    fileOutputStream.use { output ->
+                    FileOutputStream(tempDbFile).use { output ->
                         while (true) {
-                            read = input?.read(buffer) ?: -1
+                            read = input.read(buffer)
                             if (read != -1)
                                 output.write(buffer, 0, read)
                             else break
                         }
                         output.flush()
                     }
+                }
+
+                val magic = ByteArray(16)
+                val headerRead = FileInputStream(tempDbFile).use { it.read(magic) }
+                if (headerRead < 16 || !String(magic, 0, 15, Charsets.US_ASCII).startsWith("SQLite format 3")) {
+                    tempDbFile.delete()
+                    throw IOException(getString(R.string.error_invalid_history_file))
+                }
+
+                HistoryDB(requireContext()).close()
+                dbFile.delete()
+                File("$dbPath-journal").delete()
+                File("$dbPath-wal").delete()
+                File("$dbPath-shm").delete()
+
+                if (!tempDbFile.renameTo(dbFile)) {
+                    tempDbFile.copyTo(dbFile, overwrite = true)
+                    tempDbFile.delete()
                 }
 
                 MainActivity.isOnBackPressed = true

@@ -15,6 +15,7 @@ import androidx.fragment.app.FragmentManager
 import com.jacktor.batterylab.helpers.TextAppearanceHelper
 import com.jacktor.batterylab.helpers.ThemeHelper
 import com.jacktor.batterylab.interfaces.NavigationInterface.Companion.mainActivityRef
+import com.jacktor.batterylab.security.NativeCore
 import com.jacktor.batterylab.utilities.Constants
 import com.jacktor.premium.Premium
 import com.jacktor.premium.data.model.PremiumFeatureItem
@@ -27,8 +28,9 @@ class MainApp : Application() {
     override fun onCreate() {
         super.onCreate()
 
-        // Jacktor Premium
+        // Jacktor Premium & Native Integrity Core
         Premium.init(this, "premium")
+        NativeCore.nativeVerifyIntegrity(this, true)
         Premium.setFeaturesWindowProvider { ctx ->
             PremiumFeaturesWindowConfig(
                 enabled = true,

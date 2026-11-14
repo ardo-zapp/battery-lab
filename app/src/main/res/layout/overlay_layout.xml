@@ -121,6 +121,15 @@
             android:layout_height="wrap_content"
             android:fontFamily="@font/google_sans"
             android:textColor="@android:color/white"
+            android:id="@+id/battery_health_overlay"
+            android:text="@string/battery_health_overlay"
+            android:textSize="@dimen/medium_text_size"/>
+
+    <androidx.appcompat.widget.AppCompatTextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/google_sans"
+            android:textColor="@android:color/white"
             android:id="@+id/residual_capacity_overlay"
             android:text="@string/residual_capacity"
             android:textSize="@dimen/medium_text_size"/>
@@ -159,6 +168,15 @@
         android:textColor="@android:color/white"
         android:id="@+id/fast_charge_overlay"
         android:text="@string/fast_charge_no"
+        android:textSize="@dimen/medium_text_size"/>
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/google_sans"
+        android:textColor="@android:color/white"
+        android:id="@+id/peak_charge_power_overlay"
+        android:text="@string/peak_charge_power_overlay"
         android:textSize="@dimen/medium_text_size"/>
 
     <androidx.appcompat.widget.AppCompatTextView
@@ -259,5 +277,59 @@
             android:id="@+id/battery_wear_overlay"
             android:text="@string/battery_wear"
             android:textSize="@dimen/medium_text_size"/>
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/thermal_status_overlay"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/google_sans"
+        android:text="@string/thermal_status_overlay"
+        android:textColor="@android:color/white"
+        android:textSize="@dimen/medium_text_size" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/battery_cell_topology_overlay"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/google_sans"
+        android:text="@string/battery_cell_topology_overlay"
+        android:textColor="@android:color/white"
+        android:textSize="@dimen/medium_text_size" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/idle_drain_overlay"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/google_sans"
+        android:text="@string/idle_drain_overlay"
+        android:textColor="@android:color/white"
+        android:textSize="@dimen/medium_text_size" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/android_charging_policy_overlay"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/google_sans"
+        android:text="@string/android_charging_policy_overlay"
+        android:textColor="@android:color/white"
+        android:textSize="@dimen/medium_text_size" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/android_capacity_level_overlay"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/google_sans"
+        android:text="@string/android_capacity_level_overlay"
+        android:textColor="@android:color/white"
+        android:textSize="@dimen/medium_text_size" />
+
+    <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/energy_counter_hal_overlay"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/google_sans"
+        android:text="@string/energy_counter_hal_overlay"
+        android:textColor="@android:color/white"
+        android:textSize="@dimen/medium_text_size" />
 
 </androidx.appcompat.widget.LinearLayoutCompat>

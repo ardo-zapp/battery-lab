@@ -35,21 +35,38 @@ import com.jacktor.batterylab.interfaces.NavigationInterface.Companion.mainActiv
 import com.jacktor.batterylab.services.OverlayService
 import com.jacktor.batterylab.utilities.Constants
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.AUTO_DARK_MODE
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.AVERAGE_CHARGE_LAST_CHARGE
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.AVERAGE_TEMP_CELSIUS_LAST_CHARGE
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.AVERAGE_TEMP_FAHRENHEIT_LAST_CHARGE
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.BATTERY_LEVEL_LAST_CHARGE
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.BATTERY_LEVEL_NOTIFY_CHARGED
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.BATTERY_LEVEL_NOTIFY_DISCHARGED
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.BATTERY_LEVEL_TO
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.BATTERY_LEVEL_WITH
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.BATTERY_NOTIFY_DISCHARGED_VOLTAGE
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CAPACITY_ADDED
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CAPACITY_ADDED_LAST_CHARGE
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGING_TIME_LAST_CHARGE
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CURRENT_CAPACITY_LAST_CHARGE
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.DARK_MODE
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.DESIGN_CAPACITY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.ENABLED_DEBUG_OPTIONS
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.FAST_CHARGE_WATTS_LAST_CHARGE
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.FORCIBLY_SHOW_RATE_THE_APP
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.FULL_CHARGE_REMINDER_FREQUENCY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.LAST_CHARGE_TIME
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.LAST_CHARGE_TIMESTAMP
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.MAX_CHARGE_LAST_CHARGE
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.MAX_TEMP_CELSIUS_LAST_CHARGE
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.MAX_TEMP_FAHRENHEIT_LAST_CHARGE
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.MIN_CHARGE_LAST_CHARGE
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.MIN_TEMP_CELSIUS_LAST_CHARGE
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.MIN_TEMP_FAHRENHEIT_LAST_CHARGE
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.NOMINAL_BATTERY_VOLTAGE_PREF
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.NUMBER_OF_CHARGES
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.NUMBER_OF_CYCLES
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.NUMBER_OF_FULL_CHARGES
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.NUMBER_OF_HISTORY_FOR_BATTERY_WEAR_NEW
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.OVERLAY_FONT
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.OVERLAY_LOCATION
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.OVERLAY_OPACITY
@@ -57,7 +74,11 @@ import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.OVERLAY_SIZE
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.OVERLAY_TEXT_COLOR
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.OVERLAY_TEXT_STYLE
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.PERCENT_ADDED
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.PERCENT_ADDED_LAST_CHARGE
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.RESIDUAL_CAPACITY
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.SOURCE_OF_POWER_LAST_CHARGE
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.STATUS_LAST_CHARGE
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.STRESS_CALIBRATED_RINT_MOHM
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.TAB_ON_APPLICATION_LAUNCH
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.TEXT_FONT
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.TEXT_SIZE
@@ -65,6 +86,7 @@ import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.TEXT_STYLE
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.UNIT_OF_CHARGE_DISCHARGE_CURRENT
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.UNIT_OF_MEASUREMENT_OF_available_capacity
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.UPDATE_TEMP_SCREEN_TIME
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.VOLTAGE_LAST_CHARGE
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.VOLTAGE_UNIT
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -381,19 +403,30 @@ interface DebugOptionsInterface {
                 UNIT_OF_MEASUREMENT_OF_available_capacity, UNIT_OF_CHARGE_DISCHARGE_CURRENT,
                 VOLTAGE_UNIT, OVERLAY_LOCATION, OVERLAY_SIZE, OVERLAY_FONT, TEXT_SIZE, TEXT_FONT,
                 OVERLAY_TEXT_STYLE, TEXT_STYLE, TAB_ON_APPLICATION_LAUNCH,
-                FULL_CHARGE_REMINDER_FREQUENCY -> addChangeSetting(pref, key, value.toString())
+                FULL_CHARGE_REMINDER_FREQUENCY, NOMINAL_BATTERY_VOLTAGE_PREF,
+                NUMBER_OF_HISTORY_FOR_BATTERY_WEAR_NEW, STATUS_LAST_CHARGE,
+                SOURCE_OF_POWER_LAST_CHARGE -> addChangeSetting(pref, key, value.toString())
 
                 DESIGN_CAPACITY, LAST_CHARGE_TIME, BATTERY_LEVEL_WITH, BATTERY_LEVEL_TO,
-                RESIDUAL_CAPACITY, PERCENT_ADDED, BATTERY_LEVEL_NOTIFY_CHARGED,
-                BATTERY_LEVEL_NOTIFY_DISCHARGED, BATTERY_NOTIFY_DISCHARGED_VOLTAGE
-                    -> addChangeSetting(pref, key, value.toString().toInt())
+                RESIDUAL_CAPACITY, PERCENT_ADDED, OVERLAY_OPACITY, OVERLAY_TEXT_COLOR,
+                BATTERY_LEVEL_NOTIFY_CHARGED, BATTERY_LEVEL_NOTIFY_DISCHARGED,
+                BATTERY_NOTIFY_DISCHARGED_VOLTAGE, BATTERY_LEVEL_LAST_CHARGE,
+                CHARGING_TIME_LAST_CHARGE, PERCENT_ADDED_LAST_CHARGE, MAX_CHARGE_LAST_CHARGE,
+                AVERAGE_CHARGE_LAST_CHARGE, MIN_CHARGE_LAST_CHARGE ->
+                    addChangeSetting(pref, key, value.toString().toInt())
 
-                CAPACITY_ADDED, NUMBER_OF_CYCLES -> addChangeSetting(
+                CAPACITY_ADDED, NUMBER_OF_CYCLES, STRESS_CALIBRATED_RINT_MOHM,
+                CURRENT_CAPACITY_LAST_CHARGE, CAPACITY_ADDED_LAST_CHARGE,
+                FAST_CHARGE_WATTS_LAST_CHARGE, MAX_TEMP_CELSIUS_LAST_CHARGE,
+                MAX_TEMP_FAHRENHEIT_LAST_CHARGE, AVERAGE_TEMP_CELSIUS_LAST_CHARGE,
+                AVERAGE_TEMP_FAHRENHEIT_LAST_CHARGE, MIN_TEMP_CELSIUS_LAST_CHARGE,
+                MIN_TEMP_FAHRENHEIT_LAST_CHARGE, VOLTAGE_LAST_CHARGE -> addChangeSetting(
                     pref, key,
                     value.toString().toFloat()
                 )
 
-                NUMBER_OF_CHARGES, NUMBER_OF_FULL_CHARGES, UPDATE_TEMP_SCREEN_TIME ->
+                NUMBER_OF_CHARGES, NUMBER_OF_FULL_CHARGES, UPDATE_TEMP_SCREEN_TIME,
+                LAST_CHARGE_TIMESTAMP ->
                     addChangeSetting(pref, key, value.toString().toLong())
 
                 else -> addChangeSetting(context, pref, key, value = value == "1")
@@ -441,8 +474,10 @@ interface DebugOptionsInterface {
 
                         UNIT_OF_MEASUREMENT_OF_available_capacity,
                         UNIT_OF_CHARGE_DISCHARGE_CURRENT, VOLTAGE_UNIT, OVERLAY_LOCATION,
-                        OVERLAY_SIZE, OVERLAY_TEXT_STYLE, TEXT_SIZE, TEXT_STYLE,
-                        TAB_ON_APPLICATION_LAUNCH, FULL_CHARGE_REMINDER_FREQUENCY ->
+                        OVERLAY_SIZE, OVERLAY_FONT, OVERLAY_TEXT_STYLE, TEXT_SIZE, TEXT_FONT,
+                        TEXT_STYLE, TAB_ON_APPLICATION_LAUNCH, FULL_CHARGE_REMINDER_FREQUENCY,
+                        NOMINAL_BATTERY_VOLTAGE_PREF, NUMBER_OF_HISTORY_FOR_BATTERY_WEAR_NEW,
+                        STATUS_LAST_CHARGE, SOURCE_OF_POWER_LAST_CHARGE ->
                             setValueType(
                                 "string", changePrefValue, pref,
                                 prefValueInputTypeDef, prefValueKeyListenerDef
@@ -452,12 +487,20 @@ interface DebugOptionsInterface {
                         RESIDUAL_CAPACITY, PERCENT_ADDED, NUMBER_OF_CHARGES, NUMBER_OF_FULL_CHARGES,
                         OVERLAY_OPACITY, OVERLAY_TEXT_COLOR, BATTERY_LEVEL_NOTIFY_CHARGED,
                         BATTERY_NOTIFY_DISCHARGED_VOLTAGE, BATTERY_LEVEL_NOTIFY_DISCHARGED,
-                        UPDATE_TEMP_SCREEN_TIME -> setValueType(
+                        UPDATE_TEMP_SCREEN_TIME, BATTERY_LEVEL_LAST_CHARGE,
+                        CHARGING_TIME_LAST_CHARGE, PERCENT_ADDED_LAST_CHARGE,
+                        MAX_CHARGE_LAST_CHARGE, AVERAGE_CHARGE_LAST_CHARGE,
+                        MIN_CHARGE_LAST_CHARGE, LAST_CHARGE_TIMESTAMP -> setValueType(
                             "int|long", changePrefValue, pref,
                             prefValueInputTypeDef, prefValueKeyListenerDef
                         )
 
-                        CAPACITY_ADDED, NUMBER_OF_CYCLES ->
+                        CAPACITY_ADDED, NUMBER_OF_CYCLES, STRESS_CALIBRATED_RINT_MOHM,
+                        CURRENT_CAPACITY_LAST_CHARGE, CAPACITY_ADDED_LAST_CHARGE,
+                        FAST_CHARGE_WATTS_LAST_CHARGE, MAX_TEMP_CELSIUS_LAST_CHARGE,
+                        MAX_TEMP_FAHRENHEIT_LAST_CHARGE, AVERAGE_TEMP_CELSIUS_LAST_CHARGE,
+                        AVERAGE_TEMP_FAHRENHEIT_LAST_CHARGE, MIN_TEMP_CELSIUS_LAST_CHARGE,
+                        MIN_TEMP_FAHRENHEIT_LAST_CHARGE, VOLTAGE_LAST_CHARGE ->
                             setValueType(
                                 "float", changePrefValue, pref,
                                 prefValueInputTypeDef, prefValueKeyListenerDef
@@ -660,7 +703,7 @@ interface DebugOptionsInterface {
                             TEXT_STYLE -> s.toString() != pref.getString(
                                 key, "0"
                             ) && s.toString() in context.resources
-                                .getStringArray(R.array.fonts_values)
+                                .getStringArray(R.array.text_style_values)
 
                             TAB_ON_APPLICATION_LAUNCH -> s.toString() != pref.getString(
                                 key, "0"

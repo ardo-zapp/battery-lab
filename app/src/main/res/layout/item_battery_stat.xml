@@ -17,7 +17,6 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <!-- Header Row with Squircle Icon Badge and Title -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -65,7 +64,6 @@
             </LinearLayout>
         </LinearLayout>
 
-        <!-- Secondary Details Container (Flat layout - No nested card box) -->
         <LinearLayout
             android:id="@+id/layoutSecondaryContainer"
             android:layout_width="match_parent"
@@ -128,6 +126,51 @@
                 android:textSize="12sp"
                 android:visibility="gone"
                 tools:text="Baterai: Li-poly" />
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/tvSecondary6"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="3dp"
+                android:textColor="@color/dark_white"
+                android:textSize="12sp"
+                android:visibility="gone" />
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/tvSecondary7"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="3dp"
+                android:textColor="@color/dark_white"
+                android:textSize="12sp"
+                android:visibility="gone" />
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/tvSecondary8"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="3dp"
+                android:textColor="@color/dark_white"
+                android:textSize="12sp"
+                android:visibility="gone" />
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/tvSecondary9"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="3dp"
+                android:textColor="@color/dark_white"
+                android:textSize="12sp"
+                android:visibility="gone" />
+
+            <androidx.appcompat.widget.AppCompatTextView
+                android:id="@+id/tvSecondary10"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginVertical="3dp"
+                android:textColor="@color/dark_white"
+                android:textSize="12sp"
+                android:visibility="gone" />
         </LinearLayout>
     </LinearLayout>
 </com.google.android.material.card.MaterialCardView>

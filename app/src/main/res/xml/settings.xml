@@ -51,6 +51,20 @@
             android:title="@string/show_expanded_notification"
             app:singleLineTitle="false" />
 
+        <SwitchPreferenceCompat
+            android:key="is_show_battery_level_in_status_bar"
+            android:summary="@string/show_battery_level_in_status_bar_summary"
+            android:title="@string/show_battery_level_in_status_bar"
+            app:defaultValue="@bool/is_show_battery_level_in_status_bar"
+            app:icon="@drawable/ic_battery_info_24"
+            app:singleLineTitle="false" />
+
+        <Preference
+            android:key="open_the_app_notification_settings"
+            android:title="@string/open_the_app_notification_settings"
+            app:icon="@drawable/ic_notifications_pref_24dp"
+            app:singleLineTitle="false" />
+
         <Preference
             android:key="battery_status_information"
             android:title="@string/battery_status_information"
@@ -117,6 +131,13 @@
             app:icon="@drawable/ic_text_style"
             app:singleLineTitle="false" />
 
+        <SwitchPreferenceCompat
+            android:key="is_show_number_of_history"
+            android:title="@string/show_number_of_history"
+            app:defaultValue="@bool/is_show_number_of_history"
+            app:icon="@drawable/ic_history_navigation_24"
+            app:singleLineTitle="false" />
+
     </PreferenceCategory>
 
     <PreferenceCategory
@@ -143,6 +164,14 @@
             android:title="@string/reset_screen_time_at_any_charge_level"
             app:defaultValue="@bool/reset_screen_time_at_any_charge_level"
             app:icon="@drawable/ic_reset_screen_time_at_any_charge_level"
+            app:singleLineTitle="false" />
+
+        <SwitchPreferenceCompat
+            android:key="is_alt_calc_charging_time_remaining"
+            android:summary="@string/alt_calc_charging_time_remaining_summary"
+            android:title="@string/alt_calc_charging_time_remaining"
+            app:defaultValue="@bool/is_alt_calc_charging_time_remaining"
+            app:icon="@drawable/ic_timer_calc_24dp"
             app:singleLineTitle="false" />
 
         <Preference
@@ -230,6 +259,14 @@
         <Preference
             android:key="reset_the_number_of_full_charges_to_zero"
             android:title="@string/reset_the_number_of_full_charges_to_zero"
+            app:isPreferenceVisible="false"
+            app:singleLineTitle="false" />
+
+        <Preference
+            android:icon="@drawable/ic_replace_battery_24dp"
+            android:key="replace_of_device_battery"
+            android:summary="@string/replace_of_device_battery_summary"
+            android:title="@string/replace_of_device_battery"
             app:isPreferenceVisible="false"
             app:singleLineTitle="false" />
 

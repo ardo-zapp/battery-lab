@@ -269,7 +269,7 @@
     <string name="faq_where_does_the_app_get_the_ccl">Вопрос: Откуда приложение берёт «Ограничение тока зарядки»?\nОтвет: Из файла ядра «constant_charge_current_max» по пути /sys/class/power_supply/battery.\n\n</string>
     <string name="faq_why_is_ccl_not_displayed">Вопрос: Почему «Ограничение тока зарядки» не отображается?\nОтвет: Не все ядра содержат или разрешают чтение файла «constant_charge_current_max». При закрытом доступе строка скрывается.\n\n</string>
     <string name="faq_i_have_everything_in_zeros" formatted="false">Вопрос: У меня всё (или почти всё) нули. Почему?\nОтвет: Некоторые производители не выводят или ограничивают датчики телеметрии, поэтому Android API и ядро возвращают 0.\n\n</string>
-    <string name="faq_units">Вопрос: В ёмкости, токе или напряжении отображаются слишком большие или маленькие числа.\nОтвет: Откройте Настройки → Прочее → «Подробнее» и настройте единицы измерения (мкА/мА, мкА·ч/мА·ч, мВ/В) или отображение в Вт·ч/Вт.\n\n</string>
+    <string name="faq_units">Вопрос: В ёмкости, токе или напряжении отображаются слишком большие или маленькие числа.\nОтвет: Откройте Настройки → Прочее → «Ещё…» и настройте единицы измерения (мкА/мА, мкА·ч/мА·ч, мВ/В) или отображение в Вт·ч/Вт.\n\n</string>
     <string name="faq_available_capacity">Вопрос: Доступная ёмкость перестала отображаться или показывается не всегда.\nОтвет: Это может указывать на сбои контроллера питания, ошибки ядра прошивки или сильный износ батареи.\n\n</string>
     <string name="faq_residual_capacity_is_higher" formatted="false">Вопрос: Остаточная ёмкость выше проектной.\nОтвет: У новой батареи фактическая ёмкость иногда немного превышает номинал. Если батарея не новая, откалибруйте её: разряд ниже 10% и полный заряд до 100% («Заряжена»). Также проверьте «Проектную ёмкость» в настройках.\n\n</string>
     <string name="faq_battery_wear_changes_when_charger_is_disconnected">Вопрос: Износ батареи меняется при отключении зарядного устройства.\nОтвет: После отключения кабеля и стабилизации тока контроллер уточняет остаточный заряд, поэтому показания после отключения часто точнее.\n\n</string>
@@ -324,7 +324,7 @@
     <string name="change_design_capacity">Изменить проектную ёмкость</string>
     <string name="change">Изменить</string>
     <string name="battery_technology">Технология: %1$s</string>
-    <string name="instruction_message" formatted="false">1. Для расчёта остаточной ёмкости и износа держите сервис мониторинга включённым, разрядите батарею до 10% или ниже и полностью зарядите до 100% (статус «Заряжена»).\n2. Продолжение зарядки короткое время после 100% нормально (фаза насыщения CV).\n3. Проверьте, что «Проектная ёмкость» в Настройки → Прочее → «Подробнее» совпадает с характеристиками устройства.\n4. Если единицы ёмкости, тока или напряжения выглядят неверно, измените их в Настройки → Прочее → «Подробнее». Батареи Dual-Cell (2S, ~7.2–9.0 В) определяются автоматически.\n5. Во вкладке Инструменты отслеживайте «Расход в простое» (Deep Sleep и фон при выключенном экране) и «Стресс и импеданс» (отключите зарядку перед запуском теста 2 с).\n\n</string>
+    <string name="instruction_message" formatted="false">1. Для расчёта остаточной ёмкости и износа держите сервис мониторинга включённым, разрядите батарею до 10% или ниже и полностью зарядите до 100% (статус «Заряжена»).\n2. Продолжение зарядки короткое время после 100% нормально (фаза насыщения CV).\n3. Проверьте, что «Проектная ёмкость» в Настройки → Прочее → «Ещё…» совпадает с характеристиками устройства.\n4. Если единицы ёмкости, тока или напряжения выглядят неверно, измените их в Настройки → Прочее → «Ещё…». Батареи Dual-Cell (2S, ~7.2–9.0 В) определяются автоматически.\n5. Во вкладке Инструменты отслеживайте «Расход в простое» (Deep Sleep и фон при выключенном экране) и «Стресс и импеданс» (отключите зарядку перед запуском теста 2 с).\n\n</string>
     <string name="service">Сервис</string>
     <string name="service_time">Время работы сервиса</string>
     <string name="unit_of_charge_discharge_current">Единица тока зарядки/разряда</string>
@@ -467,9 +467,9 @@
     <string name="stress_pulse_result_success">Калибровка завершена!\n• Скачок тока (ΔI): %1$d мА\n• Просадка напряжения (ΔV): %2$d мВ/яч.\n• Измеренный импеданс (Rint): ~%3$d мОм/яч.</string>
     <string name="stress_pulse_result_low_delta">Датчик батареи зафиксировал слишком малое изменение (ΔI: %1$d мА, ΔV: %2$d мВ) за 2 секунды. Используется электротермическая модель.</string>
     <string name="stress_diag_low">Низкий электрохимический стресс (%1$sC, Rint ~%2$d мОм/яч.). Ячейка работает в оптимальной зоне долговечности (тепловыделение ~%3$s мВт).</string>
-    <string name="stress_rec_low">Поддержание заряда в пределах 20–80%% при температуре ниже 35°C минимизирует деградацию слоя SEI и окисление катода.</string>
+    <string name="stress_rec_low">Поддержание заряда в пределах 20–80% при температуре ниже 35°C минимизирует деградацию слоя SEI и окисление катода.</string>
     <string name="stress_diag_moderate">Умеренная нагрузка (%1$sC, Rint ~%2$d мОм/яч., просадка ~%3$d мВ). Текущая скорость химического старения: %4$sx.</string>
-    <string name="stress_rec_moderate">При зарядке выше 80%% или высокой нагрузке обеспечивайте охлаждение устройства.</string>
+    <string name="stress_rec_moderate">При зарядке выше 80% или высокой нагрузке обеспечивайте охлаждение устройства.</string>
     <string name="stress_diag_high">Высокий стресс ячейки (%1$sC, Rint ~%2$d мОм/яч., нагрев ~%3$s мВт)! Сочетание тока, напряжения или температуры ускоряет износ (%4$sx).</string>
     <string name="stress_rec_high">Избегайте игр во время быстрой зарядки и охладите батарею ниже 38°C для предотвращения роста импеданса.</string>
 
@@ -512,6 +512,7 @@
     <string name="app_usage_window_24h">24 часа</string>
     <string name="app_usage_window_7d">7 дней</string>
     <string name="app_usage_include_system">Системные</string>
+    <string name="app_usage_loading">Анализ расхода энергии приложений…</string>
     <string name="app_usage_empty">За выбранный период нет зафиксированной активности приложений.</string>
     <string name="app_usage_methodology_note">Примечание: без root-доступа оценка в мА·ч рассчитывается на основе Android UsageStats (активность, фоновые службы, запуски) и ёмкости батареи.</string>
     <string name="app_usage_rank_fmt">#%1$d</string>
@@ -535,4 +536,111 @@
     <string name="app_usage_advice_normal">Энергопотребление этого приложения находится в пределах нормы относительно времени использования.</string>
     <string name="app_usage_open_app_info">Настройки батареи прил.</string>
     <string name="app_usage_open_app_info_failed">Не удалось открыть сведения о приложении.</string>
+
+    <!-- App Shortcuts -->
+    <string name="shortcut_disabled_message">Этот ярлык сейчас недоступен.</string>
+    <string name="shortcut_battery_info_short">О батарее</string>
+    <string name="shortcut_battery_info_long">Открыть данные о батарее</string>
+    <string name="shortcut_app_power_short">Расход ПО</string>
+    <string name="shortcut_app_power_long">Анализ расхода приложений</string>
+    <string name="shortcut_idle_drain_short">Расход в простое</string>
+    <string name="shortcut_idle_drain_long">Анализ расхода в простое</string>
+    <string name="shortcut_history_short">История</string>
+    <string name="shortcut_history_long">Открыть историю зарядов</string>
+
+    <string name="battery_cell_topology_dual_2s">Архитектура: Двойная 2S (Авто %s)</string>
+    <string name="battery_cell_topology_dual_parallel">Архитектура: Двойная параллельная (Авто %s)</string>
+    <string name="battery_cell_topology_single">Архитектура: Одна ячейка</string>
+    <string name="energy_counter_hal">Счётчик энергии (HAL): %s Вт·ч</string>
+    <string name="android_capacity_level">Уровень ёмкости (Android): %s</string>
+    <string name="capacity_level_critical">Критич.</string>
+    <string name="capacity_level_low">Низкий</string>
+    <string name="capacity_level_normal">Норма</string>
+    <string name="capacity_level_high">Высокий</string>
+    <string name="capacity_level_full">Полный</string>
+    <string name="android_charging_policy">Политика зарядки (Android): %s</string>
+    <string name="charging_policy_default">Стандартная</string>
+    <string name="charging_policy_adaptive_aon">Адаптивная (порог)</string>
+    <string name="charging_policy_adaptive_ac">Адаптивная (AC)</string>
+    <string name="charging_policy_adaptive_longlife">Адаптивная (долгожизнь)</string>
+
+    <!-- Upstream Features -->
+    <string name="show_battery_level_in_status_bar">Уровень заряда в строке состояния</string>
+    <string name="show_battery_level_in_status_bar_summary">Показывать значок процента заряда вместо монохромного значка приложения</string>
+    <string name="open_the_app_notification_settings">Системные настройки уведомлений</string>
+    <string name="open_the_app_notification_settings_error">Не удалось открыть системные настройки уведомлений.</string>
+    <string name="show_number_of_history">Показывать количество в истории</string>
+    <string name="alt_calc_charging_time_remaining">Альтернативный расчёт времени зарядки</string>
+    <string name="alt_calc_charging_time_remaining_summary">Использовать внутреннюю модель вместо оценки системы Android</string>
+    <string name="replace_of_device_battery">Замена батареи</string>
+    <string name="replace_of_device_battery_summary">Очистить историю и сбросить износ, циклы и данные последней зарядки</string>
+    <string name="replace_of_device_battery_dialog_title">Сбросить данные для новой батареи?</string>
+    <string name="replace_of_device_battery_dialog_message">Это удалит историю зарядок, данные износа, циклы, остаточную ёмкость и статистику последней зарядки. Ваши настройки интерфейса сохранятся.</string>
+    <string name="battery_data_reset_successfully">Статистика и история сброшены для новой батареи.</string>
+    <string name="lock_overlay_location">Заблокировать положение оверлея</string>
+    <string name="lock_overlay_location_summary">Защита от случайного перетаскивания плавающего окна</string>
+
+    <!-- Debug Additions -->
+    <string name="enable_wakelock">WakeLock службы</string>
+    <string name="enable_wakelock_summary">Удерживать процессор активным во время зарядки для точных замеров</string>
+    <string name="enable_check_update">Проверка обновлений Google Play</string>
+    <string name="nominal_battery_voltage_title">Номинальное напряжение батареи</string>
+    <string name="number_of_history_for_battery_wear_title">Записей истории для износа</string>
+    <string name="number_of_history_for_battery_wear_summary">Усреднять последние %s записей истории для расчёта износа и остаточной ёмкости</string>
+
+    <!-- Last Charge Tab -->
+    <string name="last_charge_tab">Посл. заряд</string>
+    <string name="last_charge_title">Сводка последней зарядки</string>
+    <string name="last_charge_recorded_at">Записано: %s</string>
+    <string name="last_charge_empty_title">Нет данных о последней зарядке</string>
+    <string name="last_charge_empty_desc">Зарядите устройство и отключите кабель (или дождитесь 100%) при активной службе мониторинга.</string>
+    <string name="last_charge_section_overview">Обзор сеанса</string>
+    <string name="last_charge_section_current_power">Ток и мощность</string>
+    <string name="last_charge_section_thermal_voltage">Температура и напряжение</string>
+    <string name="last_charge_battery_level">Уровень заряда</string>
+    <string name="last_charge_duration">Время зарядки</string>
+    <string name="last_charge_current_capacity">Ёмкость в конце</string>
+    <string name="last_charge_capacity_added">Получено ёмкости</string>
+    <string name="last_charge_status">Итоговый статус</string>
+    <string name="last_charge_source">Источник питания</string>
+    <string name="last_charge_fast_charge">Быстрая зарядка</string>
+    <string name="last_charge_max_current">Макс. ток</string>
+    <string name="last_charge_avg_current">Средний ток</string>
+    <string name="last_charge_min_current">Мин. ток</string>
+    <string name="last_charge_max_temp">Макс. температура</string>
+    <string name="last_charge_avg_temp">Средняя температура</string>
+    <string name="last_charge_min_temp">Мин. температура</string>
+    <string name="last_charge_voltage">Напряжение в конце</string>
+    <string name="battery_wear_multi_sample_note">Износ усреднён по последним %d сеансам</string>
+
+    <!-- Localization & Overlay & Backup Sync -->
+    <string name="charger_disconnected">Отключено</string>
+    <string name="unit_ua_default">мкА (по умолчанию)</string>
+    <string name="unit_uah_default">мкА·ч (по умолчанию)</string>
+    <string name="unit_mv_default">мВ (по умолчанию)</string>
+    <string name="text_style_normal_default">Обычный (по умолчанию)</string>
+    <string name="text_style_bold">Полужирный</string>
+    <string name="text_style_italic">Курсив</string>
+    <string name="nominal_voltage_387_default">3.87 В (по умолчанию)</string>
+    <string name="history_wear_samples_3_default">3 (по умолчанию)</string>
+
+    <string name="only_values_summary">Показывать только значения без подписей в окне оверлея</string>
+    <string name="battery_health_overlay">Состояние батареи (расчёт)</string>
+    <string name="battery_health_app">Состояние батареи: %1$s</string>
+    <string name="battery_cell_topology_overlay">Архитектура ячеек</string>
+    <string name="battery_cell_single_short">Одна ячейка</string>
+    <string name="peak_charge_power_overlay">Пиковая мощность зарядки</string>
+    <string name="thermal_status_overlay">Нагрев и энергосбережение</string>
+    <string name="thermal_overlay_fmt">Нагрев: %1$s · Эконом: %2$s</string>
+    <string name="idle_drain_overlay">Расход в простое</string>
+    <string name="idle_drain_overlay_fmt">В простое: %1$s%%/ч (%2$s%% Deep Sleep)</string>
+    <string name="android_charging_policy_overlay">Политика зарядки (Android)</string>
+    <string name="android_capacity_level_overlay">Уровень ёмкости (Android)</string>
+    <string name="energy_counter_hal_overlay">Счётчик энергии (HAL)</string>
+
+    <string name="export_settings_summary">Сохранить настройки приложения в XML-файл резервной копии</string>
+    <string name="import_settings_summary">Восстановить настройки приложения из сохранённого XML-файла</string>
+    <string name="export_history_summary">Сохранить базу данных истории зарядок (History.db)</string>
+    <string name="import_history_summary">Восстановить историю зарядок из резервной копии History.db</string>
+    <string name="error_invalid_history_file">Выбранный файл не является корректной базой данных SQLite!</string>
 </resources>

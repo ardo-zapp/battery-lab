@@ -66,7 +66,6 @@ interface ContributorsInterface {
             val cacheFile = getCacheFile(context)
 
             if (cacheFile.exists() && !isCacheExpired(cacheFile)) {
-                // Cache masih valid
                 val cachedData = readFromCache(context)
                 if (!cachedData.isNullOrEmpty()) {
                     parseContributors(cachedData)
@@ -75,11 +74,9 @@ interface ContributorsInterface {
                     updateButtonsVisibility()
                 }
             } else if (isNetworkAvailable(context)) {
-                // Cache expired → bersihkan dan fetch baru
                 clearCache(context)
                 fetchContributors(context)
             } else {
-                // Tidak ada cache dan tidak ada internet
                 showNoInternetMessage()
             }
 

@@ -77,16 +77,10 @@ class BatteryInfoAdapter(
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): RecyclerView.ViewHolder {
         val inflater = LayoutInflater.from(parent.context)
         val holder = when (viewType) {
-            TYPE_HEADER -> HeaderVH(ItemBatteryHeaderBinding.inflate(inflater, parent, false)).also {
-                MotionHelper.bindPressScale(it.itemView, pressedScale = 0.985f)
-            }
-            TYPE_COUNTS -> CountsVH(ItemBatteryCountsBinding.inflate(inflater, parent, false)).also {
-                MotionHelper.bindPressScale(it.itemView, pressedScale = 0.985f)
-            }
+            TYPE_HEADER -> HeaderVH(ItemBatteryHeaderBinding.inflate(inflater, parent, false))
+            TYPE_COUNTS -> CountsVH(ItemBatteryCountsBinding.inflate(inflater, parent, false))
             TYPE_SECTION -> SectionVH(ItemBatterySectionBinding.inflate(inflater, parent, false))
-            else -> StatVH(ItemBatteryStatBinding.inflate(inflater, parent, false)).also {
-                MotionHelper.bindPressScale(it.itemView, pressedScale = 0.985f)
-            }
+            else -> StatVH(ItemBatteryStatBinding.inflate(inflater, parent, false))
         }
         TextAppearanceHelper.applyToView(holder.itemView)
         return holder
@@ -265,7 +259,6 @@ class BatteryInfoAdapter(
         b.tvLastChargeTime.text = data.lastChargeTime
     }
 
-    // ===== ViewHolders =====
     inner class HeaderVH(private val b: ItemBatteryHeaderBinding) :
         RecyclerView.ViewHolder(b.root) {
         fun bind(data: BatteryInfoRow.Header) {
@@ -314,7 +307,12 @@ class BatteryInfoAdapter(
                     b.tvSecondary2,
                     b.tvSecondary3,
                     b.tvSecondary4,
-                    b.tvSecondary5
+                    b.tvSecondary5,
+                    b.tvSecondary6,
+                    b.tvSecondary7,
+                    b.tvSecondary8,
+                    b.tvSecondary9,
+                    b.tvSecondary10
                 )
             secondaryViews.forEach { it.visibility = View.GONE }
 
@@ -328,8 +326,6 @@ class BatteryInfoAdapter(
                 if (data.secondary.isNotEmpty()) View.VISIBLE else View.GONE
         }
     }
-
-    // ===== Utilities =====
 
     private fun styleAll(root: View) {
         TextAppearanceHelper.applyToView(root)

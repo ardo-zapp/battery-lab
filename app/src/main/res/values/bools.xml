@@ -15,6 +15,9 @@
     <bool name="charging_discharge_current_in_watt">false</bool>
     <bool name="reset_screen_time_at_any_charge_level">false</bool>
     <bool name="auto_start_boot">true</bool>
+    <bool name="is_show_battery_level_in_status_bar">true</bool>
+    <bool name="is_show_number_of_history">false</bool>
+    <bool name="is_alt_calc_charging_time_remaining">false</bool>
 
     <!--Battery Status Information-->
     <bool name="bypass_dnd_mode">true</bool>
@@ -36,6 +39,7 @@
     <!--Overlay-->
     <bool name="enabled_overlay">false</bool>
     <bool name="only_values_overlay">false</bool>
+    <bool name="is_lock_overlay_location">false</bool>
     <bool name="battery_level_overlay">false</bool>
     <bool name="number_of_charges_overlay">false</bool>
     <bool name="number_of_full_charges_overlay">false</bool>
@@ -48,11 +52,13 @@
     <bool name="available_capacity_overlay">false</bool>
     <bool name="capacity_added_overlay">false</bool>
     <bool name="battery_health_android_overlay">false</bool>
+    <bool name="battery_health_overlay">false</bool>
     <bool name="residual_capacity_overlay">false</bool>
     <bool name="status_overlay">false</bool>
     <bool name="source_of_power_overlay">false</bool>
     <bool name="charge_discharge_current_overlay">false</bool>
     <bool name="fast_charge_overlay">false</bool>
+    <bool name="peak_charge_power_overlay">false</bool>
     <bool name="max_charge_discharge_current_overlay">false</bool>
     <bool name="average_charge_discharge_current_overlay">false</bool>
     <bool name="min_charge_discharge_current_overlay">false</bool>
@@ -61,13 +67,21 @@
     <bool name="maximum_temperature_overlay">false</bool>
     <bool name="average_temperature_overlay">false</bool>
     <bool name="minimum_temperature_overlay">false</bool>
+    <bool name="thermal_status_overlay">false</bool>
     <bool name="voltage_overlay">false</bool>
     <bool name="last_charge_time_overlay">false</bool>
     <bool name="battery_wear_overlay">false</bool>
+    <bool name="battery_cell_topology_overlay">false</bool>
+    <bool name="idle_drain_overlay">false</bool>
+    <bool name="android_charging_policy_overlay">false</bool>
+    <bool name="android_capacity_level_overlay">false</bool>
+    <bool name="energy_counter_hal_overlay">false</bool>
 
     <!--Debug-->
     <bool name="enabled_debug_options">false</bool>
     <bool name="forcibly_show_rate_the_app">false</bool>
     <bool name="auto_start_open_app">true</bool>
     <bool name="auto_start_update_app">true</bool>
+    <bool name="is_enable_wakelock">true</bool>
+    <bool name="is_enable_check_update">true</bool>
 </resources>

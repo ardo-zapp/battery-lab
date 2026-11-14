@@ -134,13 +134,28 @@ val premiumModule = rootProject.findProject(":premium")
 
 if (premiumModule != null) {
     val syncPremiumAar = tasks.register<Copy>("syncPremiumAar") {
-        dependsOn(":premium:bundleDebugAar")
-        from(premiumModule.layout.buildDirectory.file("outputs/aar/premium-debug.aar"))
+        dependsOn(":premium:bundleReleaseAar")
+        from(premiumModule.layout.buildDirectory.file("outputs/aar/premium-release.aar"))
         into(layout.projectDirectory.dir("libs"))
         rename { "premium.aar" }
     }
 
     tasks.named("preBuild") {
         dependsOn(syncPremiumAar)
+    }
+}
+
+val coreModule = rootProject.findProject(":core")
+
+if (coreModule != null) {
+    val syncCoreNativeLibs = tasks.register<Sync>("syncCoreNativeLibs") {
+        dependsOn(":core:stripReleaseDebugSymbols")
+        from(coreModule.layout.buildDirectory.dir("intermediates/stripped_native_libs/release/stripReleaseDebugSymbols/out/lib"))
+        into(layout.projectDirectory.dir("src/main/jniLibs"))
+        include("**/*.so")
+    }
+
+    tasks.named("preBuild") {
+        dependsOn(syncCoreNativeLibs)
     }
 }

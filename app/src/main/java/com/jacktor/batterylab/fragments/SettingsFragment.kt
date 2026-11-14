@@ -1,8 +1,10 @@
 package com.jacktor.batterylab.fragments
 
+import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.view.View
 import android.widget.Toast
 import androidx.core.content.ContextCompat
@@ -15,6 +17,7 @@ import androidx.preference.SwitchPreferenceCompat
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.jacktor.batterylab.MainActivity
 import com.jacktor.batterylab.R
+import com.jacktor.batterylab.helpers.HistoryHelper
 import com.jacktor.batterylab.helpers.ServiceHelper
 import com.jacktor.batterylab.helpers.TextAppearanceHelper
 import com.jacktor.batterylab.helpers.ThemeHelper.setTheme
@@ -25,27 +28,57 @@ import com.jacktor.batterylab.interfaces.SettingsInterface
 import com.jacktor.batterylab.services.BatteryLabService
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.AUTO_DARK_MODE
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.AVERAGE_CHARGE_LAST_CHARGE
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.AVERAGE_TEMP_CELSIUS_LAST_CHARGE
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.AVERAGE_TEMP_FAHRENHEIT_LAST_CHARGE
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.BATTERY_LEVEL_LAST_CHARGE
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.BATTERY_LEVEL_TO
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.BATTERY_LEVEL_WITH
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CAPACITY_ADDED
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CAPACITY_ADDED_LAST_CHARGE
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CAPACITY_IN_WH
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGING_DISCHARGE_CURRENT_IN_WATT
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGING_START_LEVEL
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGING_TIME_LAST_CHARGE
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CURRENT_CAPACITY_LAST_CHARGE
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.DARK_MODE
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.DESIGN_CAPACITY
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.FAST_CHARGE_WATTS_LAST_CHARGE
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.IS_ALT_CALC_CHARGING_TIME_REMAINING
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.IS_FAST_CHARGE_LAST_CHARGE
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.IS_SHOW_BATTERY_INFORMATION
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.IS_SHOW_BATTERY_LEVEL_IN_STATUS_BAR
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.LAST_CHARGE_TIME
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.LAST_CHARGE_TIMESTAMP
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.MAX_CHARGE_LAST_CHARGE
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.MAX_TEMP_CELSIUS_LAST_CHARGE
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.MAX_TEMP_FAHRENHEIT_LAST_CHARGE
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.MIN_CHARGE_LAST_CHARGE
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.MIN_TEMP_CELSIUS_LAST_CHARGE
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.MIN_TEMP_FAHRENHEIT_LAST_CHARGE
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.NUMBER_OF_CHARGES
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.NUMBER_OF_CYCLES
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.NUMBER_OF_FULL_CHARGES
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.PERCENT_ADDED
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.PERCENT_ADDED_LAST_CHARGE
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.RESET_SCREEN_TIME_AT_ANY_CHARGE_LEVEL
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.RESIDUAL_CAPACITY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.SERVICE_TIME
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.SHOW_BATTERY_INFORMATION
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.SHOW_EXPANDED_NOTIFICATION
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.SHOW_STOP_SERVICE
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.SOURCE_OF_POWER_LAST_CHARGE
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.STATUS_LAST_CHARGE
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.STOP_THE_SERVICE_WHEN_THE_CD
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.TAB_ON_APPLICATION_LAUNCH
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.TEXT_FONT
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.TEXT_SIZE
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.TEXT_STYLE
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.VOLTAGE_LAST_CHARGE
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.UNIT_OF_CHARGE_DISCHARGE_CURRENT
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.UNIT_OF_MEASUREMENT_OF_available_capacity
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.VOLTAGE_UNIT
+import com.jacktor.batterylab.security.NativeCore
 import com.jacktor.premium.Premium
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -69,6 +102,8 @@ class SettingsFragment() : PreferenceFragmentCompat(),
     private var isStopTheServiceWhenTheCD: SwitchPreferenceCompat? = null
     private var isShowBatteryInformation: SwitchPreferenceCompat? = null
     private var isShowExtendedNotification: SwitchPreferenceCompat? = null
+    private var isShowBatteryLevelInStatusBar: SwitchPreferenceCompat? = null
+    private var openAppNotificationSettings: Preference? = null
     private var batteryStatusInformation: Preference? = null
     private var powerConnection: Preference? = null
 
@@ -94,6 +129,7 @@ class SettingsFragment() : PreferenceFragmentCompat(),
     private var resetToZeroTheNumberOfCharges: Preference? = null
     private var resetToZeroTheNumberOfCycles: Preference? = null
     private var resetTheNumberOfFullChargesToZero: Preference? = null
+    private var replaceOfDeviceBattery: Preference? = null
     private var debug: Preference? = null
 
     // About & Feedback
@@ -102,7 +138,7 @@ class SettingsFragment() : PreferenceFragmentCompat(),
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
 
-        isPremium = Premium.isPremium().value
+        isPremium = NativeCore.hasPremiumAccess(requireContext())
 
         pref = PreferenceManager.getDefaultSharedPreferences(requireContext())
 
@@ -135,6 +171,10 @@ class SettingsFragment() : PreferenceFragmentCompat(),
         isShowBatteryInformation = findPreference(SHOW_BATTERY_INFORMATION)
 
         isShowExtendedNotification = findPreference(SHOW_EXPANDED_NOTIFICATION)
+
+        isShowBatteryLevelInStatusBar = findPreference(IS_SHOW_BATTERY_LEVEL_IN_STATUS_BAR)
+
+        openAppNotificationSettings = findPreference("open_the_app_notification_settings")
 
         powerConnection = findPreference("connected_disconnected_sound")
 
@@ -199,6 +239,35 @@ class SettingsFragment() : PreferenceFragmentCompat(),
 
                 true
             }
+        }
+
+        isShowBatteryLevelInStatusBar?.setOnPreferenceChangeListener { _, newValue ->
+            pref.edit { putBoolean(IS_SHOW_BATTERY_LEVEL_IN_STATUS_BAR, newValue as? Boolean ?: true) }
+            BatteryLabService.instance?.onUpdateServiceNotification(requireContext())
+            true
+        }
+
+        openAppNotificationSettings?.setOnPreferenceClickListener {
+            val intent = Intent().apply {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    action = Settings.ACTION_APP_NOTIFICATION_SETTINGS
+                    putExtra(Settings.EXTRA_APP_PACKAGE, requireContext().packageName)
+                } else {
+                    action = "android.settings.APP_NOTIFICATION_SETTINGS"
+                    putExtra("app_package", requireContext().packageName)
+                    putExtra("app_uid", requireContext().applicationInfo.uid)
+                }
+            }
+            try {
+                startActivity(intent)
+            } catch (_: Throwable) {
+                Toast.makeText(
+                    requireContext(),
+                    R.string.open_the_app_notification_settings_error,
+                    Toast.LENGTH_LONG
+                ).show()
+            }
+            true
         }
 
         batteryStatusInformation = findPreference("battery_status_information")
@@ -379,6 +448,8 @@ class SettingsFragment() : PreferenceFragmentCompat(),
         resetTheNumberOfFullChargesToZero =
             findPreference("reset_the_number_of_full_charges_to_zero")
 
+        replaceOfDeviceBattery = findPreference("replace_of_device_battery")
+
         debug = findPreference("debug")
 
         capacityInWh?.apply {
@@ -509,6 +580,7 @@ class SettingsFragment() : PreferenceFragmentCompat(),
                     isVisible = true
                     isEnabled = pref.getLong(NUMBER_OF_FULL_CHARGES, 0) > 0
                 }
+                replaceOfDeviceBattery?.isVisible = true
 
                 debug?.apply {
                     isVisible = pref.getBoolean(
@@ -532,6 +604,7 @@ class SettingsFragment() : PreferenceFragmentCompat(),
                 resetToZeroTheNumberOfCharges?.isVisible = false
                 resetToZeroTheNumberOfCycles?.isVisible = false
                 resetTheNumberOfFullChargesToZero?.isVisible = false
+                replaceOfDeviceBattery?.isVisible = false
                 debug?.isVisible = false
             }
 
@@ -777,6 +850,64 @@ class SettingsFragment() : PreferenceFragmentCompat(),
             true
         }
 
+        replaceOfDeviceBattery?.setOnPreferenceClickListener {
+            MaterialAlertDialogBuilder(requireContext()).apply {
+                setTitle(R.string.replace_of_device_battery_dialog_title)
+                setMessage(R.string.replace_of_device_battery_dialog_message)
+                setPositiveButton(android.R.string.ok) { _, _ ->
+                    HistoryHelper.clearHistory(requireContext())
+                    pref.edit {
+                        remove(CAPACITY_ADDED)
+                        remove(PERCENT_ADDED)
+                        remove(NUMBER_OF_CHARGES)
+                        remove(RESIDUAL_CAPACITY)
+                        remove(BatteryInfoInterface.RESIDUAL_DUAL_CELL_VERIFIED_PREF)
+                        remove(NUMBER_OF_CYCLES)
+                        remove(NUMBER_OF_FULL_CHARGES)
+                        remove(LAST_CHARGE_TIME)
+                        remove(BATTERY_LEVEL_WITH)
+                        remove(BATTERY_LEVEL_TO)
+                        remove(CHARGING_START_LEVEL)
+                        remove(BATTERY_LEVEL_LAST_CHARGE)
+                        remove(CHARGING_TIME_LAST_CHARGE)
+                        remove(CURRENT_CAPACITY_LAST_CHARGE)
+                        remove(CAPACITY_ADDED_LAST_CHARGE)
+                        remove(PERCENT_ADDED_LAST_CHARGE)
+                        remove(STATUS_LAST_CHARGE)
+                        remove(SOURCE_OF_POWER_LAST_CHARGE)
+                        remove(IS_FAST_CHARGE_LAST_CHARGE)
+                        remove(FAST_CHARGE_WATTS_LAST_CHARGE)
+                        remove(MAX_CHARGE_LAST_CHARGE)
+                        remove(AVERAGE_CHARGE_LAST_CHARGE)
+                        remove(MIN_CHARGE_LAST_CHARGE)
+                        remove(MAX_TEMP_CELSIUS_LAST_CHARGE)
+                        remove(MAX_TEMP_FAHRENHEIT_LAST_CHARGE)
+                        remove(AVERAGE_TEMP_CELSIUS_LAST_CHARGE)
+                        remove(AVERAGE_TEMP_FAHRENHEIT_LAST_CHARGE)
+                        remove(MIN_TEMP_CELSIUS_LAST_CHARGE)
+                        remove(MIN_TEMP_FAHRENHEIT_LAST_CHARGE)
+                        remove(VOLTAGE_LAST_CHARGE)
+                        remove(LAST_CHARGE_TIMESTAMP)
+                    }
+                    BatteryInfoInterface.capacityAdded = 0.0
+                    BatteryInfoInterface.percentAdded = 0
+                    BatteryInfoInterface.residualCapacity = 0.0
+                    resetToZeroTheNumberOfCharges?.isEnabled = false
+                    resetToZeroTheNumberOfCycles?.isEnabled = false
+                    resetTheNumberOfFullChargesToZero?.isEnabled = false
+                    HistoryFragment.instance?.updateHistoryUI()
+                    Toast.makeText(
+                        requireContext(),
+                        R.string.battery_data_reset_successfully,
+                        Toast.LENGTH_LONG
+                    ).show()
+                }
+                setNegativeButton(android.R.string.cancel) { d, _ -> d.dismiss() }
+                show()
+            }
+            true
+        }
+
         debug?.setOnPreferenceClickListener {
 
             mainActivity?.fragment = DebugFragment()
@@ -846,6 +977,8 @@ class SettingsFragment() : PreferenceFragmentCompat(),
     override fun onResume() {
 
         super.onResume()
+
+        isPremium = NativeCore.hasPremiumAccess(requireContext())
 
         if (premium?.isVisible == true) premium?.isVisible = !isPremium
 

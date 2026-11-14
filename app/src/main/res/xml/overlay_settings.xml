@@ -14,6 +14,7 @@
     <SwitchPreferenceCompat
         android:defaultValue="@bool/only_values_overlay"
         android:key="only_values_overlay"
+        android:summary="@string/only_values_summary"
         android:title="@string/only_values"
         app:enabled="false"
         app:iconSpaceReserved="false"
@@ -28,6 +29,15 @@
         app:iconSpaceReserved="false"
         app:enabled="false"
         android:key="overlay_location"/>
+
+    <SwitchPreferenceCompat
+        android:defaultValue="@bool/is_lock_overlay_location"
+        android:key="is_lock_overlay_location"
+        android:summary="@string/lock_overlay_location_summary"
+        android:title="@string/lock_overlay_location"
+        app:enabled="false"
+        app:iconSpaceReserved="false"
+        app:singleLineTitle="false" />
 
     <PreferenceCategory
         android:key="appearance_overlay"
@@ -182,6 +192,13 @@
             app:singleLineTitle="false" />
 
         <SwitchPreferenceCompat
+            android:defaultValue="@bool/battery_health_overlay"
+            android:key="battery_health_overlay"
+            android:title="@string/battery_health_overlay"
+            app:iconSpaceReserved="false"
+            app:singleLineTitle="false" />
+
+        <SwitchPreferenceCompat
             android:defaultValue="@bool/residual_capacity_overlay"
             android:key="residual_capacity_overlay"
             android:title="@string/residual_capacity_overlay"
@@ -213,6 +230,13 @@
             android:defaultValue="@bool/fast_charge_overlay"
             android:key="fast_charge_overlay"
             android:title="@string/fast_charge"
+            app:iconSpaceReserved="false"
+            app:singleLineTitle="false" />
+
+        <SwitchPreferenceCompat
+            android:defaultValue="@bool/peak_charge_power_overlay"
+            android:key="peak_charge_power_overlay"
+            android:title="@string/peak_charge_power_overlay"
             app:iconSpaceReserved="false"
             app:singleLineTitle="false" />
 
@@ -273,6 +297,13 @@
             app:singleLineTitle="false" />
 
         <SwitchPreferenceCompat
+            android:defaultValue="@bool/thermal_status_overlay"
+            android:key="thermal_status_overlay"
+            android:title="@string/thermal_status_overlay"
+            app:iconSpaceReserved="false"
+            app:singleLineTitle="false" />
+
+        <SwitchPreferenceCompat
             android:defaultValue="@bool/voltage_overlay"
             android:key="voltage_overlay"
             android:title="@string/voltage_overlay"
@@ -290,6 +321,41 @@
             android:defaultValue="@bool/battery_wear_overlay"
             android:key="battery_wear_overlay"
             android:title="@string/battery_wear_overlay"
+            app:iconSpaceReserved="false"
+            app:singleLineTitle="false" />
+
+        <SwitchPreferenceCompat
+            android:defaultValue="@bool/battery_cell_topology_overlay"
+            android:key="battery_cell_topology_overlay"
+            android:title="@string/battery_cell_topology_overlay"
+            app:iconSpaceReserved="false"
+            app:singleLineTitle="false" />
+
+        <SwitchPreferenceCompat
+            android:defaultValue="@bool/idle_drain_overlay"
+            android:key="idle_drain_overlay"
+            android:title="@string/idle_drain_overlay"
+            app:iconSpaceReserved="false"
+            app:singleLineTitle="false" />
+
+        <SwitchPreferenceCompat
+            android:defaultValue="@bool/android_charging_policy_overlay"
+            android:key="android_charging_policy_overlay"
+            android:title="@string/android_charging_policy_overlay"
+            app:iconSpaceReserved="false"
+            app:singleLineTitle="false" />
+
+        <SwitchPreferenceCompat
+            android:defaultValue="@bool/android_capacity_level_overlay"
+            android:key="android_capacity_level_overlay"
+            android:title="@string/android_capacity_level_overlay"
+            app:iconSpaceReserved="false"
+            app:singleLineTitle="false" />
+
+        <SwitchPreferenceCompat
+            android:defaultValue="@bool/energy_counter_hal_overlay"
+            android:key="energy_counter_hal_overlay"
+            android:title="@string/energy_counter_hal_overlay"
             app:iconSpaceReserved="false"
             app:singleLineTitle="false" />
 

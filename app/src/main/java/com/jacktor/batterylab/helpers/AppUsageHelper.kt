@@ -220,9 +220,7 @@ object AppUsageHelper {
             val bucketFgMs = bucket?.foregroundMs ?: 0L
             val maxBucketFgMs = upperBound?.foregroundMs ?: 0L
 
-            // Cross-validate UsageEvents replay against UsageStats kernel per-activity totals so that:
-            // 1. Yesterday's daily bucket cannot bleed into TODAY (handled by UsageEvents)
-            // 2. Missing ACTIVITY_PAUSED events or multi-activity internal transitions cannot inflate fgMs beyond kernel UsageStats
+            // Bound UsageEvents replay by kernel UsageStats totalTimeInForeground to absorb missing pause events.
             val rawFgMs = when {
                 window == AppUsageWindow.LAST_7D -> max(evFgMs, bucketFgMs)
                 evFgMs > 0L && maxBucketFgMs > 0L -> min(evFgMs, maxBucketFgMs)

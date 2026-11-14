@@ -29,6 +29,35 @@
             app:singleLineTitle="false"
             android:key="auto_start_update_app"/>
 
+        <SwitchPreferenceCompat
+            android:key="is_enable_wakelock"
+            android:title="@string/enable_wakelock"
+            android:summary="@string/enable_wakelock_summary"
+            android:defaultValue="@bool/is_enable_wakelock"
+            app:singleLineTitle="false" />
+
+        <SwitchPreferenceCompat
+            android:key="is_enable_check_update"
+            android:title="@string/enable_check_update"
+            android:defaultValue="@bool/is_enable_check_update"
+            app:singleLineTitle="false" />
+
+        <ListPreference
+            android:key="nominal_battery_voltage"
+            android:title="@string/nominal_battery_voltage_title"
+            android:entries="@array/nominal_battery_voltage_list"
+            android:entryValues="@array/nominal_battery_voltage_values"
+            app:defaultValue="3.87"
+            app:singleLineTitle="false" />
+
+        <ListPreference
+            android:key="number_of_history_for_battery_wear_new"
+            android:title="@string/number_of_history_for_battery_wear_title"
+            android:entries="@array/number_of_history_for_battery_wear_list"
+            android:entryValues="@array/number_of_history_for_battery_wear_values"
+            app:defaultValue="3"
+            app:singleLineTitle="false" />
+
         <Preference
                 android:title="@string/add_setting"
                 app:singleLineTitle="false"

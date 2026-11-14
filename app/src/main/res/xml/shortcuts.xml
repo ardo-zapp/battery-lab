@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <shortcut
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_battery_info"
+        android:shortcutDisabledMessage="@string/shortcut_disabled_message"
+        android:shortcutId="shortcut_battery_info"
+        android:shortcutLongLabel="@string/shortcut_battery_info_long"
+        android:shortcutShortLabel="@string/shortcut_battery_info_short">
+        <intent
+            android:action="com.jacktor.batterylab.shortcut.BATTERY_INFO"
+            android:targetClass="com.jacktor.batterylab.MainActivity"
+            android:targetPackage="com.jacktor.batterylab" />
+    </shortcut>
+
+    <shortcut
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_app_power"
+        android:shortcutDisabledMessage="@string/shortcut_disabled_message"
+        android:shortcutId="shortcut_app_power"
+        android:shortcutLongLabel="@string/shortcut_app_power_long"
+        android:shortcutShortLabel="@string/shortcut_app_power_short">
+        <intent
+            android:action="com.jacktor.batterylab.shortcut.APP_POWER"
+            android:targetClass="com.jacktor.batterylab.MainActivity"
+            android:targetPackage="com.jacktor.batterylab" />
+    </shortcut>
+
+    <shortcut
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_idle_drain"
+        android:shortcutDisabledMessage="@string/shortcut_disabled_message"
+        android:shortcutId="shortcut_idle_drain"
+        android:shortcutLongLabel="@string/shortcut_idle_drain_long"
+        android:shortcutShortLabel="@string/shortcut_idle_drain_short">
+        <intent
+            android:action="com.jacktor.batterylab.shortcut.IDLE_DRAIN"
+            android:targetClass="com.jacktor.batterylab.MainActivity"
+            android:targetPackage="com.jacktor.batterylab" />
+    </shortcut>
+
+    <shortcut
+        android:enabled="true"
+        android:icon="@drawable/ic_shortcut_history"
+        android:shortcutDisabledMessage="@string/shortcut_disabled_message"
+        android:shortcutId="shortcut_history"
+        android:shortcutLongLabel="@string/shortcut_history_long"
+        android:shortcutShortLabel="@string/shortcut_history_short">
+        <intent
+            android:action="com.jacktor.batterylab.shortcut.HISTORY"
+            android:targetClass="com.jacktor.batterylab.MainActivity"
+            android:targetPackage="com.jacktor.batterylab" />
+    </shortcut>
+
+</shortcuts>

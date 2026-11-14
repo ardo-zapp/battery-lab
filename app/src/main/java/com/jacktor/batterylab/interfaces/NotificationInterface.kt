@@ -11,6 +11,7 @@ import android.content.Context
 import android.content.Context.NOTIFICATION_SERVICE
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.SharedPreferences
 import android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE
 import android.graphics.Color
 import android.media.AudioAttributes
@@ -45,6 +46,7 @@ import com.jacktor.batterylab.utilities.preferences.PreferencesKeys
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.BYPASS_DND
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CAPACITY_IN_WH
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.IS_SHOW_BATTERY_INFORMATION
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.IS_SHOW_BATTERY_LEVEL_IN_STATUS_BAR
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.NUMBER_OF_CYCLES
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.OVERCOOL_DEGREES
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.OVERHEAT_DEGREES
@@ -52,6 +54,7 @@ import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.SERVICE_TIME
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.SHOW_BATTERY_INFORMATION
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.SHOW_EXPANDED_NOTIFICATION
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.SHOW_STOP_SERVICE
+import com.jacktor.batterylab.security.NativeCore
 import com.jacktor.premium.Premium
 import java.text.DecimalFormat
 
@@ -75,6 +78,15 @@ interface NotificationInterface : BatteryInfoInterface {
         var isBatteryCharged = false
         var isBatteryDischarged = false
         var isBatteryDischargedVoltage = false
+    }
+
+    private fun resolveServiceSmallIcon(context: Context, pref: SharedPreferences): Int {
+        val showBatteryLevel = pref.getBoolean(
+            IS_SHOW_BATTERY_LEVEL_IN_STATUS_BAR,
+            context.resources.getBoolean(R.bool.is_show_battery_level_in_status_bar)
+        )
+        return if (showBatteryLevel) StatusBarHelper.stat(getBatteryLevel(context))
+        else R.drawable.ic_app_monochrome_24dp
     }
 
     @SuppressLint("RestrictedApi")
@@ -115,7 +127,7 @@ interface NotificationInterface : BatteryInfoInterface {
 
             setOngoing(true)
             setCategory(Notification.CATEGORY_SERVICE)
-            setSmallIcon(StatusBarHelper.stat(getBatteryLevel(context)))
+            setSmallIcon(resolveServiceSmallIcon(context, pref))
             setOnlyAlertOnce(true)
             setSilent(true)
 
@@ -125,7 +137,7 @@ interface NotificationInterface : BatteryInfoInterface {
 
             setContentIntent(openApp)
 
-            if (Premium.isPremium().value) {
+            if (NativeCore.hasPremiumAccess(context)) {
                 if (pref.getBoolean(
                         SHOW_STOP_SERVICE, context.resources.getBoolean(
                             R.bool.show_stop_service
@@ -167,7 +179,7 @@ interface NotificationInterface : BatteryInfoInterface {
                         if (isCapacityInWh) context.getString(
                             R.string.available_capacity_notification_wh,
                             DecimalFormat("#.#").format(
-                                getCapacityInWh(getAvailableCapacity(context))
+                                getCapacityInWh(context, getAvailableCapacity(context))
                             )
                         )
                         else context.getString(
@@ -271,7 +283,7 @@ interface NotificationInterface : BatteryInfoInterface {
 
         notificationBuilder?.apply {
 
-            setSmallIcon(StatusBarHelper.stat(getBatteryLevel(context)))
+            setSmallIcon(resolveServiceSmallIcon(context, pref))
 
             color = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
                 ContextCompat.getColor(context, android.R.color.system_accent1_300) else
@@ -280,7 +292,7 @@ interface NotificationInterface : BatteryInfoInterface {
             setOnlyAlertOnce(true)
             setSilent(true)
 
-            if (Premium.isPremium().value) {
+            if (NativeCore.hasPremiumAccess(context)) {
                 if (pref.getBoolean(
                         SHOW_STOP_SERVICE, context.resources.getBoolean(
                             R.bool.show_stop_service
@@ -327,7 +339,7 @@ interface NotificationInterface : BatteryInfoInterface {
                         if (isCapacityInWh) context.getString(
                             R.string.available_capacity_notification_wh,
                             DecimalFormat("#.#").format(
-                                getCapacityInWh(getAvailableCapacity(context))
+                                getCapacityInWh(context, getAvailableCapacity(context))
                             )
                         )
                         else context.getString(
@@ -1155,6 +1167,7 @@ interface NotificationInterface : BatteryInfoInterface {
                     if (isCapacityInWh) R.string.available_capacity_notification_wh else R.string.available_capacity,
                     DecimalFormat("#.#").format(
                         if (isCapacityInWh) getCapacityInWh(
+                            context,
                             getAvailableCapacity(context)
                         ) else getAvailableCapacity(context)
                     )
@@ -1290,6 +1303,7 @@ interface NotificationInterface : BatteryInfoInterface {
                     if (isCapacityInWh) R.string.available_capacity_notification_wh else R.string.available_capacity,
                     DecimalFormat("#.#").format(
                         if (isCapacityInWh) getCapacityInWh(
+                            context,
                             getAvailableCapacity(context)
                         ) else getAvailableCapacity(context)
                     )
@@ -1425,6 +1439,7 @@ interface NotificationInterface : BatteryInfoInterface {
                     if (isCapacityInWh) R.string.available_capacity_notification_wh else R.string.available_capacity_notification,
                     DecimalFormat("#.#").format(
                         if (isCapacityInWh) getCapacityInWh(
+                            context,
                             getAvailableCapacity(context)
                         ) else getAvailableCapacity(context)
                     )
@@ -1549,6 +1564,7 @@ interface NotificationInterface : BatteryInfoInterface {
                     if (isCapacityInWh) R.string.available_capacity_notification_wh else R.string.available_capacity_notification,
                     DecimalFormat("#.#").format(
                         if (isCapacityInWh) getCapacityInWh(
+                            context,
                             getAvailableCapacity(context)
                         ) else getAvailableCapacity(context)
                     )
