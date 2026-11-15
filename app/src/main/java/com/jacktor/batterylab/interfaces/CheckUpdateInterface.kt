@@ -61,28 +61,29 @@ interface CheckUpdateInterface {
             val updateType = if (appUpdateInfo.isImmediateUpdateAllowed) AppUpdateType.IMMEDIATE
             else AppUpdateType.FLEXIBLE
             if (isUpdateDeveloperTriggered(appUpdateInfo)) {
-                val updateFlowResultLauncher = mainActivityRef?.get()?.updateFlowResultLauncher
-                mainActivityRef?.get()?.intentResultStarter()
+                val mainActivity = mainActivityRef?.get() ?: return@addOnSuccessListener
+                val updateFlowResultLauncher = mainActivity.updateFlowResultLauncher
+                mainActivity.intentResultStarter()
                 val appUpdateOptions =
                     AppUpdateOptions.newBuilder(updateType).setAllowAssetPackDeletion(false).build()
                 startUpdate(
-                    appUpdateManager, appUpdateInfo, updateFlowResultLauncher!!,
+                    appUpdateManager, appUpdateInfo, updateFlowResultLauncher,
                     appUpdateOptions
                 )
-            }
-            if (isUpdateAvailable) {
+            } else if (isUpdateAvailable) {
                 pref?.edit {
                     putLong(
                         UPDATE_TEMP_SCREEN_TIME,
                         BatteryLabService.instance?.screenTime ?: 0L
                     )
                 }
-                mainActivityRef?.get()?.intentResultStarter()
-                val updateFlowResultLauncher = mainActivityRef?.get()?.updateFlowResultLauncher
+                val mainActivity = mainActivityRef?.get() ?: return@addOnSuccessListener
+                mainActivity.intentResultStarter()
+                val updateFlowResultLauncher = mainActivity.updateFlowResultLauncher
                 val appUpdateOptions =
                     AppUpdateOptions.newBuilder(updateType).setAllowAssetPackDeletion(false).build()
                 startUpdate(
-                    appUpdateManager, appUpdateInfo, updateFlowResultLauncher!!,
+                    appUpdateManager, appUpdateInfo, updateFlowResultLauncher,
                     appUpdateOptions
                 )
             } else {

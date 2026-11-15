@@ -28,8 +28,8 @@
 -keep class com.jacktor.batterylab.fragments.** { *; }
 -keep class com.jacktor.batterylab.services.** { *; }
 
-# --- Native Core JNI ---
--keepclasseswithmembernames,includedescriptorclasses class com.jacktor.batterylab.security.NativeCore {
+# --- Native Core JNI (keep & do not shrink or rename methods registered via RegisterNatives) ---
+-keep,includedescriptorclasses class com.jacktor.batterylab.security.NativeCore {
     native <methods>;
 }
 

@@ -1,12 +1,10 @@
 package com.jacktor.batterylab
 
-import android.Manifest
 import android.app.ActivityOptions
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.SharedPreferences
-import android.content.pm.PackageManager
 import android.content.res.Configuration
 import android.os.BatteryManager
 import android.os.Build
@@ -16,7 +14,6 @@ import androidx.activity.OnBackPressedCallback
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -55,6 +52,7 @@ import com.jacktor.batterylab.fragments.SettingsFragment
 import com.jacktor.batterylab.fragments.ToolsFragment
 import com.jacktor.batterylab.helpers.BatteryLevelHelper
 import com.jacktor.batterylab.helpers.ServiceHelper
+import com.jacktor.batterylab.helpers.SetupPermissionHelper
 import com.jacktor.batterylab.helpers.ThemeHelper
 import com.jacktor.batterylab.interfaces.BatteryInfoInterface
 import com.jacktor.batterylab.interfaces.BatteryOptimizationsInterface
@@ -112,7 +110,6 @@ class MainActivity : AppCompatActivity(),
     private var prefArrays: HashMap<*, *>? = null
     private var isRestoreImportSettings = false
 
-    private var showRequestNotificationPermissionDialog: MaterialAlertDialogBuilder? = null
     var showFaqDialog: MaterialAlertDialogBuilder? = null
     var showXiaomiAutostartDialog: MaterialAlertDialogBuilder? = null
     var showHuaweiInformation: MaterialAlertDialogBuilder? = null
@@ -141,10 +138,6 @@ class MainActivity : AppCompatActivity(),
     var hasBatteryOptJustGranted = false
 
     lateinit var premiumLauncher: ActivityResultLauncher<Intent>
-    private val requestPostNotificationsLauncher =
-        registerForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
-            onPostNotificationsResult(granted)
-        }
 
     val updateFlowResultLauncher = registerForActivityResult(
         ActivityResultContracts.StartIntentSenderForResult()
@@ -162,6 +155,7 @@ class MainActivity : AppCompatActivity(),
         var isLoadDebug = false
         var isRecreate = false
         var isOnBackPressed = true
+        private var hasShownTamperDialog = false
         private const val TAG = "MainActivity"
     }
 
@@ -171,6 +165,10 @@ class MainActivity : AppCompatActivity(),
 
         val prefs = PreferenceManager.getDefaultSharedPreferences(this)
         val isFirstLaunch = prefs.getBoolean("is_first_launch", true)
+        val fromSetupWizard =
+            intent?.getBooleanExtra(SetupWizardActivity.EXTRA_FROM_SETUP_WIZARD, false) == true
+        intent?.removeExtra(SetupWizardActivity.EXTRA_FROM_SETUP_WIZARD)
+
         if (isFirstLaunch) {
             val options = ActivityOptions.makeCustomAnimation(
                 this, android.R.anim.fade_in, android.R.anim.fade_out
@@ -180,7 +178,23 @@ class MainActivity : AppCompatActivity(),
             return
         }
 
-        setContentView(R.layout.activity_main)
+        if (savedInstanceState == null &&
+            !fromSetupWizard &&
+            SetupPermissionHelper.hasMissingEssentialPermissions(this)
+        ) {
+            val options = ActivityOptions.makeCustomAnimation(
+                this, android.R.anim.fade_in, android.R.anim.fade_out
+            )
+            startActivity(
+                Intent(this, SetupWizardActivity::class.java).apply {
+                    putExtra(SetupWizardActivity.EXTRA_MISSING_ONLY, true)
+                },
+                options.toBundle()
+            )
+            finish()
+            return
+        }
+
         enableEdgeToEdge()
 
         mainActivityRef = WeakReference(this)
@@ -197,7 +211,6 @@ class MainActivity : AppCompatActivity(),
         shortcutNavId?.let { navigation.menu.findItem(it)?.isChecked = true }
         loadInitialFragment()
         handleBackPressed()
-        checkNotificationPermissionOrBatteryOptimization()
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -234,9 +247,12 @@ class MainActivity : AppCompatActivity(),
                     }
 
                     BILLING_RESULT_FAILED -> {
+                        val reason = result.data
+                            ?.getStringExtra(com.jacktor.premium.utilities.Constants.EXTRA_BILLING_ERROR_REASON)
+                            ?.takeIf { it.isNotBlank() }
                         Toast.makeText(
                             this,
-                            getString(R.string.premium_purchase_failed),
+                            reason ?: getString(R.string.premium_purchase_failed),
                             Toast.LENGTH_LONG
                         ).show()
                     }
@@ -279,8 +295,14 @@ class MainActivity : AppCompatActivity(),
         lifecycleScope.launch {
             Premium.isPremium().combine(Premium.premiumStatusReady()) { premium, ready ->
                 Pair(premium, ready)
-            }.collectLatest { _ ->
-                loadInterstitialAd()
+            }.collectLatest { (premium, ready) ->
+                BatteryLabService.instance?.refreshPremiumStatus()
+                invalidateOptionsMenu()
+                if (!ready || !NativeCore.hasPremiumAccess(this@MainActivity, NativeCore.FEATURE_ADS)) {
+                    loadInterstitialAd()
+                } else {
+                    interstitialAd = null
+                }
             }
         }
     }
@@ -480,22 +502,13 @@ class MainActivity : AppCompatActivity(),
     override fun onResume() {
         super.onResume()
 
-        if (needsPostNotifications()) return
-
-        if (!isIgnoringBatteryOptimizations()) {
-            isBatteryOptFlowActive = true
-            hasBatteryOptJustGranted = false
-            ensureBatteryOptDialog()
-            return
-        }
-
         isBatteryOptFlowActive = false
         isBatteryOptDialogVisible = false
-        hasBatteryOptJustGranted = true
-        checkManufacturer()
+        hasBatteryOptJustGranted = isIgnoringBatteryOptimizations()
 
         logScreenView()
         handlePremiumStatus()
+        warnIfAppTampered()
         handleTempFragment()
         resetRecreateFlag()
         updateBatteryStatusUI()
@@ -503,18 +516,10 @@ class MainActivity : AppCompatActivity(),
         updateToolbarMenuIfNeeded()
         handleImportSettings()
         startMainServicesIfNeeded()
-        checkNotificationPermissionOrBatteryOptimization()
         startOverlayIfEnabled()
         checkForUpdatesIfNeeded()
         maybeRequestRateTheApp()
         isShowRequestIgnoringBatteryOptimizationsDialog = true
-    }
-
-    private fun ensureBatteryOptDialog() {
-        if (showRequestIgnoringBatteryOptimizationsDialog == null && !isBatteryOptDialogVisible) {
-            isBatteryOptDialogVisible = true
-            showRequestIgnoringBatteryOptimizationsDialog()
-        }
     }
 
     private fun logScreenView() {
@@ -579,17 +584,18 @@ class MainActivity : AppCompatActivity(),
     }
 
     private fun ensureDesignCapacityValid() {
+        val prefs = pref ?: return
         val min = resources.getInteger(R.integer.min_design_capacity)
         val max = resources.getInteger(R.integer.max_design_capacity)
-        val current = pref?.getInt(DESIGN_CAPACITY, min) ?: min
-        if (!pref?.contains(DESIGN_CAPACITY)!! || current < min || current > max) {
-            pref?.edit { putInt(DESIGN_CAPACITY, getDesignCapacity(this@MainActivity)) }
+        val current = prefs.getInt(DESIGN_CAPACITY, min)
+        if (!prefs.contains(DESIGN_CAPACITY) || current < min || current > max) {
+            prefs.edit { putInt(DESIGN_CAPACITY, getDesignCapacity(this@MainActivity)) }
         }
     }
 
     private fun updateToolbarMenuIfNeeded() {
         if (fragment is BatteryInfoFragment) {
-            toolbar.menu.findItem(R.id.instruction).isVisible = getAvailableCapacity(this) > 0.0
+            toolbar.menu.findItem(R.id.instruction)?.isVisible = getAvailableCapacity(this) > 0.0
         }
     }
 
@@ -603,58 +609,21 @@ class MainActivity : AppCompatActivity(),
         ServiceHelper.startService(this, BatteryLabService::class.java)
     }
 
-    private fun needsPostNotifications(): Boolean {
-        return Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
-                ContextCompat.checkSelfPermission(
-                    this, Manifest.permission.POST_NOTIFICATIONS
-                ) != PackageManager.PERMISSION_GRANTED
-    }
-
-    private fun checkNotificationPermissionOrBatteryOptimization() {
-        if (needsPostNotifications()) {
-            requestNotificationPermission()
-            return
-        }
-        if (!isIgnoringBatteryOptimizations()) {
-            ensureBatteryOptDialog()
-            return
-        }
-        isBatteryOptFlowActive = false
-        isBatteryOptDialogVisible = false
-        hasBatteryOptJustGranted = true
-        checkManufacturer()
-    }
-
-    @RequiresApi(Build.VERSION_CODES.TIRAMISU)
-    private fun requestNotificationPermission() {
-        if (showRequestNotificationPermissionDialog != null) return
-        showRequestNotificationPermissionDialog =
-            createPermissionDialog(
-                messageRes = R.string.request_notification_message,
-                onConfirm = {
-                    showRequestNotificationPermissionDialog = null
-                    requestPostNotificationsLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-                }
-            )
-    }
-
-    @Suppress("SameParameterValue")
-    private fun createPermissionDialog(
-        messageRes: Int,
-        onConfirm: () -> Unit
-    ): MaterialAlertDialogBuilder {
-        return MaterialAlertDialogBuilder(this).apply {
-            setIcon(R.drawable.ic_instruction_not_supported_24dp)
-            setTitle(R.string.information)
-            setMessage(messageRes)
-            setPositiveButton(android.R.string.ok) { _, _ -> onConfirm() }
-            setCancelable(false)
-            show()
+    private fun warnIfAppTampered() {
+        if (hasShownTamperDialog) return
+        if (NativeCore.isAppTampered(this)) {
+            hasShownTamperDialog = true
+            MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.tamper_warning_title)
+                .setMessage(R.string.tamper_warning_message)
+                .setPositiveButton(android.R.string.ok, null)
+                .show()
         }
     }
 
     private fun startOverlayIfEnabled() {
-        if (pref!!.getBoolean(ENABLED_OVERLAY, resources.getBoolean(R.bool.enabled_overlay)) &&
+        if (NativeCore.hasPremiumAccess(this, NativeCore.FEATURE_OVERLAY) &&
+            pref!!.getBoolean(ENABLED_OVERLAY, resources.getBoolean(R.bool.enabled_overlay)) &&
             OverlayService.instance == null &&
             !ServiceHelper.isStartedOverlayService()
         ) {
@@ -863,15 +832,5 @@ class MainActivity : AppCompatActivity(),
         navigation.selectedItemId = R.id.charge_discharge_navigation
         invalidateOptionsMenu()
         recreate()
-    }
-
-    @Suppress("unused")
-    private fun onPostNotificationsResult(granted: Boolean) {
-        isBatteryOptFlowActive = false
-        if (!isIgnoringBatteryOptimizations()) {
-            ensureBatteryOptDialog()
-        } else {
-            checkManufacturer()
-        }
     }
 }

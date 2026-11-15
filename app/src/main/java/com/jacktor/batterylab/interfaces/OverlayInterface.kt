@@ -2064,7 +2064,9 @@ interface OverlayInterface : BatteryInfoInterface {
                     MotionEvent.ACTION_MOVE -> {
                         updatedParameters.x = (x + (event.rawX - pressedX)).toInt()
                         updatedParameters.y = (y + (event.rawY - pressedY)).toInt()
-                        windowManager?.updateViewLayout(linearLayout, updatedParameters)
+                        if (linearLayout?.windowToken != null) {
+                            windowManager?.updateViewLayout(linearLayout, updatedParameters)
+                        }
                     }
                 }
 

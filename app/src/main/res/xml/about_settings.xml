@@ -28,6 +28,11 @@
         app:singleLineTitle="false"
         app:title="@string/build_date" />
     <Preference
+        android:key="app_integrity"
+        app:icon="@drawable/ic_security_24"
+        app:singleLineTitle="false"
+        app:title="@string/app_integrity" />
+    <Preference
         android:key="check_update"
         app:icon="@drawable/ic_check_update_24dp"
         app:singleLineTitle="false"

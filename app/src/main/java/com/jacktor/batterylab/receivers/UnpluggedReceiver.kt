@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.os.BatteryManager
 import android.os.Handler
 import android.os.Looper
 import androidx.core.content.edit
@@ -15,7 +16,12 @@ import com.jacktor.batterylab.helpers.ServiceHelper
 import com.jacktor.batterylab.helpers.IdleDrainHelper
 import com.jacktor.batterylab.interfaces.BatteryInfoInterface
 import com.jacktor.batterylab.interfaces.BatteryInfoInterface.Companion.capacityAdded
+import com.jacktor.batterylab.interfaces.BatteryInfoInterface.Companion.coulombAddedMah
+import com.jacktor.batterylab.interfaces.BatteryInfoInterface.Companion.lastSessionPluggedType
+import com.jacktor.batterylab.interfaces.BatteryInfoInterface.Companion.lastSessionStatus
 import com.jacktor.batterylab.interfaces.BatteryInfoInterface.Companion.percentAdded
+import com.jacktor.batterylab.interfaces.BatteryInfoInterface.Companion.tempAvailableCapacity
+import com.jacktor.batterylab.interfaces.BatteryInfoInterface.Companion.tempBatteryLevelWith
 import com.jacktor.batterylab.interfaces.NavigationInterface.Companion.mainActivityRef
 import com.jacktor.batterylab.interfaces.NotificationInterface
 import com.jacktor.batterylab.services.BatteryLabService
@@ -23,6 +29,9 @@ import com.jacktor.batterylab.utilities.Constants
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.BATTERY_LEVEL_TO
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.BATTERY_LEVEL_WITH
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CAPACITY_ADDED
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGING_COULOMB_ADDED_MAH
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGING_PLUGGED_TYPE
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGING_START_CAPACITY_MAH
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGING_START_LEVEL
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.LAST_CHARGE_TIME
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.NUMBER_OF_CHARGES
@@ -43,7 +52,7 @@ class UnpluggedReceiver : BroadcastReceiver() {
         if (!isPowerConnected) return
 
         val pref = PreferenceManager.getDefaultSharedPreferences(context)
-        val isPremium = NativeCore.hasPremiumAccess(context)
+        val isPremium = NativeCore.hasPremiumAccess(context, NativeCore.FEATURE_UNPLUGGED)
 
         val pr = goAsync()
 
@@ -61,13 +70,32 @@ class UnpluggedReceiver : BroadcastReceiver() {
         else if (savedStart in 0..batteryLevel) savedStart
         else pref.getInt(BATTERY_LEVEL_WITH, batteryLevel)
 
-        val numberOfCycles = if (batteryLevel > startLevel && startLevel >= 0) {
-            pref.getFloat(NUMBER_OF_CYCLES, 0f) + ((batteryLevel - startLevel) / 100f)
-        } else {
-            pref.getFloat(NUMBER_OF_CYCLES, 0f)
+        val numberOfCycles = when {
+            batteryLevel == startLevel -> pref.getFloat(NUMBER_OF_CYCLES, 0f) + 0.01f
+            batteryLevel > startLevel && startLevel >= 0 ->
+                pref.getFloat(NUMBER_OF_CYCLES, 0f) + (batteryLevel / 100f) - (startLevel / 100f)
+            else -> pref.getFloat(NUMBER_OF_CYCLES, 0f)
         }
 
         if (service.seconds > 1) {
+            val savedStartCap = pref.getFloat(CHARGING_START_CAPACITY_MAH, 0f).toDouble()
+            val effectiveStartCap = if (tempAvailableCapacity > 1.0) tempAvailableCapacity else savedStartCap
+            val currentCap = service.getAvailableCapacity(context)
+            val counterDelta = if (currentCap > 1.0 && effectiveStartCap > 1.0) {
+                (currentCap - effectiveStartCap).coerceAtLeast(0.0)
+            } else 0.0
+            val savedCoulomb = pref.getFloat(CHARGING_COULOMB_ADDED_MAH, 0f).toDouble()
+            val effectiveCoulomb = kotlin.math.max(coulombAddedMah, savedCoulomb)
+            val finalCapAdded = when {
+                capacityAdded > 0.0 -> capacityAdded
+                counterDelta >= 0.5 -> counterDelta
+                effectiveCoulomb >= 0.2 -> kotlin.math.max(counterDelta, effectiveCoulomb)
+                else -> counterDelta
+            }
+            val finalPctAdded = if (percentAdded > 0) percentAdded else (batteryLevel - startLevel).coerceAtLeast(0)
+            capacityAdded = finalCapAdded
+            percentAdded = finalPctAdded
+
             BatteryInfoInterface.saveLastChargeSnapshot(
                 service, context, pref, service.seconds, startLevel, batteryLevel, service.isFull
             )
@@ -84,16 +112,26 @@ class UnpluggedReceiver : BroadcastReceiver() {
             if (service.isSaveNumberOfCharges) {
                 pref.edit { putFloat(NUMBER_OF_CYCLES, numberOfCycles) }
             }
-            if (capacityAdded > 0) pref.edit {
-                putFloat(CAPACITY_ADDED, capacityAdded.toFloat())
+            if (finalCapAdded > 0) pref.edit {
+                putFloat(CAPACITY_ADDED, finalCapAdded.toFloat())
             }
-            if (percentAdded > 0) pref.edit { putInt(PERCENT_ADDED, percentAdded) }
+            if (finalPctAdded > 0) pref.edit { putInt(PERCENT_ADDED, finalPctAdded) }
 
             percentAdded = 0
             capacityAdded = 0.0
+            coulombAddedMah = 0.0
         }
 
-        pref.edit { remove(CHARGING_START_LEVEL) }
+        pref.edit {
+            remove(CHARGING_START_LEVEL)
+            remove(CHARGING_START_CAPACITY_MAH)
+            remove(CHARGING_COULOMB_ADDED_MAH)
+            remove(CHARGING_PLUGGED_TYPE)
+        }
+        tempAvailableCapacity = 0.0
+        tempBatteryLevelWith = 0
+        lastSessionPluggedType = 0
+        lastSessionStatus = BatteryManager.BATTERY_STATUS_UNKNOWN
         service.batteryLevelWith = -1
 
         batteryIntent = context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
@@ -117,6 +155,7 @@ class UnpluggedReceiver : BroadcastReceiver() {
 
         service.secondsFullCharge = 0
         service.isFull = false
+        service.availableCapacity = 0
 
         if (isPremium && pref.getBoolean(
                 STOP_THE_SERVICE_WHEN_THE_CD,

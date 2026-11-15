@@ -2,29 +2,26 @@ package com.jacktor.batterylab.interfaces
 
 import android.content.ActivityNotFoundException
 import android.content.Intent
-import android.os.Build
 import androidx.core.net.toUri
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.jacktor.batterylab.MainActivity
 import com.jacktor.batterylab.R
+import com.jacktor.batterylab.helpers.SetupPermissionHelper
 import com.jacktor.batterylab.utilities.Constants
-import xyz.kumaraswamy.autostart.Autostart
-import xyz.kumaraswamy.autostart.Utils
-import java.util.Locale
 
 interface ManufacturerInterface {
 
     fun MainActivity.checkManufacturer() {
         try {
             if (
-                isXiaomi() &&
+                SetupPermissionHelper.isXiaomi(this) &&
                 isIgnoringBatteryOptimizations() &&
-                !Autostart.isAutoStartEnabled(this@checkManufacturer) &&
+                SetupPermissionHelper.getXiaomiAutostartState(this@checkManufacturer) == false &&
                 showXiaomiAutostartDialog == null &&
                 showRequestIgnoringBatteryOptimizationsDialog == null
             ) {
                 showXiaomiAutoStartDialog()
-            } else if (Build.VERSION.SDK_INT < Build.VERSION_CODES.UPSIDE_DOWN_CAKE && isHuawei()) {
+            } else if (SetupPermissionHelper.needsHuaweiAdvisory()) {
                 showHuaweiInfo()
             }
         } catch (_: Exception) {
@@ -32,27 +29,23 @@ interface ManufacturerInterface {
     }
 
     fun MainActivity.recheckXiaomiAutoStart() {
+        val autostartEnabled = SetupPermissionHelper.getXiaomiAutostartState(this)
         if (
-            isXiaomi() &&
+            SetupPermissionHelper.isXiaomi(this) &&
             isIgnoringBatteryOptimizations() &&
-            !Autostart.isAutoStartEnabled(this) &&
+            autostartEnabled == false &&
             showXiaomiAutostartDialog == null &&
             showRequestIgnoringBatteryOptimizationsDialog == null
         ) {
             showXiaomiAutoStartDialog()
-        } else if (Autostart.isAutoStartEnabled(this)) {
+        } else if (autostartEnabled == true) {
             showXiaomiAutostartDialog = null
         }
     }
 
-    private fun getManufacturer(): String =
-        Build.MANUFACTURER.uppercase(Locale.getDefault())
+    fun isXiaomi(): Boolean = SetupPermissionHelper.isXiaomi()
 
-    fun isXiaomi(): Boolean =
-        getManufacturer() in listOf("XIAOMI", "POCO", "REDMI", "BLACK SHARK") && Utils.isOnMiui()
-
-    private fun isHuawei(): Boolean =
-        getManufacturer() in listOf("HUAWEI", "HONOR")
+    private fun isHuawei(): Boolean = SetupPermissionHelper.isHuawei()
 
     private fun MainActivity.showXiaomiAutoStartDialog() {
         isShowXiaomiBackgroundActivityControlDialog = true
@@ -61,22 +54,10 @@ interface ManufacturerInterface {
             setTitle(getString(R.string.information))
             setMessage(getString(R.string.auto_start_xiaomi_dialog))
             setPositiveButton(android.R.string.ok) { _, _ ->
-                try {
-                    startActivity(Intent("miui.intent.action.OP_AUTO_START").addCategory(Intent.CATEGORY_DEFAULT))
-                } catch (_: ActivityNotFoundException) {
-                    try {
-                        startActivity(
-                            Intent().setClassName(
-                                "com.miui.securitycenter",
-                                "com.miui.permcenter.autostart.AutoStartManagementActivity"
-                            )
-                        )
-                    } catch (_: ActivityNotFoundException) {
-                        showFailedOpenSecurityMIUIDialog()
-                    }
-                } finally {
-                    showXiaomiAutostartDialog = null
+                if (!SetupPermissionHelper.openXiaomiAutostartSettings(this@showXiaomiAutoStartDialog)) {
+                    showFailedOpenSecurityMIUIDialog()
                 }
+                showXiaomiAutostartDialog = null
             }
             setCancelable(false)
             show()
@@ -84,7 +65,7 @@ interface ManufacturerInterface {
     }
 
     private fun MainActivity.showFailedOpenSecurityMIUIDialog() {
-        if (!isXiaomi()) return
+        if (!SetupPermissionHelper.isXiaomi(this)) return
         MaterialAlertDialogBuilder(this).apply {
             setIcon(R.drawable.ic_instruction_not_supported_24dp)
             setTitle(R.string.error)

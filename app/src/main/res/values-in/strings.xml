@@ -146,7 +146,7 @@
     <string name="history_count">Jumlah Riwayat</string>
     <string name="history_is_empty">Riwayat Kosong!</string>
     <string name="history_removed">Riwayat Dihapus</string>
-    <string name="empty_history_text">Riwayat pengisian kosong! Silakan, isi daya baterai hingga penuh 100% (Status Baterai: Terisi)</string>
+    <string name="empty_history_text" formatted="false">Riwayat pengisian kosong! Silakan, isi daya baterai hingga penuh 100% (Status Baterai: Terisi)</string>
     <string name="clear_history">Bersihkan Riwayat</string>
     <string name="history_cleared_successfully">Riwayat Berhasil Dibersihkan!</string>
     <string name="error_clearing_history">Gagal Membersihkan Riwayat!</string>
@@ -261,7 +261,7 @@
     <string name="background_activity_control_xiaomi_dialog">Agar aplikasi dapat berjalan dengan baik di latar belakang, buka jendela berikutnya dan pilih \"Tidak ada pembatasan\"</string>
     <string name="ignoring_battery_optimizations_dialog_message">Agar aplikasi dapat berfungsi dengan baik, Anda harus mengizinkan aplikasi berjalan di latar belakang.</string>
     <string name="faq">FAQ</string>
-    <string name="faq_how_does_the_app_work" formatted="false">Pertanyaan: Bagaimana cara kerja aplikasi ini?\nJawaban: Kapasitas tersisa dihitung berdasarkan kapasitas saat ini ketika pengisian mencapai 100% dengan status \"Terisi\" (dirata-ratakan dari beberapa pengisian penuh terakhir). Data diambil melalui API resmi Android BatteryManager dan antarmuka power_supply kernel tanpa akses root. Akurasinya bergantung pada sensor fuel-gauge dan firmware perangkat.\n\n</string>
+    <string name="faq_how_does_the_app_work" formatted="false">Pertanyaan: Bagaimana cara kerja aplikasi ini?\nJawaban: Kapasitas tersisa dihitung berdasarkan kapasitas saat ini ketika pengisian mencapai 100% dengan status \"Terisi\" (dirata-ratakan dari beberapa pengisian penuh terakhir). Data diambil melalui API resmi Android BatteryManager dan antarmuka power_supply kernel yang didukung. Akurasinya bergantung pada sensor fuel-gauge dan firmware perangkat.\n\n</string>
     <string name="faq_capacity_added">Pertanyaan: Apa yang dimaksud dengan \"Kapasitas yang Ditambahkan\"?\nJawaban: \"Kapasitas yang Ditambahkan\" adalah selisih antara kapasitas saat ini dan kapasitas sesaat sebelum charger disambungkan.\n\n</string>
     <string name="faq_dual_cell_voltage" formatted="false">Pertanyaan: Kenapa tegangan terbaca ~7.2V–8.9V dan ikon petir tetap hijau saat fast charging?\nJawaban: Perangkat dengan baterai Dual-Cell (seri 2S) melaporkan tegangan total pack sekitar 7.2V–9.0V. Aplikasi mendeteksinya secara otomatis (≥ 6000 mV = Dual-Cell) dan menormalkannya per sel (rentang normal fast charging 3.60V–4.48V per sel) sebelum menilai status tegangan.\n\n</string>
     <string name="faq_idle_drain" formatted="false">Pertanyaan: Bagaimana tab \"Pemakaian Diam\" mengukur konsumsi standby?\nJawaban: Pemakaian Diam mencatat penurunan persen, estimasi mAh terpakai, serta rasio Deep Sleep vs. Awake saat layar mati setelah charger dicabut. Diamkan perangkat dengan layar mati minimal beberapa menit agar metrik akurat, lalu tekan tombol \"Penggunaan Baterai\" untuk mengecek aplikasi yang boros.\n\n</string>
@@ -277,13 +277,15 @@
     <string name="faq_with_each_charge_battery_wear_changes">Pertanyaan: Kenapa keausan baterai sedikit berubah naik-turun tiap pengisian?\nJawaban: Itu wajar karena suhu sel dan proses kesetimbangan elektrokimia baterai selalu memengaruhi pembacaan fuel gauge.\n\n</string>
     <string name="faq_where_does_the_app_get_the_number_of_cycles_android">Pertanyaan: Dari mana aplikasi mendapatkan \"Jumlah Siklus (Android)\"?\nJawaban: Pada Android 14+, aplikasi terlebih dahulu membaca API sistem (BatteryManager.EXTRA_CYCLE_COUNT), dan jika tidak tersedia akan memeriksa beberapa file sysfs kernel (seperti /sys/class/power_supply/battery/cycle_count atau bms/cycle_count).\n\n</string>
     <string name="faq_not_displayed_number_of_cycles_android">Pertanyaan: Kenapa \"Jumlah Siklus (Android)\" tidak muncul?\nJawaban: Jika API sistem tidak melaporkan jumlah siklus positif maupun file cycle_count kernel diblokir izin bacanya oleh firmware, metrik tersebut tidak ditampilkan.\n\n</string>
+    <string name="faq_permissions_and_autostart">Pertanyaan: Mengapa Setup Wizard meminta izin yang dilewati lagi, atau menampilkan Mulai Otomatis hanya di perangkat Xiaomi?\nJawaban: Izin Notifikasi dan Pengoptimalan Baterai tanpa pembatasan (serta Mulai Otomatis di perangkat Xiaomi, Redmi, dan POCO dengan HyperOS/MIUI) penting agar sistem tidak menghentikan pemantauan di latar belakang. Jika salah satu izin penting dilewati, aplikasi akan memintanya kembali saat dibuka berikutnya sampai diizinkan. Di perangkat non-Xiaomi, langkah Mulai Otomatis otomatis disembunyikan.</string>
     <string name="tips_menu">Tips</string>
     <string name="tips_dialog_title">Tips memperpanjang usia baterai</string>
     <string name="tip1" formatted="false">Tips #1: Hindari mengosongkan baterai hingga di bawah 10–15%. Siklus pengisian dangkal (sekitar 20%–80%) menjaga degradasi sel jauh lebih lambat.\n\n</string>
     <string name="tip2">Tips #2: Hindari suhu ekstrem (di bawah 0°C atau di atas 40°C). Suhu panas, terutama saat tegangan pengisian tinggi, mempercepat pertumbuhan lapisan SEI dan keausan sel.\n\n</string>
-    <string name="tip3">Tips #3: Jangan membiarkan baterai penuh (100%) terus menempel di charger dalam waktu lama karena tegangan katoda tinggi dan pengisian ulang mikro menggerus siklus baterai.\n\n</string>
+    <string name="tip3" formatted="false">Tips #3: Jangan membiarkan baterai penuh (100%) terus menempel di charger dalam waktu lama karena tegangan katoda tinggi dan pengisian ulang mikro menggerus siklus baterai.\n\n</string>
     <string name="tip4">Tips #4: Hindari bermain game atau beban berat saat fast charging. Gabungan panas internal Joule (I²R) dan panas prosesor mempercepat stres termal baterai.\n\n</string>
-    <string name="tip5">Tips #5: Cek tab \"Pemakaian Diam\" dan \"Stres &amp; Impedansi\" secara berkala. Drain standby &gt; 1,5%/jam menandakan wakelock aplikasi, sedangkan menjaga Skor Stres di Zona Awet memperpanjang umur pakai baterai.</string>
+    <string name="tip5" formatted="false">Tips #5: Cek tab \"Pemakaian Diam\" dan \"Stres &amp; Impedansi\" secara berkala. Drain standby &gt; 1,5%/jam menandakan wakelock aplikasi, sedangkan menjaga Skor Stres di Zona Awet memperpanjang umur pakai baterai.\n\n</string>
+    <string name="tip6" formatted="false">Tips #6: Lakukan kalibrasi akurasi keausan tiap 1–2 bulan (kosongkan di bawah 10%, lalu isi penuh tanpa putus hingga 100% \"Terisi\"), gunakan charger/kabel PD/PPS bersertifikat, dan aktifkan alarm batas pengisian atau suhu di Pengaturan.</string>
     <string name="developer">Pengembang</string>
     <string name="version">Versi</string>
     <string name="build">Build</string>
@@ -310,9 +312,9 @@
     <string name="failed_to_load_data">Gagal memuat kontributor: %1$s</string>
     <string name="failed_open_security_miui">Gagal membuka aplikasi Keamanan! Ikuti panduan di situs Don\'t kill my app</string>
     <string name="failed_request_permission">Gagal meminta izin! Ikuti panduan di situs Don\'t kill my app</string>
-    <string name="instruction_message" formatted="false">1. Untuk menghitung kapasitas tersisa dan keausan baterai, pastikan layanan pemantau aktif, habiskan baterai hingga 10% atau kurang, lalu isi penuh tanpa putus hingga 100% (status \"Terisi\").\n2. Pengisian daya singkat setelah menyentuh 100% adalah hal wajar pada perangkat modern (fase saturasi CV).\n3. Pastikan nilai \"Ubah Kapasitas Desain\" di Pengaturan → Lain-lain → Lainnya… sesuai spesifikasi baterai perangkat Anda.\n4. Jika angka kapasitas, arus, atau tegangan tampak janggal, ubah satuannya di Pengaturan → Lain-lain → Lainnya…. Baterai Dual-Cell (2S, ~7.2V–9.0V) terdeteksi otomatis.\n5. Manfaatkan tab Alat untuk memantau Pemakaian Diam (konsumsi standby layar mati &amp; Deep Sleep) serta Stres &amp; Impedansi (cabut charger sebelum menjalankan Uji Beban 2 dtk).\n\n</string>
-    <string name="instruction_message_do_not_kill_the_service">PERHATIAN! Jangan matikan layanan ini. Jika antarmuka perangkat Anda suka "mematikan" aplikasi, atau benar-benar "membunuh" aplikasi saat membersihkan aplikasi yang baru saja dibuka atau saat menghapus aplikasi dari daftar aplikasi terbaru, atau Anda menggunakan penghemat daya, tambahkan aplikasi ini ke semua daftar pengecualian yang memungkinkan. Jika firmware Anda memiliki pengaturan untuk memulai aplikasi, pastikan aplikasi ini dapat berjalan setelah OS dimuat, jika Anda ingin aplikasi berjalan otomatis setelah perangkat menyala.&#160;</string>
-    <string name="instruction_message_dont_kill_my_app">Jika Anda tidak tahu harus mengatur apa dan di mana agar aplikasi tidak "dimatikan" oleh sistem, gunakan layanan "Don't kill my app!" dengan memilih produsen perangkat Anda.\n\n</string>
+    <string name="instruction_message" formatted="false">1. Untuk menghitung kapasitas tersisa dan keausan baterai, pastikan layanan pemantau aktif, habiskan baterai hingga 10% atau kurang, lalu isi penuh tanpa putus hingga 100% (status \"Terisi\").\n2. Pengisian daya singkat setelah menyentuh 100% adalah hal wajar pada perangkat modern (fase saturasi CV).\n3. Pastikan nilai \"Ubah Kapasitas Desain\" di Pengaturan → Lain-lain → Lainnya… sesuai spesifikasi baterai perangkat Anda.\n4. Jika angka kapasitas, arus, atau tegangan tampak janggal, ubah satuannya di Pengaturan → Lain-lain → Lainnya…. Baterai Dual-Cell (2S, ~7.2V–9.0V) terdeteksi otomatis.\n5. Berikan semua izin penting pada Setup Wizard (Notifikasi, Pengoptimalan Baterai \"Tidak ada pembatasan\", serta Mulai Otomatis di Xiaomi/HyperOS/MIUI). Izin penting yang dilewati akan diminta kembali saat aplikasi dibuka berikutnya.\n6. Manfaatkan tab Alat untuk memantau Pemakaian Diam (konsumsi standby layar mati, Deep Sleep &amp; statistik penggunaan aplikasi opsional) serta Stres &amp; Impedansi (cabut charger sebelum menjalankan Uji Beban 2 dtk).\n\n</string>
+    <string name="instruction_message_do_not_kill_the_service">PERHATIAN! Jangan matikan layanan pemantauan. Jika antarmuka perangkat Anda agresif menghentikan aplikasi saat membersihkan daftar terbaru atau memakai Penghemat Baterai, kunci Battery Lab di daftar aplikasi terbaru (Recents), pilih pengecualian baterai (\"Tidak ada pembatasan\"), dan aktifkan Mulai Otomatis (di Xiaomi/HyperOS/MIUI atau ROM serupa) agar pemantauan dan mulai otomatis saat boot berjalan andal.\n\n</string>
+    <string name="instruction_message_dont_kill_my_app">Jika Anda tidak yakin pengaturan latar belakang apa yang diperlukan perangkat Anda, buka \"Don\'t kill my app!\" dari dialog pabrikan lalu ikuti panduan sesuai merek perangkat Anda.\n\n</string>
     <string name="huawei_honor_information">PERHATIAN! Di perangkat Huawei &amp; Honor, kapasitas saat ini mungkin tidak terbaca dengan benar. Sayangnya tidak bisa diperbaiki.</string>
     <string name="become_a_beta_tester">Jadilah Penguji Beta</string>
     <string name="become_a_beta_tester_summary">Jadilah yang pertama menerima pembaruan</string>
@@ -416,14 +418,14 @@
     <string name="idle_drain_diagnostic_title">Diagnostik Siaga</string>
     <string name="idle_drain_recommendation_title">Rekomendasi Pintar</string>
     <string name="idle_drain_charging_notice">Perangkat sedang diisi daya. Pemakaian diam hanya dicatat saat ponsel tidak tersambung ke pengisi daya.</string>
-    <string name="idle_drain_reset">Reset Data</string>
+    <string name="idle_drain_reset">Atur Ulang Data</string>
     <string name="idle_drain_battery_usage">Penggunaan Baterai</string>
     <string name="idle_drain_battery_usage_error">Tidak dapat membuka pengaturan penggunaan baterai sistem.</string>
     <string name="idle_drain_status_excellent">Optimal</string>
     <string name="idle_drain_status_normal">Normal</string>
     <string name="idle_drain_status_high">Boros</string>
     <string name="idle_drain_status_no_data">Menunggu Layar Mati</string>
-    <string name="idle_drain_reset_confirm">Reset statistik Pemakaian Diam?</string>
+    <string name="idle_drain_reset_confirm">Atur ulang statistik Pemakaian Diam?</string>
 
     <!-- Idle Drain Diagnostics & Time Formats -->
     <string name="idle_drain_diag_no_data">Belum ada data pemakaian diam yang terekam. Kunci layar ponsel saat tidak mengisi daya untuk mulai merekam statistik siaga.</string>
@@ -468,7 +470,7 @@
     <string name="stress_diag_low">Tekanan elektrokimia rendah (%1$sC, Rint ~%2$d mΩ/sel). Sel bekerja pada zona keawetan optimal dengan disipasi panas internal minimal (%3$s mW).</string>
     <string name="stress_rec_low">Menjaga baterai di rentang 20–80% dengan suhu di bawah 35°C meminimalkan penebalan lapisan SEI dan oksidasi katoda.</string>
     <string name="stress_diag_moderate">Beban sel moderat (%1$sC, Rint ~%2$d mΩ/sel, voltage sag ~%3$d mV). Laju keausan kimiawi saat ini berkisar %4$sx dari standar.</string>
-    <string name="stress_rec_moderate">Saat mengisi daya di atas 80% atau menjalankan beban berat, jaga sirkulasi udara agar suhu tidak melipatgandakan tekanan tegangan.</string>
+    <string name="stress_rec_moderate" formatted="false">Saat mengisi daya di atas 80% atau menjalankan beban berat, jaga sirkulasi udara agar suhu tidak melipatgandakan tekanan tegangan.</string>
     <string name="stress_diag_high">Stres sel tinggi (%1$sC, Rint ~%2$d mΩ/sel, panas internal ~%3$s mW)! Kombinasi C-Rate, tegangan sel, atau suhu mempercepat degradasi (%4$sx).</string>
     <string name="stress_rec_high">Hindari beban berat saat fast charging dan biarkan suhu turun di bawah 38°C untuk mencegah kenaikan impedansi &amp; pelapisan litium.</string>
 
@@ -495,7 +497,7 @@
     <!-- App Power Consumption Tab -->
     <string name="app_usage_tab">Konsumsi App</string>
     <string name="app_usage_permission_title">Izin Akses Penggunaan Diperlukan</string>
-    <string name="app_usage_permission_desc">Battery Lab memerlukan izin Akses Penggunaan (Usage Access) untuk membaca waktu aktif aplikasi, aktivitas layanan latar belakang, serta memperkirakan seberapa boros daya tiap aplikasi tanpa root.</string>
+    <string name="app_usage_permission_desc">Battery Lab memerlukan izin Akses Penggunaan (Usage Access) untuk membaca waktu aktif aplikasi, aktivitas layanan latar belakang, serta memperkirakan seberapa boros daya tiap aplikasi.</string>
     <string name="app_usage_permission_cta">Berikan Izin Akses</string>
     <string name="app_usage_permission_open_failed">Tidak dapat membuka pengaturan Akses Penggunaan di perangkat ini.</string>
     <string name="app_usage_overview_title">Konsumsi Daya Aplikasi</string>
@@ -513,7 +515,7 @@
     <string name="app_usage_include_system">App Sistem</string>
     <string name="app_usage_loading">Menganalisis konsumsi daya aplikasi…</string>
     <string name="app_usage_empty">Belum ada aktivitas konsumsi daya aplikasi yang tercatat pada rentang waktu ini.</string>
-    <string name="app_usage_methodology_note">Catatan: Tanpa akses root, estimasi mAh dan tingkat keborosan dihitung dari Android UsageStats (durasi layar aktif, layanan latar belakang, frekuensi buka) yang diskalakan dengan kapasitas baterai perangkat.</string>
+    <string name="app_usage_methodology_note">Catatan: Estimasi mAh dan tingkat keborosan dihitung dari Android UsageStats (durasi layar aktif, layanan latar belakang, frekuensi buka) yang diskalakan dengan kapasitas baterai perangkat.</string>
     <string name="app_usage_rank_fmt">#%1$d</string>
     <string name="app_usage_fg_short">%1$s aktif</string>
     <string name="app_usage_bg_short">%1$s latar</string>
@@ -642,4 +644,83 @@
     <string name="export_history_summary">Simpan database SQLite riwayat pengisian (History.db)</string>
     <string name="import_history_summary">Pulihkan riwayat pengisian dari file History.db cadangan</string>
     <string name="error_invalid_history_file">File yang dipilih bukan database riwayat SQLite yang valid!</string>
+
+    <string name="app_integrity">Keaslian &amp; Integritas Aplikasi</string>
+    <string name="app_integrity_official">Aplikasi Sah &amp; Resmi (Tidak termodifikasi)</string>
+    <string name="app_integrity_owner_debug">Build Developer Resmi (Tidak termodifikasi)</string>
+    <string name="app_integrity_opensource">Build Open-Source / Mandiri</string>
+    <string name="app_integrity_tampered">Termodifikasi / Tidak Sah Terdeteksi</string>
+    <string name="app_integrity_dialog_message">Status: %1$s\nTanda Tangan Aplikasi: %2$s\nPemeriksaan Runtime: %3$s\nSumber Pemasang: %4$s</string>
+    <string name="app_integrity_valid">Sah / Valid</string>
+    <string name="app_integrity_invalid">Termodifikasi / Tidak Valid</string>
+    <string name="app_integrity_clean">Aman</string>
+    <string name="app_integrity_flagged">Modifikasi Terdeteksi</string>
+    <string name="app_integrity_installer_unknown">Lokal / Tidak Diketahui</string>
+    <string name="tamper_warning_title">Modifikasi Tidak Sah Terdeteksi</string>
+    <string name="tamper_warning_message">Versi aplikasi ini tidak sesuai tanda tangan resmi atau telah dimodifikasi. Fitur premium dan diagnostik native dinonaktifkan.</string>
+    <string name="tamper_diagnostics_blocked">Diagnostik native dinonaktifkan karena aplikasi terdeteksi telah dimodifikasi atau tidak resmi.</string>
+    <string name="premium_required_dialog_title">Fitur Premium</string>
+    <string name="premium_required_dialog_message">Fitur \"%1$s\" hanya tersedia untuk pengguna Premium. Buka Premium untuk mengaktifkan fitur ini dan seluruh fitur lanjutan.</string>
+    <string name="unlock_premium">Buka Premium</string>
+    <string name="residual_capacity_not_calibrated">Sisa: Belum terkalibrasi</string>
+    <string name="battery_wear_not_calibrated">Keausan: Belum terkalibrasi</string>
+
+    <!-- Setup Wizard -->
+    <string name="wizard_step_counter">Langkah %1$d dari %2$d</string>
+    <string name="wizard_skip">Lewati</string>
+    <string name="wizard_previous">Kembali</string>
+    <string name="wizard_next">Lanjutkan</string>
+    <string name="wizard_finish">Mulai Gunakan Battery Lab</string>
+    <string name="wizard_badge_essential">Izin Inti</string>
+    <string name="wizard_badge_background">Layanan Latar Belakang</string>
+    <string name="wizard_badge_device">Pengaturan Perangkat</string>
+    <string name="wizard_badge_optional">Opsional &amp; Ringkasan</string>
+    <string name="wizard_status_granted">Diizinkan &amp; Aktif</string>
+    <string name="wizard_status_pending">Memerlukan Izin</string>
+    <string name="wizard_status_optional_pending">Opsional (Belum aktif)</string>
+    <string name="wizard_status_manual_check">Buka pengaturan untuk verifikasi</string>
+    <string name="wizard_status_advisory">Info Perangkat</string>
+    <string name="wizard_btn_granted">Sudah Aktif</string>
+    <string name="wizard_btn_open_settings">Buka Pengaturan</string>
+
+    <string name="wizard_notif_title">Notifikasi Real-Time</string>
+    <string name="wizard_notif_subtitle">Pertahankan Battery Lab aktif di bilah status untuk pemantauan langsung dan perhitungan kapasitas baterai.</string>
+    <string name="wizard_notif_benefit_1">Pantauan arus pengisian/pemakaian, tegangan, dan suhu secara langsung</string>
+    <string name="wizard_notif_benefit_2">Diperlukan agar layanan inti dapat menghitung kapasitas baterai yang tersisa</string>
+    <string name="wizard_notif_benefit_3">Peringatan instan saat baterai mencapai target pengisian atau suhu tinggi</string>
+    <string name="wizard_notif_action">Izinkan Notifikasi</string>
+
+    <string name="wizard_battery_opt_title">Akses Latar Belakang Penuh</string>
+    <string name="wizard_battery_opt_subtitle">Cegah sistem menghentikan Battery Lab agar siklus pengisian dan pemakaian diam tercatat akurat.</string>
+    <string name="wizard_battery_opt_benefit_1">Deteksi pengisian penuh dan kalibrasi sisa kapasitas mAh lebih akurat</string>
+    <string name="wizard_battery_opt_benefit_2">Pengukuran Idle Drain &amp; Deep Sleep tetap berjalan saat layar mati</string>
+    <string name="wizard_battery_opt_benefit_3">Tetap hemat daya — menggunakan sampling ringan tanpa membebani baterai</string>
+    <string name="wizard_battery_opt_xiaomi_tip">Di perangkat Xiaomi / HyperOS / MIUI, pilih \"Tidak ada pembatasan\" pada jendela berikutnya.</string>
+    <string name="wizard_battery_opt_action">Nonaktifkan Optimasi Baterai</string>
+
+    <string name="wizard_autostart_title">Mulai Otomatis MIUI / HyperOS</string>
+    <string name="wizard_autostart_subtitle">Perangkat Xiaomi menghentikan pemantauan latar belakang setelah restart atau pembersihan RAM jika Mulai Otomatis nonaktif.</string>
+    <string name="wizard_autostart_step_1">1. Ketuk tombol \"Buka Mulai Otomatis\" di bawah</string>
+    <string name="wizard_autostart_step_2">2. Temukan Battery Lab di daftar lalu aktifkan sakelarnya</string>
+    <string name="wizard_autostart_step_3">3. Kembali ke sini — status akan diperbarui otomatis</string>
+    <string name="wizard_autostart_action">Buka Mulai Otomatis</string>
+
+    <string name="wizard_huawei_title">Catatan Perangkat Huawei &amp; Honor</string>
+    <string name="wizard_huawei_subtitle">Informasi penting terkait pembacaan sensor daya pada model perangkat Anda.</string>
+    <string name="wizard_huawei_tip">Sebagian perangkat Huawei &amp; Honor membatasi pembacaan arus baterai di level sistem. Metrik lain seperti persentase, suhu, tegangan, dan riwayat pengisian tetap berfungsi penuh.</string>
+    <string name="wizard_huawei_action">Pelajari Lebih Lanjut</string>
+
+    <string name="wizard_summary_title">Fitur Tambahan &amp; Kesiapan</string>
+    <string name="wizard_summary_subtitle">Aktifkan izin opsional untuk App Power Monitor atau periksa kesiapan konfigurasi sebelum masuk ke aplikasi.</string>
+    <string name="wizard_usage_card_title">Akses Penggunaan Aplikasi (Opsional)</string>
+    <string name="wizard_usage_card_desc">Membantu tab App Power Monitor mendeteksi aplikasi yang paling banyak menguras baterai di latar belakang.</string>
+    <string name="wizard_usage_action_enable">Aktifkan Akses</string>
+    <string name="wizard_usage_action_enabled">Akses Aktif</string>
+    <string name="wizard_checklist_title">Ringkasan Konfigurasi</string>
+    <string name="wizard_checklist_hint">Ketuk item yang belum aktif untuk mengaturnya sekarang.</string>
+    <string name="wizard_check_notif">Notifikasi Real-Time</string>
+    <string name="wizard_check_battery_opt">Tanpa Optimasi Baterai</string>
+    <string name="wizard_check_autostart">Mulai Otomatis Xiaomi</string>
+    <string name="wizard_check_usage">Akses Penggunaan Aplikasi (Opsional)</string>
+    <string name="wizard_action_error">Tidak dapat membuka pengaturan sistem di perangkat ini.</string>
 </resources>

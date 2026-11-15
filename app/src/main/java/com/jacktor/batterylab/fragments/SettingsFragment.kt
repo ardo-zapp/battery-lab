@@ -9,6 +9,9 @@ import android.view.View
 import android.widget.Toast
 import androidx.core.content.ContextCompat
 import androidx.core.content.edit
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.preference.ListPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
@@ -37,7 +40,9 @@ import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.BATTERY_LEVE
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CAPACITY_ADDED
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CAPACITY_ADDED_LAST_CHARGE
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CAPACITY_IN_WH
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGING_COULOMB_ADDED_MAH
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGING_DISCHARGE_CURRENT_IN_WATT
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGING_START_CAPACITY_MAH
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGING_START_LEVEL
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGING_TIME_LAST_CHARGE
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CURRENT_CAPACITY_LAST_CHARGE
@@ -83,6 +88,8 @@ import com.jacktor.premium.Premium
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.seconds
 
@@ -138,7 +145,7 @@ class SettingsFragment() : PreferenceFragmentCompat(),
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
 
-        isPremium = NativeCore.hasPremiumAccess(requireContext())
+        isPremium = NativeCore.hasPremiumAccess(requireContext(), NativeCore.FEATURE_SETTINGS)
 
         pref = PreferenceManager.getDefaultSharedPreferences(requireContext())
 
@@ -150,15 +157,12 @@ class SettingsFragment() : PreferenceFragmentCompat(),
 
         premium?.apply {
             isVisible = !isPremium
-            if (isVisible)
-                setOnPreferenceClickListener {
-                    (requireContext() as MainActivity).premiumLauncher.launch(
-                        Premium.intentForPremium(
-                            context
-                        )
-                    )
-                    true
-                }
+            setOnPreferenceClickListener {
+                (requireContext() as MainActivity).premiumLauncher.launch(
+                    Premium.intentForPremium(context)
+                )
+                true
+            }
         }
 
         // Service & Notification
@@ -179,24 +183,30 @@ class SettingsFragment() : PreferenceFragmentCompat(),
         powerConnection = findPreference("connected_disconnected_sound")
 
         stopService?.apply {
-            isEnabled = premium?.isVisible == false
-            summary = if (!isEnabled) getString(R.string.premium_feature) else null
+            isEnabled = true
+            summary = if (!isPremium) getString(R.string.premium_feature) else null
+            attachPremiumSwitchGuard(this)
         }
 
         isStopTheServiceWhenTheCD?.apply {
-            isEnabled = premium?.isVisible == false
-            summary = if (!isEnabled) getString(R.string.premium_feature) else null
+            isEnabled = true
+            summary = if (!isPremium) getString(R.string.premium_feature) else null
+            attachPremiumSwitchGuard(this)
         }
 
         isShowBatteryInformation?.apply {
-            isEnabled = premium?.isVisible == false
+            isEnabled = true
 
             summary = getString(
-                if (!isEnabled) R.string.premium_feature
+                if (!isPremium) R.string.premium_feature
                 else R.string.service_restart_required
             )
 
             setOnPreferenceChangeListener { preference, value ->
+                if (!NativeCore.hasPremiumAccess(requireContext(), NativeCore.FEATURE_SETTINGS)) {
+                    showPremiumRequiredDialog(preference.title)
+                    return@setOnPreferenceChangeListener false
+                }
 
                 preference.isEnabled = false
                 isShowExtendedNotification?.isEnabled = false
@@ -249,14 +259,8 @@ class SettingsFragment() : PreferenceFragmentCompat(),
 
         openAppNotificationSettings?.setOnPreferenceClickListener {
             val intent = Intent().apply {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                    action = Settings.ACTION_APP_NOTIFICATION_SETTINGS
-                    putExtra(Settings.EXTRA_APP_PACKAGE, requireContext().packageName)
-                } else {
-                    action = "android.settings.APP_NOTIFICATION_SETTINGS"
-                    putExtra("app_package", requireContext().packageName)
-                    putExtra("app_uid", requireContext().applicationInfo.uid)
-                }
+                action = Settings.ACTION_APP_NOTIFICATION_SETTINGS
+                putExtra(Settings.EXTRA_APP_PACKAGE, requireContext().packageName)
             }
             try {
                 startActivity(intent)
@@ -273,31 +277,34 @@ class SettingsFragment() : PreferenceFragmentCompat(),
         batteryStatusInformation = findPreference("battery_status_information")
 
         batteryStatusInformation?.apply {
+            isEnabled = true
+            summary = if (!isPremium) getString(R.string.premium_feature) else null
 
-            isEnabled = premium?.isVisible == false
-            summary = if (!isEnabled) getString(R.string.premium_feature) else null
-
-            if (isEnabled)
-                setOnPreferenceClickListener {
-                    mainActivity?.fragment = BatteryStatusInformationFragment()
-
-                    mainActivity?.toolbar?.title = requireContext().getString(
-                        R.string.battery_status_information
-                    )
-
-                    mainActivity?.toolbar?.navigationIcon =
-                        ContextCompat.getDrawable(
-                            requireContext(),
-                            R.drawable.ic_arrow_back_24dp
-                        )
-
-                    mainActivity?.loadFragment(
-                        mainActivity?.fragment ?: BatteryStatusInformationFragment(),
-                        true
-                    )
-
-                    true
+            setOnPreferenceClickListener {
+                if (!NativeCore.hasPremiumAccess(requireContext(), NativeCore.FEATURE_SETTINGS)) {
+                    showPremiumRequiredDialog(it.title)
+                    return@setOnPreferenceClickListener true
                 }
+
+                mainActivity?.fragment = BatteryStatusInformationFragment()
+
+                mainActivity?.toolbar?.title = requireContext().getString(
+                    R.string.battery_status_information
+                )
+
+                mainActivity?.toolbar?.navigationIcon =
+                    ContextCompat.getDrawable(
+                        requireContext(),
+                        R.drawable.ic_arrow_back_24dp
+                    )
+
+                mainActivity?.loadFragment(
+                    mainActivity?.fragment ?: BatteryStatusInformationFragment(),
+                    true
+                )
+
+                true
+            }
         }
 
         powerConnection?.apply {
@@ -343,10 +350,14 @@ class SettingsFragment() : PreferenceFragmentCompat(),
         textSize?.summary = getOnTextSizeSummary()
 
         textFont?.apply {
-            isEnabled = premium?.isVisible == false
-            summary = if (isEnabled) getTextFontSummary() else getString(R.string.premium_feature)
+            isEnabled = true
+            summary = if (isPremium) getTextFontSummary() else getString(R.string.premium_feature)
 
             setOnPreferenceChangeListener { preference, newValue ->
+                if (!NativeCore.hasPremiumAccess(requireContext(), NativeCore.FEATURE_SETTINGS)) {
+                    showPremiumRequiredDialog(preference.title)
+                    return@setOnPreferenceChangeListener false
+                }
 
                 val newFont = (newValue as? String) ?: "6"
                 preference.summary = resources.getStringArray(R.array.fonts_list)[
@@ -453,48 +464,51 @@ class SettingsFragment() : PreferenceFragmentCompat(),
         debug = findPreference("debug")
 
         capacityInWh?.apply {
-
-            isEnabled = premium?.isVisible == false
-            summary = if (!isEnabled) getString(R.string.premium_feature) else null
+            isEnabled = true
+            summary = if (!isPremium) getString(R.string.premium_feature) else null
+            attachPremiumSwitchGuard(this)
         }
 
         chargeDischargingCurrentInWatt?.apply {
-
-            isEnabled = premium?.isVisible == false
-            summary = if (!isEnabled) getString(R.string.premium_feature) else null
+            isEnabled = true
+            summary = if (!isPremium) getString(R.string.premium_feature) else null
+            attachPremiumSwitchGuard(this)
         }
 
         resetScreenTime?.apply {
-
-            isEnabled = premium?.isVisible == false
-            summary = if (!isEnabled) getString(R.string.premium_feature) else null
+            isEnabled = true
+            summary = if (!isPremium) getString(R.string.premium_feature) else null
+            attachPremiumSwitchGuard(this)
         }
 
         backupSettings?.apply {
+            isEnabled = true
+            summary = if (!isPremium) getString(R.string.premium_feature) else null
 
-            isEnabled = premium?.isVisible == false
-            summary = if (!isEnabled) getString(R.string.premium_feature) else null
-
-            if (isEnabled)
-                setOnPreferenceClickListener {
-                    mainActivity?.fragment = BackupSettingsFragment()
-
-                    mainActivity?.toolbar?.title = requireContext().getString(
-                        R.string.backup
-                    )
-
-                    mainActivity?.toolbar?.navigationIcon =
-                        ContextCompat.getDrawable(
-                            requireContext(),
-                            R.drawable.ic_arrow_back_24dp
-                        )
-
-                    mainActivity?.loadFragment(
-                        mainActivity?.fragment ?: BackupSettingsFragment(), true
-                    )
-
-                    true
+            setOnPreferenceClickListener {
+                if (!NativeCore.hasPremiumAccess(requireContext(), NativeCore.FEATURE_SETTINGS)) {
+                    showPremiumRequiredDialog(it.title)
+                    return@setOnPreferenceClickListener true
                 }
+
+                mainActivity?.fragment = BackupSettingsFragment()
+
+                mainActivity?.toolbar?.title = requireContext().getString(
+                    R.string.backup
+                )
+
+                mainActivity?.toolbar?.navigationIcon =
+                    ContextCompat.getDrawable(
+                        requireContext(),
+                        R.drawable.ic_arrow_back_24dp
+                    )
+
+                mainActivity?.loadFragment(
+                    mainActivity?.fragment ?: BackupSettingsFragment(), true
+                )
+
+                true
+            }
         }
 
         moreOther?.setOnPreferenceClickListener {
@@ -507,8 +521,8 @@ class SettingsFragment() : PreferenceFragmentCompat(),
 
                 tabOnApplicationLaunch?.apply {
                     isVisible = true
-                    isEnabled = premium?.isVisible == false
-                    summary = if (!isEnabled) getString(R.string.premium_feature)
+                    isEnabled = true
+                    summary = if (!isPremium) getString(R.string.premium_feature)
                     else getTabOnApplicationLaunchSummary()
                 }
 
@@ -587,8 +601,8 @@ class SettingsFragment() : PreferenceFragmentCompat(),
                         PreferencesKeys.ENABLED_DEBUG_OPTIONS,
                         resources.getBoolean(R.bool.enabled_debug_options)
                     )
-                    isEnabled = premium?.isVisible == false
-                    summary = if (!isEnabled) getString(R.string.premium_feature) else null
+                    isEnabled = true
+                    summary = if (!isPremium) getString(R.string.premium_feature) else null
                 }
             } else {
 
@@ -612,6 +626,10 @@ class SettingsFragment() : PreferenceFragmentCompat(),
         }
 
         tabOnApplicationLaunch?.setOnPreferenceChangeListener { preference, newValue ->
+            if (!NativeCore.hasPremiumAccess(requireContext(), NativeCore.FEATURE_SETTINGS)) {
+                showPremiumRequiredDialog(preference.title)
+                return@setOnPreferenceChangeListener false
+            }
 
             val tab = //if (HistoryHelper.isHistoryNotEmpty(requireContext()))
                 (newValue as? String)?.toInt() ?: 0 //else 0
@@ -731,30 +749,33 @@ class SettingsFragment() : PreferenceFragmentCompat(),
         }
 
         overlay?.apply {
+            isEnabled = true
+            summary = if (!isPremium) getString(R.string.premium_feature) else null
 
-            isEnabled = premium?.isVisible == false
-            summary = if (!isEnabled) getString(R.string.premium_feature) else null
-
-            if (isEnabled)
-                setOnPreferenceClickListener {
-                    mainActivity?.fragment = OverlayFragment()
-
-                    mainActivity?.toolbar?.title = requireContext().getString(
-                        R.string.overlay
-                    )
-
-                    mainActivity?.toolbar?.navigationIcon =
-                        ContextCompat.getDrawable(
-                            requireContext(),
-                            R.drawable.ic_arrow_back_24dp
-                        )
-
-                    mainActivity?.loadFragment(
-                        mainActivity?.fragment ?: OverlayFragment(), true
-                    )
-
-                    true
+            setOnPreferenceClickListener {
+                if (!NativeCore.hasPremiumAccess(requireContext(), NativeCore.FEATURE_SETTINGS)) {
+                    showPremiumRequiredDialog(it.title)
+                    return@setOnPreferenceClickListener true
                 }
+
+                mainActivity?.fragment = OverlayFragment()
+
+                mainActivity?.toolbar?.title = requireContext().getString(
+                    R.string.overlay
+                )
+
+                mainActivity?.toolbar?.navigationIcon =
+                    ContextCompat.getDrawable(
+                        requireContext(),
+                        R.drawable.ic_arrow_back_24dp
+                    )
+
+                mainActivity?.loadFragment(
+                    mainActivity?.fragment ?: OverlayFragment(), true
+                )
+
+                true
+            }
         }
 
         resetToZeroTheNumberOfCharges?.setOnPreferenceClickListener {
@@ -868,6 +889,8 @@ class SettingsFragment() : PreferenceFragmentCompat(),
                         remove(BATTERY_LEVEL_WITH)
                         remove(BATTERY_LEVEL_TO)
                         remove(CHARGING_START_LEVEL)
+                        remove(CHARGING_START_CAPACITY_MAH)
+                        remove(CHARGING_COULOMB_ADDED_MAH)
                         remove(BATTERY_LEVEL_LAST_CHARGE)
                         remove(CHARGING_TIME_LAST_CHARGE)
                         remove(CURRENT_CAPACITY_LAST_CHARGE)
@@ -892,6 +915,10 @@ class SettingsFragment() : PreferenceFragmentCompat(),
                     BatteryInfoInterface.capacityAdded = 0.0
                     BatteryInfoInterface.percentAdded = 0
                     BatteryInfoInterface.residualCapacity = 0.0
+                    BatteryInfoInterface.coulombAddedMah = 0.0
+                    BatteryInfoInterface.liveEstimatedResidualMah = 0.0
+                    BatteryInfoInterface.tempAvailableCapacity = 0.0
+                    BatteryInfoInterface.tempBatteryLevelWith = 0
                     resetToZeroTheNumberOfCharges?.isEnabled = false
                     resetToZeroTheNumberOfCycles?.isEnabled = false
                     resetTheNumberOfFullChargesToZero?.isEnabled = false
@@ -909,6 +936,10 @@ class SettingsFragment() : PreferenceFragmentCompat(),
         }
 
         debug?.setOnPreferenceClickListener {
+            if (!NativeCore.hasPremiumAccess(requireContext(), NativeCore.FEATURE_SETTINGS)) {
+                showPremiumRequiredDialog(it.title)
+                return@setOnPreferenceClickListener true
+            }
 
             mainActivity?.fragment = DebugFragment()
 
@@ -972,30 +1003,88 @@ class SettingsFragment() : PreferenceFragmentCompat(),
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         TextAppearanceHelper.applyToView(view)
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                Premium.isPremium().combine(Premium.premiumStatusReady()) { p, r -> p to r }
+                    .collectLatest {
+                        if (!isAdded) return@collectLatest
+                        applyPremiumPreferencesState()
+                    }
+            }
+        }
+    }
+
+    override fun onDisplayPreferenceDialog(preference: Preference) {
+        if ((preference.key == TEXT_FONT || preference.key == TAB_ON_APPLICATION_LAUNCH) &&
+            !NativeCore.hasPremiumAccess(requireContext(), NativeCore.FEATURE_SETTINGS)
+        ) {
+            showPremiumRequiredDialog(preference.title)
+            return
+        }
+        super.onDisplayPreferenceDialog(preference)
+    }
+
+    private fun attachPremiumSwitchGuard(prefItem: SwitchPreferenceCompat?) {
+        prefItem?.setOnPreferenceChangeListener { preference, _ ->
+            if (!NativeCore.hasPremiumAccess(requireContext(), NativeCore.FEATURE_SETTINGS)) {
+                showPremiumRequiredDialog(preference.title)
+                false
+            } else {
+                true
+            }
+        }
+    }
+
+    private fun showPremiumRequiredDialog(featureTitle: CharSequence?) {
+        val ctx = context ?: return
+        if (NativeCore.isAppTampered(ctx)) {
+            MaterialAlertDialogBuilder(ctx)
+                .setTitle(R.string.tamper_warning_title)
+                .setMessage(R.string.tamper_warning_message)
+                .setPositiveButton(android.R.string.ok, null)
+                .show()
+            return
+        }
+        val label = featureTitle ?: getString(R.string.premium)
+        MaterialAlertDialogBuilder(ctx)
+            .setIcon(R.drawable.ic_premium_24)
+            .setTitle(R.string.premium_required_dialog_title)
+            .setMessage(getString(R.string.premium_required_dialog_message, label))
+            .setPositiveButton(R.string.unlock_premium) { _, _ ->
+                (activity as? MainActivity)?.premiumLauncher?.launch(
+                    Premium.intentForPremium(ctx)
+                )
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 
     override fun onResume() {
-
         super.onResume()
+        applyPremiumPreferencesState()
+    }
 
-        isPremium = NativeCore.hasPremiumAccess(requireContext())
+    private fun applyPremiumPreferencesState() {
+        val ctx = context ?: return
+        isPremium = NativeCore.hasPremiumAccess(ctx, NativeCore.FEATURE_SETTINGS)
 
-        if (premium?.isVisible == true) premium?.isVisible = !isPremium
+        premium?.isVisible = !isPremium
 
         stopService?.apply {
-            isEnabled = isPremium
-            summary = if (!isEnabled) getString(R.string.premium_feature) else null
+            isEnabled = true
+            summary = if (!isPremium) getString(R.string.premium_feature) else null
         }
 
         isStopTheServiceWhenTheCD?.apply {
-            isEnabled = premium?.isVisible == false
-            summary = if (!isEnabled) getString(R.string.premium_feature) else null
+            isEnabled = true
+            summary = if (!isPremium) getString(R.string.premium_feature) else null
         }
 
         isShowBatteryInformation?.apply {
-            isEnabled = premium?.isVisible == false
+            isEnabled = true
             summary = getString(
-                if (!isEnabled) R.string.premium_feature
+                if (!isPremium) R.string.premium_feature
                 else R.string.service_restart_required
             )
         }
@@ -1003,42 +1092,40 @@ class SettingsFragment() : PreferenceFragmentCompat(),
         isShowExtendedNotification?.apply {
             val isShowBatteryInformationPref = pref.getBoolean(
                 IS_SHOW_BATTERY_INFORMATION,
-                requireContext().resources.getBoolean(R.bool.is_show_battery_information)
+                ctx.resources.getBoolean(R.bool.is_show_battery_information)
             )
-            isEnabled = if (premium?.isVisible == false && isShowBatteryInformationPref) true
+            isEnabled = if (isPremium && isShowBatteryInformationPref) true
             else isShowBatteryInformationPref
         }
 
         batteryStatusInformation?.apply {
-            isEnabled = premium?.isVisible == false
-            summary = if (!isEnabled) getString(R.string.premium_feature) else null
+            isEnabled = true
+            summary = if (!isPremium) getString(R.string.premium_feature) else null
         }
 
         capacityInWh?.apply {
-
-            isEnabled = premium?.isVisible == false
-            summary = if (!isEnabled) getString(R.string.premium_feature) else null
+            isEnabled = true
+            summary = if (!isPremium) getString(R.string.premium_feature) else null
         }
 
         chargeDischargingCurrentInWatt?.apply {
-
-            isEnabled = premium?.isVisible == false
-            summary = if (!isEnabled) getString(R.string.premium_feature) else null
+            isEnabled = true
+            summary = if (!isPremium) getString(R.string.premium_feature) else null
         }
 
         resetScreenTime?.apply {
-            isEnabled = premium?.isVisible == false
-            summary = if (!isEnabled) getString(R.string.premium_feature) else null
+            isEnabled = true
+            summary = if (!isPremium) getString(R.string.premium_feature) else null
         }
 
         backupSettings?.apply {
-            isEnabled = premium?.isVisible == false
-            summary = if (!isEnabled) getString(R.string.premium_feature) else null
+            isEnabled = true
+            summary = if (!isPremium) getString(R.string.premium_feature) else null
         }
 
         overlay?.apply {
-            isEnabled = premium?.isVisible == false
-            summary = if (!isEnabled) getString(R.string.premium_feature) else null
+            isEnabled = true
+            summary = if (!isPremium) getString(R.string.premium_feature) else null
         }
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) darkMode?.isEnabled =
@@ -1047,16 +1134,16 @@ class SettingsFragment() : PreferenceFragmentCompat(),
         textSize?.summary = getOnTextSizeSummary()
 
         textFont?.apply {
-            isEnabled = premium?.isVisible == false
-            summary = if (isEnabled) getTextFontSummary() else getString(R.string.premium_feature)
+            isEnabled = true
+            summary = if (isPremium) getTextFontSummary() else getString(R.string.premium_feature)
         }
 
         textStyle?.summary = getTextStyleSummary()
 
         tabOnApplicationLaunch?.apply {
             if (isVisible) {
-                isEnabled = premium?.isVisible == false
-                summary = if (!isEnabled) getString(R.string.premium_feature)
+                isEnabled = true
+                summary = if (!isPremium) getString(R.string.premium_feature)
                 else getTabOnApplicationLaunchSummary()
             }
         }
@@ -1090,8 +1177,8 @@ class SettingsFragment() : PreferenceFragmentCompat(),
                     R.bool.enabled_debug_options
                 )
             )
-            isEnabled = premium?.isVisible == false
-            summary = if (!isEnabled) getString(R.string.premium_feature) else null
+            isEnabled = true
+            summary = if (!isPremium) getString(R.string.premium_feature) else null
         }
     }
 }

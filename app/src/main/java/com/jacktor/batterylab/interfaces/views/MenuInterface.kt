@@ -23,7 +23,7 @@ interface MenuInterface {
 
                 toolbar.menu.findItem(R.id.clear_history).apply {
 
-                    isVisible = NativeCore.hasPremiumAccess(this@inflateMenu) &&
+                    isVisible = NativeCore.hasPremiumAccess(this@inflateMenu, NativeCore.FEATURE_MENU) &&
                             HistoryHelper.isHistoryNotEmpty(this@inflateMenu)
 
                     setOnMenuItemClickListener {
@@ -35,7 +35,7 @@ interface MenuInterface {
                 }
 
                 toolbar.menu.findItem(R.id.history_premium).apply {
-                    isVisible = !NativeCore.hasPremiumAccess(this@inflateMenu)
+                    isVisible = !NativeCore.hasPremiumAccess(this@inflateMenu, NativeCore.FEATURE_MENU)
 
                     setOnMenuItemClickListener {
                         premiumLauncher.launch(Premium.intentForPremium(this@inflateMenu))
@@ -78,7 +78,8 @@ interface MenuInterface {
                         getString(R.string.tip2) +
                         getString(R.string.tip3) +
                         getString(R.string.tip4) +
-                        getString(R.string.tip5)
+                        getString(R.string.tip5) +
+                        getString(R.string.tip6)
                 )
                 setPositiveButton(android.R.string.ok) { dialog, _ -> dialog.dismiss() }
                 show()
@@ -137,7 +138,8 @@ interface MenuInterface {
                         getString(R.string.faq_battery_wear_not_change) +
                         getString(R.string.faq_with_each_charge_battery_wear_changes) +
                         getString(R.string.faq_where_does_the_app_get_the_number_of_cycles_android) +
-                        getString(R.string.faq_not_displayed_number_of_cycles_android)
+                        getString(R.string.faq_not_displayed_number_of_cycles_android) +
+                        getString(R.string.faq_permissions_and_autostart)
                 )
                 setPositiveButton(android.R.string.ok) { _, _ ->
                     showFaqDialog = null

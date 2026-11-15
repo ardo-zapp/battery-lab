@@ -261,7 +261,7 @@
     <string name="background_activity_control_xiaomi_dialog">Для корректной работы в фоне перейдите в следующее окно и выберите «Без ограничений»</string>
     <string name="ignoring_battery_optimizations_dialog_message">Чтобы приложение работало корректно, разрешите ему работу в фоне</string>
     <string name="faq">FAQ</string>
-    <string name="faq_how_does_the_app_work" formatted="false">Вопрос: Как работает приложение?\nОтвет: Остаточная ёмкость рассчитывается на основе счётчика заряда при достижении 100% и статуса «Заряжена» (с усреднением по последним полным зарядкам). Данные читаются через официальный Android BatteryManager API и доступные интерфейсы ядра power_supply без root-прав. Точность зависит от контроллера батареи и прошивки.\n\n</string>
+    <string name="faq_how_does_the_app_work" formatted="false">Вопрос: Как работает приложение?\nОтвет: Остаточная ёмкость рассчитывается на основе счётчика заряда при достижении 100% и статуса «Заряжена» (с усреднением по последним полным зарядкам). Данные читаются через официальный Android BatteryManager API и доступные интерфейсы ядра power_supply. Точность зависит от контроллера батареи и прошивки.\n\n</string>
     <string name="faq_capacity_added">Вопрос: Что считается «Добавленной ёмкостью»?\nОтвет: Разница между текущей ёмкостью и ёмкостью непосредственно перед подключением зарядного устройства.\n\n</string>
     <string name="faq_dual_cell_voltage" formatted="false">Вопрос: Почему напряжение около 7.2–8.9 В, а иконка молнии остаётся зелёной при быстрой зарядке?\nОтвет: Устройства с двухэлементными батареями (Dual-Cell 2S) показывают суммарное напряжение ~7.2–9.0 В. Приложение определяет это автоматически (≥ 6000 мВ = Dual-Cell) и пересчитывает напряжение на одну ячейку (допустимый диапазон быстрой зарядки 3.60–4.48 В на ячейку).\n\n</string>
     <string name="faq_idle_drain" formatted="false">Вопрос: Как работает «Расход в простое»?\nОтвет: Инструмент фиксирует падение процента, расход в мА·ч и долю Deep Sleep / пробуждений при выключенном экране после отключения зарядки. Для точной оценки оставьте телефон на несколько минут с выключенным экраном и используйте кнопку «Использование батареи», чтобы найти энергоёмкие приложения.\n\n</string>
@@ -277,13 +277,15 @@
     <string name="faq_with_each_charge_battery_wear_changes">Вопрос: С каждой зарядкой износ немного колеблется.\nОтвет: Это нормально — температура и химическое равновесие в элементах влияют на показания датчика.\n\n</string>
     <string name="faq_where_does_the_app_get_the_number_of_cycles_android">Вопрос: Откуда приложение берёт «Количество циклов (Android)»?\nОтвет: На Android 14+ сначала используется системный API (BatteryManager.EXTRA_CYCLE_COUNT), а при его отсутствии проверяются доступные файлы ядра (/sys/class/power_supply/battery/cycle_count, bms/cycle_count и др.).\n\n</string>
     <string name="faq_not_displayed_number_of_cycles_android">Вопрос: Почему не отображается «Количество циклов (Android)»?\nОтвет: Если ни системный API не возвращает число циклов, ни файлы ядра не доступны для чтения обычным приложениям, поле скрывается.\n\n</string>
+    <string name="faq_permissions_and_autostart">Вопрос: Почему мастер настройки снова запрашивает пропущенные разрешения или показывает «Автозапуск» только на Xiaomi?\nОтвет: Уведомления и работа без ограничений батареи (а также автозапуск на устройствах Xiaomi, Redmi и POCO с HyperOS/MIUI) необходимы, чтобы система не останавливала фоновый мониторинг. Если важное разрешение пропущено, приложение напомнит о нём при следующем запуске, пока оно не будет выдано. На других брендах шаг автозапуска скрывается автоматически.</string>
     <string name="tips_menu">Советы</string>
     <string name="tips_dialog_title">Советы по продлению срока службы батареи</string>
     <string name="tip1" formatted="false">Совет №1: Старайтесь не разряжать батарею ниже 10–15%. Короткие циклы (примерно 20%–80%) заметно снижают износ.\n\n</string>
     <string name="tip2">Совет №2: Избегайте экстремальных температур (ниже 0°C и выше 40°C). Нагрев при высоком напряжении ускоряет деградацию ячеек.\n\n</string>
-    <string name="tip3">Совет №3: Не оставляйте батарею на 100% на зарядке надолго — высокое напряжение и частые микроподзаряды сокращают ресурс циклов.\n\n</string>
+    <string name="tip3" formatted="false">Совет №3: Не оставляйте батарею на 100% на зарядке надолго — высокое напряжение и частые микроподзаряды сокращают ресурс циклов.\n\n</string>
     <string name="tip4">Совет №4: Избегайте игр и тяжёлых нагрузок во время быстрой зарядки: суммарный нагрев от потерь I²R и процессора усиливает термический стресс.\n\n</string>
-    <string name="tip5">Совет №5: Периодически проверяйте «Расход в простое» и «Стресс и импеданс» во вкладке Инструменты. Расход в фоне &gt; 1.5%/ч указывает на активные пробуждения приложений, а удержание индекса стресса в норме продлевает жизнь батареи.</string>
+    <string name="tip5" formatted="false">Совет №5: Периодически проверяйте «Расход в простое» и «Стресс и импеданс» во вкладке Инструменты. Расход в фоне &gt; 1.5%/ч указывает на активные пробуждения приложений, а удержание индекса стресса в норме продлевает жизнь батареи.\n\n</string>
+    <string name="tip6" formatted="false">Совет №6: Раз в 1–2 месяца проводите калибровку точности износа (разряд ниже 10% и полный заряд до 100% «Заряжена»), используйте сертифицированные ЗУ/кабели PD/PPS и настройте пороги уведомлений о заряде и температуре в Настройках.</string>
     <string name="developer">Разработчик</string>
     <string name="version">Версия</string>
     <string name="build">Сборка</string>
@@ -310,8 +312,8 @@
     <string name="failed_to_load_data">Не удалось загрузить участников: %1$s</string>
     <string name="failed_open_security_miui">Не удалось открыть приложение «Безопасность»! Следуйте инструкциям на сайте Don’t kill my app</string>
     <string name="failed_request_permission">Не удалось запросить разрешение! Следуйте инструкциям на сайте Don’t kill my app</string>
-    <string name="instruction_message_do_not_kill_the_service">ВНИМАНИЕ! Не «убивайте» сервис. Если оболочка вашего устройства любит завершать приложения или удаляет их из списка последних, либо вы используете режим энергосбережения — добавьте это приложение во все возможные исключения. Если в прошивке есть настройки автозапуска, убедитесь, что приложение может запускаться после загрузки ОС, если вы хотите автозапуск.\u00A0</string>
-    <string name="instruction_message_dont_kill_my_app">Если вы не знаете, что и где настроить, чтобы система не «убивала» приложение, воспользуйтесь сервисом «Don’t kill my app!» и выберите производителя вашего устройства.\n\n</string>
+    <string name="instruction_message_do_not_kill_the_service">ВНИМАНИЕ! Не завершайте сервис мониторинга. Если прошивка агрессивно закрывает приложения при очистке недавних или в режиме энергосбережения, закрепите Battery Lab в списке недавних (замок), выберите «Без ограничений» в контроле активности батареи и разрешите автозапуск (на Xiaomi/HyperOS/MIUI и аналогичных оболочках).\n\n</string>
+    <string name="instruction_message_dont_kill_my_app">Если вы не уверены, какие настройки фона нужны на вашем устройстве, откройте сервис «Don’t kill my app!» из диалога производителя и выберите марку устройства.\n\n</string>
     <string name="huawei_honor_information">ВНИМАНИЕ! На Huawei &amp; Honor текущая ёмкость может отображаться некорректно. К сожалению, это не исправить</string>
     <string name="become_a_beta_tester">Стать бета-тестером</string>
     <string name="become_a_beta_tester_summary">Получайте обновления первыми</string>
@@ -324,7 +326,7 @@
     <string name="change_design_capacity">Изменить проектную ёмкость</string>
     <string name="change">Изменить</string>
     <string name="battery_technology">Технология: %1$s</string>
-    <string name="instruction_message" formatted="false">1. Для расчёта остаточной ёмкости и износа держите сервис мониторинга включённым, разрядите батарею до 10% или ниже и полностью зарядите до 100% (статус «Заряжена»).\n2. Продолжение зарядки короткое время после 100% нормально (фаза насыщения CV).\n3. Проверьте, что «Проектная ёмкость» в Настройки → Прочее → «Ещё…» совпадает с характеристиками устройства.\n4. Если единицы ёмкости, тока или напряжения выглядят неверно, измените их в Настройки → Прочее → «Ещё…». Батареи Dual-Cell (2S, ~7.2–9.0 В) определяются автоматически.\n5. Во вкладке Инструменты отслеживайте «Расход в простое» (Deep Sleep и фон при выключенном экране) и «Стресс и импеданс» (отключите зарядку перед запуском теста 2 с).\n\n</string>
+    <string name="instruction_message" formatted="false">1. Для расчёта остаточной ёмкости и износа держите сервис мониторинга включённым, разрядите батарею до 10% или ниже и полностью зарядите до 100% (статус «Заряжена»).\n2. Продолжение зарядки короткое время после 100% нормально (фаза насыщения CV).\n3. Проверьте, что «Проектная ёмкость» в Настройки → Прочее → «Ещё…» совпадает с характеристиками устройства.\n4. Если единицы ёмкости, тока или напряжения выглядят неверно, измените их в Настройки → Прочее → «Ещё…». Батареи Dual-Cell (2S, ~7.2–9.0 В) определяются автоматически.\n5. Выдайте важные разрешения в мастере настройки (Уведомления, «Без ограничений» для батареи и Автозапуск на Xiaomi/HyperOS/MIUI). Пропущенные важные разрешения будут запрошены повторно при следующем открытии.\n6. Во вкладке Инструменты отслеживайте «Расход в простое» (Deep Sleep, фоновый расход и опциональный доступ к статистике) и «Стресс и импеданс» (отключите зарядку перед запуском теста 2 с).\n\n</string>
     <string name="service">Сервис</string>
     <string name="service_time">Время работы сервиса</string>
     <string name="unit_of_charge_discharge_current">Единица тока зарядки/разряда</string>
@@ -496,7 +498,7 @@
     <!-- App Power Consumption Tab -->
     <string name="app_usage_tab">Расход ПО</string>
     <string name="app_usage_permission_title">Требуется доступ к статистике</string>
-    <string name="app_usage_permission_desc">Для анализа экранного времени, фоновых служб и оценки энергопотребления приложений без root требуется разрешение «Доступ к данным об использовании».</string>
+    <string name="app_usage_permission_desc">Для анализа экранного времени, фоновых служб и оценки энергопотребления приложений требуется разрешение «Доступ к данным об использовании».</string>
     <string name="app_usage_permission_cta">Выдать разрешение</string>
     <string name="app_usage_permission_open_failed">Не удалось открыть настройки доступа к статистике.</string>
     <string name="app_usage_overview_title">Расход энергии по приложениям</string>
@@ -514,7 +516,7 @@
     <string name="app_usage_include_system">Системные</string>
     <string name="app_usage_loading">Анализ расхода энергии приложений…</string>
     <string name="app_usage_empty">За выбранный период нет зафиксированной активности приложений.</string>
-    <string name="app_usage_methodology_note">Примечание: без root-доступа оценка в мА·ч рассчитывается на основе Android UsageStats (активность, фоновые службы, запуски) и ёмкости батареи.</string>
+    <string name="app_usage_methodology_note">Примечание: оценка в мА·ч рассчитывается на основе Android UsageStats (активность, фоновые службы, запуски) и ёмкости батареи.</string>
     <string name="app_usage_rank_fmt">#%1$d</string>
     <string name="app_usage_fg_short">%1$s акт.</string>
     <string name="app_usage_bg_short">%1$s фон</string>
@@ -643,4 +645,83 @@
     <string name="export_history_summary">Сохранить базу данных истории зарядок (History.db)</string>
     <string name="import_history_summary">Восстановить историю зарядок из резервной копии History.db</string>
     <string name="error_invalid_history_file">Выбранный файл не является корректной базой данных SQLite!</string>
+
+    <string name="app_integrity">Подлинность и целостность</string>
+    <string name="app_integrity_official">Официальное приложение (Не модифицировано)</string>
+    <string name="app_integrity_owner_debug">Официальная отладочная сборка (Без изменений)</string>
+    <string name="app_integrity_opensource">Сборка из открытого кода</string>
+    <string name="app_integrity_tampered">Обнаружена модификация / неофициальная сборка</string>
+    <string name="app_integrity_dialog_message">Статус: %1$s\nПодпись приложения: %2$s\nПроверка среды: %3$s\nУстановщик: %4$s</string>
+    <string name="app_integrity_valid">Подлинная</string>
+    <string name="app_integrity_invalid">Изменена / Недействительна</string>
+    <string name="app_integrity_clean">Чисто</string>
+    <string name="app_integrity_flagged">Обнаружено вмешательство</string>
+    <string name="app_integrity_installer_unknown">Локальная / Неизвестно</string>
+    <string name="tamper_warning_title">Обнаружена неофициальная модификация</string>
+    <string name="tamper_warning_message">Эта сборка не соответствует официальной подписи или была изменена. Премиум-функции и нативная диагностика отключены.</string>
+    <string name="tamper_diagnostics_blocked">Нативная диагностика отключена из-за обнаружения модифицированной или неофициальной сборки.</string>
+    <string name="premium_required_dialog_title">Премиум-функция</string>
+    <string name="premium_required_dialog_message">Функция «%1$s» доступна только пользователям Premium. Перейдите на Premium, чтобы разблокировать её и все расширенные возможности.</string>
+    <string name="unlock_premium">Открыть Premium</string>
+    <string name="residual_capacity_not_calibrated">Остаток: Не калибровано</string>
+    <string name="battery_wear_not_calibrated">Износ: Не калибровано</string>
+
+    <!-- Setup Wizard -->
+    <string name="wizard_step_counter">Шаг %1$d из %2$d</string>
+    <string name="wizard_skip">Пропустить</string>
+    <string name="wizard_previous">Назад</string>
+    <string name="wizard_next">Далее</string>
+    <string name="wizard_finish">Начать работу</string>
+    <string name="wizard_badge_essential">Основное разрешение</string>
+    <string name="wizard_badge_background">Фоновая работа</string>
+    <string name="wizard_badge_device">Настройка устройства</string>
+    <string name="wizard_badge_optional">Дополнительно и итоги</string>
+    <string name="wizard_status_granted">Разрешено и активно</string>
+    <string name="wizard_status_pending">Требуется разрешение</string>
+    <string name="wizard_status_optional_pending">Необязательно (не включено)</string>
+    <string name="wizard_status_manual_check">Откройте настройки для проверки</string>
+    <string name="wizard_status_advisory">Информация об устройстве</string>
+    <string name="wizard_btn_granted">Уже включено</string>
+    <string name="wizard_btn_open_settings">Открыть настройки</string>
+
+    <string name="wizard_notif_title">Уведомления в реальном времени</string>
+    <string name="wizard_notif_subtitle">Позволяет приложению работать в строке состояния для непрерывного мониторинга и расчёта остаточной ёмкости.</string>
+    <string name="wizard_notif_benefit_1">Ток заряда/разряда, напряжение и температура в реальном времени</string>
+    <string name="wizard_notif_benefit_2">Необходимо для фонового сервиса расчёта остаточной ёмкости батареи</string>
+    <string name="wizard_notif_benefit_3">Мгновенные оповещения о полном заряде и высокой температуре</string>
+    <string name="wizard_notif_action">Разрешить уведомления</string>
+
+    <string name="wizard_battery_opt_title">Работа в фоне без ограничений</string>
+    <string name="wizard_battery_opt_subtitle">Запретите системе ограничивать Battery Lab, чтобы циклы зарядки и расход в покое измерялись точно.</string>
+    <string name="wizard_battery_opt_benefit_1">Точное определение полной зарядки и калибровка ёмкости (мА·ч)</string>
+    <string name="wizard_battery_opt_benefit_2">Стабильный учёт расхода в покое и Deep Sleep при выключенном экране</string>
+    <string name="wizard_battery_opt_benefit_3">Минимальное энергопотребление — лёгкий нативный мониторинг</string>
+    <string name="wizard_battery_opt_xiaomi_tip">На Xiaomi / HyperOS / MIUI выберите «Без ограничений» в следующем окне.</string>
+    <string name="wizard_battery_opt_action">Отключить оптимизацию батареи</string>
+
+    <string name="wizard_autostart_title">Автозапуск MIUI / HyperOS</string>
+    <string name="wizard_autostart_subtitle">Устройства Xiaomi останавливают фоновый сервис после перезагрузки или очистки памяти, если автозапуск выключен.</string>
+    <string name="wizard_autostart_step_1">1. Нажмите «Открыть автозапуск» ниже</string>
+    <string name="wizard_autostart_step_2">2. Найдите Battery Lab в списке и включите переключатель</string>
+    <string name="wizard_autostart_step_3">3. Вернитесь сюда — статус обновится автоматически</string>
+    <string name="wizard_autostart_action">Открыть автозапуск</string>
+
+    <string name="wizard_huawei_title">Примечание для Huawei и Honor</string>
+    <string name="wizard_huawei_subtitle">Важная особенность телеметрии батареи на вашем устройстве.</string>
+    <string name="wizard_huawei_tip">Некоторые устройства Huawei и Honor ограничивают точное чтение тока на уровне прошивки. Уровень заряда, температура, напряжение и история зарядок работают полностью.</string>
+    <string name="wizard_huawei_action">Подробнее</string>
+
+    <string name="wizard_summary_title">Дополнительно и готовность</string>
+    <string name="wizard_summary_subtitle">При желании включите доступ к статистике использования или проверьте готовность перед запуском.</string>
+    <string name="wizard_usage_card_title">Доступ к использованию приложений</string>
+    <string name="wizard_usage_card_desc">Позволяет вкладке энергопотребления определять самые прожорливые приложения в фоне.</string>
+    <string name="wizard_usage_action_enable">Включить доступ</string>
+    <string name="wizard_usage_action_enabled">Доступ включён</string>
+    <string name="wizard_checklist_title">Готовность к работе</string>
+    <string name="wizard_checklist_hint">Нажмите на незавершённый пункт, чтобы настроить его сейчас.</string>
+    <string name="wizard_check_notif">Уведомления в реальном времени</string>
+    <string name="wizard_check_battery_opt">Работа без ограничений</string>
+    <string name="wizard_check_autostart">Автозапуск Xiaomi</string>
+    <string name="wizard_check_usage">Доступ к использованию (необяз.)</string>
+    <string name="wizard_action_error">Не удалось открыть системные настройки на этом устройстве.</string>
 </resources>

@@ -185,7 +185,7 @@
     <string name="history_count">History Count</string>
     <string name="history_is_empty">History is Empty!</string>
     <string name="history_removed">History Removed</string>
-    <string name="empty_history_text">History of charges is empty! Please, charge the battery to full 100% (Battery Status: Charged)</string>
+    <string name="empty_history_text" formatted="false">History of charges is empty! Please, charge the battery to full 100% (Battery Status: Charged)</string>
     <string name="clear_history">Clear History</string>
     <string name="history_cleared_successfully">History Cleared Successfully!</string>
     <string name="error_clearing_history">Error Clearing History!</string>
@@ -300,7 +300,7 @@
     <string name="background_activity_control_xiaomi_dialog">In order for the application to work correctly in the background, go to the next window and select \"No restrictions\"</string>
     <string name="ignoring_battery_optimizations_dialog_message">For the app to work properly, you must allow the app to run in the background</string>
     <string name="faq">FAQ</string>
-    <string name="faq_how_does_the_app_work" formatted="false">Question: How does the app work?\nAnswer: Residual capacity is calculated from the battery charge counter when charging reaches 100% with the \"Charged\" status (averaged across recent charges). Data is read via official Android BatteryManager APIs and supported kernel power_supply interfaces without requiring root access. Overall accuracy depends on the device fuel gauge and firmware.\n\n</string>
+    <string name="faq_how_does_the_app_work" formatted="false">Question: How does the app work?\nAnswer: Residual capacity is calculated from the battery charge counter when charging reaches 100% with the \"Charged\" status (averaged across recent charges). Data is read via official Android BatteryManager APIs and supported kernel power_supply interfaces. Overall accuracy depends on the device fuel gauge and firmware.\n\n</string>
     <string name="faq_capacity_added">Question: What is considered to be \"Capacity Added\"?\nAnswer: \"Capacity Added\" is the difference between the current capacity and the capacity recorded right before you connected the charger.\n\n</string>
     <string name="faq_dual_cell_voltage" formatted="false">Question: Why does my battery show ~7.2V–8.9V, and why is the lightning icon green during fast charging?\nAnswer: Devices with Dual-Cell (2S series) batteries report total pack voltage around 7.2V–9.0V, which the app detects automatically (≥ 6000 mV = Dual-Cell) and normalizes per cell (3.60V–4.48V per cell during fast charging) before evaluating battery health status.\n\n</string>
     <string name="faq_idle_drain" formatted="false">Question: How does \"Idle Drain\" calculate standby usage?\nAnswer: Idle Drain tracks battery percentage drop, estimated mAh consumed, and Deep Sleep vs. Awake time while the screen is off after unplugging the charger. For an accurate reading, leave the device idle on battery with the screen off for several minutes. Use the \"Battery Usage\" button to open Android\'s per-app power list if drain is high.\n\n</string>
@@ -316,13 +316,15 @@
     <string name="faq_with_each_charge_battery_wear_changes">Question: Battery wear fluctuates slightly with each charge.\nAnswer: This is normal due to temperature differences and ongoing chemical equilibrium inside lithium cells.\n\n</string>
     <string name="faq_where_does_the_app_get_the_number_of_cycles_android">Question: Where does the app get \"Number of Cycles (Android)\"?\nAnswer: On Android 14+, the app first checks the system API (BatteryManager.EXTRA_CYCLE_COUNT), and falls back to supported kernel sysfs cycle nodes (such as /sys/class/power_supply/battery/cycle_count or bms/cycle_count).\n\n</string>
     <string name="faq_not_displayed_number_of_cycles_android">Question: Why is \"Number of Cycles (Android)\" not displayed?\nAnswer: If neither the Android system API provides a positive cycle count nor any kernel cycle file is readable by normal apps, the field is omitted.\n\n</string>
+    <string name="faq_permissions_and_autostart">Question: Why does the Setup Wizard ask for skipped permissions again, or show Autostart only on Xiaomi devices?\nAnswer: Notifications and unrestricted battery optimization (plus Autostart on Xiaomi, Redmi, and POCO HyperOS/MIUI devices) are essential so the OS does not kill background monitoring. If an essential permission is skipped, the app prompts again on the next launch until granted. On non-Xiaomi devices, the Autostart step is hidden automatically.</string>
     <string name="tips_menu">Tips</string>
     <string name="tips_dialog_title">Tips for extending battery life</string>
     <string name="tip1" formatted="false">Tip #1: Avoid deep discharges below 10–15%. Frequent shallow cycles (roughly 20%–80%) keep cell degradation much lower.\n\n</string>
     <string name="tip2">Tip #2: Avoid extreme temperatures (below 0°C/32°F or above 40°C/104°F). High heat, especially combined with high charge voltage, rapidly accelerates cathode/SEI wear.\n\n</string>
-    <string name="tip3">Tip #3: Do not leave the device plugged in at 100% for extended periods. Prolonged high voltage and repeated top-up micro-charges reduce cycle longevity.\n\n</string>
+    <string name="tip3" formatted="false">Tip #3: Do not leave the device plugged in at 100% for extended periods. Prolonged high voltage and repeated top-up micro-charges reduce cycle longevity.\n\n</string>
     <string name="tip4">Tip #4: Avoid heavy gaming or intensive workloads while fast charging. Combined Joule heating (I²R) and SoC heat significantly increase cell thermal stress.\n\n</string>
-    <string name="tip5">Tip #5: Check \"Idle Drain\" and \"Stress &amp; Impedance\" under Tools periodically. High standby drain (&gt; 1.5%/h) points to background wakelocks, and keeping Stress Score in the optimal zone extends battery lifespan.</string>
+    <string name="tip5" formatted="false">Tip #5: Check \"Idle Drain\" and \"Stress &amp; Impedance\" under Tools periodically. High standby drain (&gt; 1.5%/h) points to background wakelocks, and keeping Stress Score in the optimal zone extends battery lifespan.\n\n</string>
+    <string name="tip6" formatted="false">Tip #6: Calibrate wear accuracy once every 1–2 months (discharge below 10%, then charge uninterrupted to 100% \"Charged\"), use certified PD/PPS chargers and cables, and configure custom charge or temperature alerts in Settings.</string>
     <string name="developer">Developer</string>
     <string name="version">Version</string>
     <string name="build">Build</string>
@@ -354,8 +356,8 @@
     <string name="failed_to_load_data">Failed to load contributors: %1$s</string>
     <string name="failed_open_security_miui">Failed to open the Security app! Follow the instructions on the Don\'t kill my app site</string>
     <string name="failed_request_permission">Failed to request permission! Follow the instructions from the Don\'t kill my app site</string>
-    <string name="instruction_message_do_not_kill_the_service">ATTENTION! Do not kill the service. If the shell of your device likes to \"kill\" applications, or completely \"kills\" applications when cleaning the most recently launched applications or when removing an application from the most recently launched applications, or you use power saving, add this application to all possible exceptions. If your firmware has an application startup setting, be sure to ensure that this application can start after loading the OS, if you want the application to start automatically after loading the OS.&#160;</string>
-    <string name="instruction_message_dont_kill_my_app">If you don’t know what and where to configure so that the application is not \"killed\" by the system, use the \"Don\'t kill my app!\" Service by choosing the manufacturer of your device.\n\n</string>
+    <string name="instruction_message_do_not_kill_the_service">ATTENTION! Do not kill the monitoring service. If your firmware aggressively closes background apps when clearing Recents or using Battery Saver, lock Battery Lab in Recents, exclude it from battery restrictions (\"No restrictions\"), and enable Autostart (on Xiaomi/HyperOS/MIUI or similar ROMs) so background tracking and boot auto-start work reliably.\n\n</string>
+    <string name="instruction_message_dont_kill_my_app">If you are unsure which background settings your device manufacturer requires, tap \"Don\'t kill my app!\" in the OEM dialog and follow the guide for your brand.\n\n</string>
     <string name="huawei_honor_information">ATTENTION! On Huawei &amp; Honor, the current capacity may not display correctly. Unfortunately nothing can be done about it</string>
     <string name="become_a_beta_tester">Become a beta tester</string>
     <string name="become_a_beta_tester_summary">Be the first to receive updates</string>
@@ -369,7 +371,7 @@
     <string name="change_design_capacity">Change Design Capacity</string>
     <string name="change">Change</string>
     <string name="battery_technology">Technology: %1$s</string>
-    <string name="instruction_message" formatted="false">1. To calculate residual battery capacity and wear, keep the monitoring service enabled, discharge the battery to 10% or lower, and charge uninterrupted to 100% until status shows \"Charged\".\n2. Continued charging briefly after reaching 100% is normal on modern devices (CV saturation phase).\n3. Check that \"Design Capacity\" matches your battery specification under Settings → Misc → More.\n4. If capacity, current, or voltage units look too large or small, adjust them in Settings → Misc → More. Devices with Dual-Cell (2S) batteries (~7.2V–9.0V) are detected automatically.\n5. Use the Tools tab to monitor Idle Drain (screen-off standby drain &amp; Deep Sleep) and Stress &amp; Impedance (unplug charger before running the 2s Pulse Test calibration).\n\n</string>
+    <string name="instruction_message" formatted="false">1. To calculate residual battery capacity and wear, keep the monitoring service enabled, discharge the battery to 10% or lower, and charge uninterrupted to 100% until status shows \"Charged\".\n2. Continued charging briefly after reaching 100% is normal on modern devices (CV saturation phase).\n3. Check that \"Design Capacity\" matches your battery specification under Settings → Misc → More….\n4. If capacity, current, or voltage units look too large or small, adjust them in Settings → Misc → More…. Devices with Dual-Cell (2S) batteries (~7.2V–9.0V) are detected automatically.\n5. Grant essential permissions in the Setup Wizard (Notifications, \"No restrictions\" Battery Optimization, and Autostart on Xiaomi/HyperOS/MIUI). Any skipped essential permission will prompt again on next launch.\n6. Use the Tools tab to monitor Idle Drain (screen-off standby drain, Deep Sleep &amp; optional per-app Usage Access) and Stress &amp; Impedance (unplug charger before running the 2s Pulse Test calibration).\n\n</string>
     <string name="service">Service</string>
     <string name="service_time">Service Time</string>
     <string name="change_design_summary" translatable="false">%1$d mAh</string>
@@ -514,9 +516,9 @@
     <string name="stress_pulse_result_success">Calibration complete!\n• Current Step (ΔI): %1$d mA\n• Voltage Sag (ΔV): %2$d mV/cell\n• Measured Impedance (Rint): ~%3$d mΩ/cell</string>
     <string name="stress_pulse_result_low_delta">The fuel-gauge sensor reported too small a delta (ΔI: %1$d mA, ΔV: %2$d mV) during the 2-second pulse. Keeping electro-thermal estimation active.</string>
     <string name="stress_diag_low">Low electrochemical stress (%1$sC, Rint ~%2$d mΩ/cell). Cell operates inside the optimal longevity window with minimal internal heat dissipation (%3$s mW).</string>
-    <string name="stress_rec_low">Maintaining battery between 20–80% at temperatures under 35°C minimizes SEI layer growth and cathode oxidation.</string>
+    <string name="stress_rec_low" formatted="false">Maintaining battery between 20–80% at temperatures under 35°C minimizes SEI layer growth and cathode oxidation.</string>
     <string name="stress_diag_moderate">Moderate cell load (%1$sC, Rint ~%2$d mΩ/cell, sag ~%3$d mV). Chemical aging rate is currently %4$sx relative to baseline.</string>
-    <string name="stress_rec_moderate">If charging above 80% or running heavy apps, keep device ventilated so thermal stress does not compound voltage pressure.</string>
+    <string name="stress_rec_moderate" formatted="false">If charging above 80% or running heavy apps, keep device ventilated so thermal stress does not compound voltage pressure.</string>
     <string name="stress_diag_high">Elevated cell stress (%1$sC, Rint ~%2$d mΩ/cell, internal heat ~%3$s mW)! Combination of high C-Rate, cell voltage, or heat accelerates wear (%4$sx).</string>
     <string name="stress_rec_high">Avoid heavy gaming while fast-charging and let the battery cool below 38°C to prevent lithium plating and impedance rise.</string>
 
@@ -543,7 +545,7 @@
     <!-- App Power Consumption Tab -->
     <string name="app_usage_tab">App Power</string>
     <string name="app_usage_permission_title">Usage Access Permission Required</string>
-    <string name="app_usage_permission_desc">Battery Lab needs Usage Access permission to analyze active screen time, background foreground-service activity, and estimate per-app battery consumption without root.</string>
+    <string name="app_usage_permission_desc">Battery Lab needs Usage Access permission to analyze active screen time, background foreground-service activity, and estimate per-app battery consumption.</string>
     <string name="app_usage_permission_cta">Grant Usage Access</string>
     <string name="app_usage_permission_open_failed">Unable to open Usage Access settings on this device.</string>
     <string name="app_usage_overview_title">App Power Consumption</string>
@@ -561,7 +563,7 @@
     <string name="app_usage_include_system">System Apps</string>
     <string name="app_usage_loading">Analyzing app battery usage…</string>
     <string name="app_usage_empty">No measurable app power activity recorded in this time window yet.</string>
-    <string name="app_usage_methodology_note">Note: Without root access, per-app mAh and intensity tiers are estimated from Android UsageStats (foreground time, foreground-service runtime, launch frequency) combined with device battery capacity.</string>
+    <string name="app_usage_methodology_note">Note: Per-app mAh and intensity tiers are estimated from Android UsageStats (foreground time, foreground-service runtime, launch frequency) combined with device battery capacity.</string>
     <string name="app_usage_rank_fmt">#%1$d</string>
     <string name="app_usage_fg_short">%1$s active</string>
     <string name="app_usage_bg_short">%1$s bg</string>
@@ -695,4 +697,84 @@
     <string name="export_history_summary">Save charging history SQLite database (History.db)</string>
     <string name="import_history_summary">Restore charging history from a backed-up History.db file</string>
     <string name="error_invalid_history_file">Selected file is not a valid SQLite history database!</string>
+
+    <string name="app_integrity">App Integrity &amp; Authenticity</string>
+    <string name="app_integrity_official">Genuine &amp; Official (Not modified)</string>
+    <string name="app_integrity_owner_debug">Official Developer Build (Not modified)</string>
+    <string name="app_integrity_opensource">Open-Source / Self-Built Debug</string>
+    <string name="app_integrity_tampered">Modified / Unofficial Build Detected</string>
+    <string name="app_integrity_dialog_message">Status: %1$s\nApp Signature: %2$s\nRuntime Checks: %3$s\nInstaller: %4$s</string>
+    <string name="app_integrity_valid">Valid</string>
+    <string name="app_integrity_invalid">Modified / Invalid</string>
+    <string name="app_integrity_clean">Clean</string>
+    <string name="app_integrity_flagged">Tampering Detected</string>
+    <string name="app_integrity_installer_unknown">Local / Unknown</string>
+    <string name="tamper_warning_title">Unofficial Modification Detected</string>
+    <string name="tamper_warning_message">This build does not match the official signature or has been tampered with. Premium features and native diagnostics are disabled.</string>
+    <string name="tamper_diagnostics_blocked">Native diagnostics are disabled because an unofficial or modified build was detected.</string>
+    <string name="premium_required_dialog_title">Premium Feature</string>
+    <string name="premium_required_dialog_message">\"%1$s\" is a Premium feature. Upgrade to Premium to unlock this setting and all advanced features.</string>
+    <string name="unlock_premium">Get Premium</string>
+    <string name="residual_capacity_not_calibrated">Residual: Not calibrated</string>
+    <string name="battery_wear_not_calibrated">Wear: Not calibrated</string>
+    <string name="not_calibrated_short" translatable="false">--</string>
+
+    <!-- Setup Wizard -->
+    <string name="wizard_step_counter">Step %1$d of %2$d</string>
+    <string name="wizard_skip">Skip</string>
+    <string name="wizard_previous">Back</string>
+    <string name="wizard_next">Next</string>
+    <string name="wizard_finish">Start Using Battery Lab</string>
+    <string name="wizard_badge_essential">Core Permission</string>
+    <string name="wizard_badge_background">Background Service</string>
+    <string name="wizard_badge_device">Device Setup</string>
+    <string name="wizard_badge_optional">Optional &amp; Summary</string>
+    <string name="wizard_status_granted">Granted &amp; Active</string>
+    <string name="wizard_status_pending">Permission Needed</string>
+    <string name="wizard_status_optional_pending">Optional (Not enabled)</string>
+    <string name="wizard_status_manual_check">Open settings to verify</string>
+    <string name="wizard_status_advisory">Device Advisory</string>
+    <string name="wizard_btn_granted">Already Enabled</string>
+    <string name="wizard_btn_open_settings">Open Settings</string>
+
+    <string name="wizard_notif_title">Real-Time Notifications</string>
+    <string name="wizard_notif_subtitle">Keep Battery Lab active in the status bar for continuous monitoring and accurate capacity calculation.</string>
+    <string name="wizard_notif_benefit_1">Live charging/discharging current, voltage, and temperature alerts</string>
+    <string name="wizard_notif_benefit_2">Required for the background service that calibrates residual battery capacity</string>
+    <string name="wizard_notif_benefit_3">Instant alerts when your battery reaches target charge or high temperature</string>
+    <string name="wizard_notif_action">Allow Notifications</string>
+
+    <string name="wizard_battery_opt_title">Unrestricted Background Access</string>
+    <string name="wizard_battery_opt_subtitle">Prevent the system from pausing Battery Lab so charging cycles and screen-off drain stay accurate.</string>
+    <string name="wizard_battery_opt_benefit_1">Accurate full-charge detection and residual capacity tracking</string>
+    <string name="wizard_battery_opt_benefit_2">Reliable Idle Drain and Deep Sleep measurement while the screen is off</string>
+    <string name="wizard_battery_opt_benefit_3">Zero battery bloat — lightweight native sampling without constant wakeups</string>
+    <string name="wizard_battery_opt_xiaomi_tip">On Xiaomi / HyperOS / MIUI, select \"No restrictions\" in the next screen.</string>
+    <string name="wizard_battery_opt_action">Disable Battery Optimization</string>
+
+    <string name="wizard_autostart_title">MIUI / HyperOS Autostart</string>
+    <string name="wizard_autostart_subtitle">Xiaomi devices block background monitoring after reboot or memory cleanup unless Autostart is turned on.</string>
+    <string name="wizard_autostart_step_1">1. Tap \"Open Autostart Settings\" below</string>
+    <string name="wizard_autostart_step_2">2. Find Battery Lab in the list and switch it ON</string>
+    <string name="wizard_autostart_step_3">3. Return here — status will update automatically</string>
+    <string name="wizard_autostart_action">Open Autostart Settings</string>
+
+    <string name="wizard_huawei_title">Huawei &amp; Honor Device Note</string>
+    <string name="wizard_huawei_subtitle">Important hardware telemetry notice for your device model.</string>
+    <string name="wizard_huawei_tip">Some Huawei and Honor devices restrict or scale battery current readings at the firmware level. Other metrics such as level, temperature, voltage, and charging history remain fully available.</string>
+    <string name="wizard_huawei_action">Learn More</string>
+
+    <string name="wizard_summary_title">Optional Features &amp; Ready Check</string>
+    <string name="wizard_summary_subtitle">Optionally unlock App Power Monitor or review your setup readiness before entering the dashboard.</string>
+    <string name="wizard_usage_card_title">App Usage Access (Optional)</string>
+    <string name="wizard_usage_card_desc">Allows the App Power Monitor tab to detect which apps consume the most battery in the background.</string>
+    <string name="wizard_usage_action_enable">Enable Access</string>
+    <string name="wizard_usage_action_enabled">Access Enabled</string>
+    <string name="wizard_checklist_title">Setup Readiness</string>
+    <string name="wizard_checklist_hint">Tap any incomplete item to configure it right now.</string>
+    <string name="wizard_check_notif">Real-time Notifications</string>
+    <string name="wizard_check_battery_opt">Unrestricted Background</string>
+    <string name="wizard_check_autostart">Xiaomi Autostart</string>
+    <string name="wizard_check_usage">App Usage Access (Optional)</string>
+    <string name="wizard_action_error">Could not open system settings on this device.</string>
 </resources>

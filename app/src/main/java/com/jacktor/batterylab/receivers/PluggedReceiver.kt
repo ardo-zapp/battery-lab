@@ -16,12 +16,19 @@ import com.jacktor.batterylab.R
 import com.jacktor.batterylab.helpers.BatteryLevelHelper
 import com.jacktor.batterylab.helpers.IdleDrainHelper
 import com.jacktor.batterylab.interfaces.BatteryInfoInterface
+import com.jacktor.batterylab.interfaces.BatteryInfoInterface.Companion.capacityAdded
+import com.jacktor.batterylab.interfaces.BatteryInfoInterface.Companion.coulombAddedMah
+import com.jacktor.batterylab.interfaces.BatteryInfoInterface.Companion.lastSessionPluggedType
+import com.jacktor.batterylab.interfaces.BatteryInfoInterface.Companion.lastSessionStatus
+import com.jacktor.batterylab.interfaces.BatteryInfoInterface.Companion.percentAdded
 import com.jacktor.batterylab.interfaces.BatteryInfoInterface.Companion.tempBatteryLevelWith
 import com.jacktor.batterylab.interfaces.BatteryInfoInterface.Companion.tempAvailableCapacity
 import com.jacktor.batterylab.interfaces.NavigationInterface.Companion.mainActivityRef
 import com.jacktor.batterylab.interfaces.NotificationInterface
 import com.jacktor.batterylab.services.BatteryLabService
-import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.BATTERY_LEVEL_WITH
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGING_COULOMB_ADDED_MAH
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGING_PLUGGED_TYPE
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGING_START_CAPACITY_MAH
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGING_START_LEVEL
 
 class PluggedReceiver : BroadcastReceiver(), BatteryInfoInterface {
@@ -45,16 +52,26 @@ class PluggedReceiver : BroadcastReceiver(), BatteryInfoInterface {
         val status = batteryIntent?.getIntExtra(
             BatteryManager.EXTRA_STATUS, BatteryManager.BATTERY_STATUS_UNKNOWN
         ) ?: BatteryManager.BATTERY_STATUS_UNKNOWN
+        val plugged = batteryIntent?.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0) ?: 0
 
         val pref = PreferenceManager.getDefaultSharedPreferences(context)
         val level = (service.getBatteryLevel(context) ?: 0).coerceIn(0, 100)
+        val startCapacityMah = service.getAvailableCapacity(context)
         service.batteryLevelWith = level
+        service.availableCapacity = 0
         tempBatteryLevelWith = level
-        tempAvailableCapacity = service.getAvailableCapacity(context)
+        tempAvailableCapacity = startCapacityMah
+        lastSessionPluggedType = if (isPlugged(plugged)) plugged else 0
+        lastSessionStatus = status
+        coulombAddedMah = 0.0
+        capacityAdded = 0.0
+        percentAdded = 0
 
         pref.edit {
             putInt(CHARGING_START_LEVEL, level)
-            putInt(BATTERY_LEVEL_WITH, level)
+            putFloat(CHARGING_START_CAPACITY_MAH, startCapacityMah.toFloat())
+            putFloat(CHARGING_COULOMB_ADDED_MAH, 0f)
+            if (isPlugged(plugged)) putInt(CHARGING_PLUGGED_TYPE, plugged)
         }
 
         BatteryInfoInterface.resetChargeStats()

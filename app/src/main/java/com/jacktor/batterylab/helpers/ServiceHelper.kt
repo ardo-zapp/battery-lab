@@ -51,7 +51,7 @@ object ServiceHelper {
                     if (!isStartOverlayServiceFromSettings) delay(3600L)
 
                     context.startService(Intent(context, serviceName))
-                    isStartedBatteryLabService = false
+                    isStartedOverlayService = false
                 }
             } catch (e: Exception) {
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S

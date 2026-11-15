@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?attr/selectableItemBackground"
+    android:gravity="center_vertical"
+    android:minHeight="44dp"
+    android:orientation="horizontal"
+    android:paddingTop="8dp"
+    android:paddingBottom="8dp">
+
+    <ImageView
+        android:id="@+id/iv_check_icon"
+        android:layout_width="22dp"
+        android:layout_height="22dp"
+        tools:ignore="ContentDescription"
+        tools:srcCompat="@drawable/ic_check_circle_24"
+        tools:tint="@color/battery_info_level_normal" />
+
+    <TextView
+        android:id="@+id/tv_check_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="12dp"
+        android:layout_weight="1"
+        android:textAppearance="@style/TextAppearance.Material3.BodyMedium"
+        android:textColor="@color/card_title_text"
+        tools:text="Notifikasi Real-Time" />
+
+    <TextView
+        android:id="@+id/tv_check_status"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="@style/TextAppearance.Material3.LabelMedium"
+        android:textStyle="bold"
+        tools:text="Aktif"
+        tools:textColor="@color/battery_info_level_normal" />
+
+</LinearLayout>

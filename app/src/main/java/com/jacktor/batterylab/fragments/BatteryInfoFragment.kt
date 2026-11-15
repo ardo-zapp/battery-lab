@@ -181,6 +181,7 @@ class BatteryInfoFragment : Fragment(R.layout.battery_info_fragment), SettingsIn
                     batteryIntent?.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1) ?: -1
 
                 withContext(Dispatchers.Main) {
+                    if (!isAdded || view == null) return@withContext
                     updateToolbar(status)
                     val allRows = buildRows(status, sourceOfPower)
                     val headerLand = binding.heroHeaderLand
@@ -442,7 +443,7 @@ class BatteryInfoFragment : Fragment(R.layout.battery_info_fragment), SettingsIn
             secondary = listOf(
                 getString(
                     R.string.battery_health,
-                    getString(getBatteryHealth(requireContext()) ?: R.string.battery_health_great)
+                    getString(getBatteryHealth(requireContext()) ?: R.string.unknown)
                 )
             )
         )

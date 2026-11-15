@@ -685,7 +685,11 @@ object IdleDrainHelper : BatteryInfoInterface {
 
         val df = DecimalFormat("#.#")
 
-        when (diag.statusCode) {
+        if (!diag.allowed) {
+            evalStatus = IdleDrainStatus.NO_DATA
+            diagnosticSummary = context.getString(R.string.app_integrity_tampered)
+            recommendation = context.getString(R.string.tamper_diagnostics_blocked)
+        } else when (diag.statusCode) {
             1 -> {
                 evalStatus = IdleDrainStatus.EXCELLENT
                 diagnosticSummary = context.getString(

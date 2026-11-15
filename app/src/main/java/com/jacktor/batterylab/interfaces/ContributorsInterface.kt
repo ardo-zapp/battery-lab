@@ -24,7 +24,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
 import java.net.HttpURLConnection
-import java.net.URL
+import java.net.URI
 import java.util.concurrent.TimeUnit
 
 interface ContributorsInterface {
@@ -107,7 +107,7 @@ interface ContributorsInterface {
                 try {
                     retry(times = 3) {
                         val connection =
-                            URL(BACKEND_API_CONTRIBUTORS).openConnection() as HttpURLConnection
+                            URI.create(BACKEND_API_CONTRIBUTORS).toURL().openConnection() as HttpURLConnection
                         connection.connectTimeout = 15000
                         connection.readTimeout = 20000
                         connection.requestMethod = "GET"

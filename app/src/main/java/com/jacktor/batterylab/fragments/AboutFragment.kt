@@ -22,6 +22,9 @@ import com.jacktor.batterylab.interfaces.ContributorsInterface
 import com.jacktor.batterylab.utilities.Constants.GITHUB_LINK
 import com.jacktor.batterylab.utilities.Constants.GITHUB_LINK_BATTERY_CAPCITY
 import com.jacktor.batterylab.models.ContributorsModel
+import com.jacktor.batterylab.security.NativeCore
+import com.jacktor.premium.Premium
+import com.jacktor.premium.data.model.PremiumTrustStatus
 
 class AboutFragment : PreferenceFragmentCompat(), ContributorsInterface,
     CheckUpdateInterface {
@@ -32,6 +35,7 @@ class AboutFragment : PreferenceFragmentCompat(), ContributorsInterface,
     private var version: Preference? = null
     private var build: Preference? = null
     private var buildDate: Preference? = null
+    private var appIntegrity: Preference? = null
     private var github: Preference? = null
     private var githubBC: Preference? = null
     private var betaTester: Preference? = null
@@ -50,6 +54,8 @@ class AboutFragment : PreferenceFragmentCompat(), ContributorsInterface,
         build = findPreference("build")
 
         buildDate = findPreference("build_date")
+
+        appIntegrity = findPreference("app_integrity")
 
         checkUpdate = findPreference("check_update")
 
@@ -97,6 +103,12 @@ class AboutFragment : PreferenceFragmentCompat(), ContributorsInterface,
         }
 
         buildDate?.summary = BuildConfig.BUILD_DATE
+
+        updateAppIntegrityInfo()
+        appIntegrity?.setOnPreferenceClickListener {
+            showAppIntegrityDialog()
+            true
+        }
 
         developer?.setOnPreferenceClickListener {
 
@@ -217,6 +229,79 @@ class AboutFragment : PreferenceFragmentCompat(), ContributorsInterface,
         super.onResume()
 
         betaTester?.isVisible = isInstalledGooglePlay
+        updateAppIntegrityInfo()
+    }
+
+    private fun resolveAppIntegrityStatus(): Pair<String, Int> {
+        val ctx = requireContext()
+        val coreTrust = try {
+            NativeCore.nativeVerifyIntegrity(ctx, true)
+        } catch (_: Throwable) {
+            NativeCore.TRUST_TAMPERED
+        }
+        val premTrust = try {
+            Premium.getTrustStatus(ctx, true)
+        } catch (_: Throwable) {
+            PremiumTrustStatus.TAMPERED
+        }
+        val level = minOf(coreTrust, premTrust.code)
+        val label = when (level) {
+            NativeCore.TRUST_OFFICIAL_RELEASE -> getString(R.string.app_integrity_official)
+            NativeCore.TRUST_OWNER_DEBUG -> getString(R.string.app_integrity_owner_debug)
+            NativeCore.TRUST_OPENSOURCE_DEBUG -> getString(R.string.app_integrity_opensource)
+            else -> getString(R.string.app_integrity_tampered)
+        }
+        return label to level
+    }
+
+    private fun updateAppIntegrityInfo() {
+        val (label, _) = resolveAppIntegrityStatus()
+        appIntegrity?.summary = label
+    }
+
+    private fun showAppIntegrityDialog() {
+        val ctx = requireContext()
+        val (statusLabel, level) = resolveAppIntegrityStatus()
+        val report = try {
+            Premium.getSecurityReport(ctx, true)
+        } catch (_: Throwable) {
+            null
+        }
+        val sigText = if (
+            level != NativeCore.TRUST_TAMPERED &&
+            (report == null || (report.pmDiskMatch && report.cmdlineMatch && report.packageAllowed))
+        ) {
+            getString(R.string.app_integrity_valid)
+        } else {
+            getString(R.string.app_integrity_invalid)
+        }
+        val runtimeText = if (
+            level != NativeCore.TRUST_TAMPERED &&
+            (report == null || (report.hooksClean && report.debuggerClean && report.billingProxyClean && report.vaultIntact))
+        ) {
+            getString(R.string.app_integrity_clean)
+        } else {
+            getString(R.string.app_integrity_flagged)
+        }
+        val installerLabel = when (val pkg = report?.installerPackage.orEmpty()) {
+            "com.android.vending", "com.google.android.feedback" -> "Google Play"
+            "" -> getString(R.string.app_integrity_installer_unknown)
+            else -> pkg
+        }
+        MaterialAlertDialogBuilder(ctx)
+            .setIcon(R.drawable.ic_security_24)
+            .setTitle(R.string.app_integrity)
+            .setMessage(
+                getString(
+                    R.string.app_integrity_dialog_message,
+                    statusLabel,
+                    sigText,
+                    runtimeText,
+                    installerLabel
+                )
+            )
+            .setPositiveButton(android.R.string.ok, null)
+            .show()
     }
 
 }

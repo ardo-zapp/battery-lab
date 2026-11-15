@@ -2,25 +2,22 @@ package com.jacktor.batterylab.interfaces
 
 import android.annotation.SuppressLint
 import android.content.ActivityNotFoundException
-import android.content.Context
 import android.content.Intent
-import android.os.PowerManager
 import android.provider.Settings
 import androidx.core.net.toUri
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.jacktor.batterylab.MainActivity
 import com.jacktor.batterylab.R
+import com.jacktor.batterylab.helpers.SetupPermissionHelper
 import com.jacktor.batterylab.utilities.Constants
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 interface BatteryOptimizationsInterface {
 
-    fun MainActivity.isIgnoringBatteryOptimizations(): Boolean {
-        val pm = getSystemService(Context.POWER_SERVICE) as? PowerManager
-        return pm?.isIgnoringBatteryOptimizations(packageName) == true
-    }
+    fun MainActivity.isIgnoringBatteryOptimizations(): Boolean =
+        SetupPermissionHelper.isIgnoringBatteryOptimizations(this)
 
     fun MainActivity.showRequestIgnoringBatteryOptimizationsDialog() {
         if (isIgnoringBatteryOptimizations()) {

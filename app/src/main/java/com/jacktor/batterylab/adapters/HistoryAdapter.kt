@@ -99,24 +99,21 @@ class HistoryAdapter(private var historyList: MutableList<History>) :
             ) 1000.0 else 1.0
         )
 
+        val healthPercent = if (designCapacity > 0 && newResidualCapacity > 0.0) {
+            (newResidualCapacity / designCapacity) * 100.0
+        } else {
+            0.0
+        }
+
         return if (isCapacityInWh) context.getString(
             R.string.residual_capacity_wh,
             DecimalFormat("#.#").format(getCapacityInWh(context, newResidualCapacity)),
-            "${
-                DecimalFormat("#.#").format(
-                    ((newResidualCapacity / designCapacity)) * 100.0
-                )
-            }%"
+            "${DecimalFormat("#.#").format(healthPercent)}%"
         )
         else context.getString(
-            R.string.residual_capacity, DecimalFormat("#.#").format(
-                newResidualCapacity
-            ), "${
-                DecimalFormat("#.#").format(
-                    (
-                            (newResidualCapacity / designCapacity)) * 100.0
-                )
-            }%"
+            R.string.residual_capacity,
+            DecimalFormat("#.#").format(newResidualCapacity),
+            "${DecimalFormat("#.#").format(healthPercent)}%"
         )
     }
 

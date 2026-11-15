@@ -2,9 +2,9 @@ package com.jacktor.batterylab
 
 import android.content.Intent
 import android.os.Bundle
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.edit
-import androidx.preference.PreferenceManager
+import androidx.core.app.ActivityOptionsCompat
 import com.jacktor.batterylab.databinding.ActivityOnboardingBinding
 import com.jacktor.batterylab.databinding.ItemFeatureBinding
 import com.jacktor.batterylab.helpers.MotionHelper
@@ -12,6 +12,14 @@ import com.jacktor.batterylab.helpers.MotionHelper
 class OnboardingActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityOnboardingBinding
+
+    private val setupWizardLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK) {
+            finish()
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,11 +62,13 @@ class OnboardingActivity : AppCompatActivity() {
         MotionHelper.animateEntrance(binding.btnContinue, delayMs = 260L)
 
         binding.btnContinue.setOnClickListener {
-            val prefs = PreferenceManager.getDefaultSharedPreferences(this)
-
-            prefs.edit { putBoolean("is_first_launch", false) }
-            startActivity(Intent(this, MainActivity::class.java))
-            finish()
+            val options = ActivityOptionsCompat.makeCustomAnimation(
+                this, android.R.anim.fade_in, android.R.anim.fade_out
+            )
+            setupWizardLauncher.launch(
+                Intent(this, SetupWizardActivity::class.java),
+                options
+            )
         }
     }
 

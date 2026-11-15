@@ -220,6 +220,17 @@ class StressImpedanceFragment : Fragment(R.layout.stress_impedance_fragment), Ba
                     loadCurrentMa = loadCurrentMa
                 )
 
+                if (NativeCore.isAppTampered(ctx)) {
+                    if (isAdded) {
+                        MaterialAlertDialogBuilder(ctx)
+                            .setTitle(R.string.tamper_warning_title)
+                            .setMessage(R.string.tamper_diagnostics_blocked)
+                            .setPositiveButton(android.R.string.ok, null)
+                            .show()
+                    }
+                    return@launch
+                }
+
                 if (pulse.success) {
                     val measuredMohm = pulse.measuredMohm
                     PreferenceManager.getDefaultSharedPreferences(ctx).edit {
@@ -315,6 +326,32 @@ class StressImpedanceFragment : Fragment(R.layout.stress_impedance_fragment), Ba
             savedRintMohm = savedRint,
             forceSample = forceSample
         )
+
+        if (!eval.allowed) {
+            val dangerColor = ContextCompat.getColor(ctx, R.color.battery_info_voltage_danger)
+            MotionHelper.animateBadgeColors(binding.tvStressBadge, dangerColor)
+            binding.tvStressBadge.text = getString(R.string.app_integrity_tampered)
+            binding.tvStressScoreValue.setTextColor(dangerColor)
+            binding.tvStressScoreValue.text = "--"
+            binding.progressStressScore.setProgressCompat(0, false)
+            binding.progressStressScore.setIndicatorColor(dangerColor)
+            MotionHelper.animateImageTint(binding.imgStressIcon, dangerColor)
+            binding.tvCRateValue.text = "--"
+            binding.tvRealPowerWatt.text = "--"
+            binding.tvInternalImpedance.text = "--"
+            binding.tvVoltageSag.text = "--"
+            binding.tvJouleHeat.text = "--"
+            binding.tvWearMultiplier.text = "--"
+            binding.tvVectorThermalPct.text = "--"
+            binding.tvVectorVoltagePct.text = "--"
+            binding.tvVectorCurrentPct.text = "--"
+            binding.progressVectorThermal.setProgressCompat(0, false)
+            binding.progressVectorVoltage.setProgressCompat(0, false)
+            binding.progressVectorCurrent.setProgressCompat(0, false)
+            binding.tvStressDiagnostic.text = getString(R.string.app_integrity_tampered)
+            binding.tvStressRecommendation.text = getString(R.string.tamper_diagnostics_blocked)
+            return
+        }
 
         val cellMultiplier = eval.cellMultiplier
         val cellVoltageMv = rawVoltageMv / cellMultiplier.toDouble()

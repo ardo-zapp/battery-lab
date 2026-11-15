@@ -1,9 +1,11 @@
 import com.android.build.api.dsl.ApplicationExtension
 import com.google.firebase.crashlytics.buildtools.gradle.CrashlyticsExtension
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.io.FileInputStream
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.Properties
 
 plugins {
     id("com.android.application")
@@ -53,8 +55,45 @@ configure<ApplicationExtension> {
 
     namespace = "com.jacktor.batterylab"
 
+    val localProps = Properties().apply {
+        val localFile = rootProject.file("local.properties")
+        if (localFile.exists()) {
+            FileInputStream(localFile).use { load(it) }
+        }
+    }
+    val releaseStorePath = localProps.getProperty("signing.storeFile")
+        ?: System.getenv("ANDROID_KEYSTORE_PATH")
+    val releaseStorePass = localProps.getProperty("signing.storePassword")
+        ?: System.getenv("ANDROID_KEYSTORE_PASSWORD")
+    val releaseKeyAlias = localProps.getProperty("signing.keyAlias")
+        ?: System.getenv("ANDROID_KEY_ALIAS")
+    val releaseKeyPass = localProps.getProperty("signing.keyPassword")
+        ?: System.getenv("ANDROID_KEY_PASSWORD")
+    val hasReleaseSigning = !releaseStorePath.isNullOrBlank() &&
+        file(releaseStorePath).exists() &&
+        !releaseStorePass.isNullOrBlank() &&
+        !releaseKeyAlias.isNullOrBlank() &&
+        !releaseKeyPass.isNullOrBlank()
+
+    signingConfigs {
+        if (hasReleaseSigning) {
+            create("release") {
+                storeFile = file(releaseStorePath)
+                storePassword = releaseStorePass
+                keyAlias = releaseKeyAlias
+                keyPassword = releaseKeyPass
+                enableV1Signing = true
+                enableV2Signing = true
+                enableV3Signing = true
+            }
+        }
+    }
+
     buildTypes {
         getByName("release") {
+            if (hasReleaseSigning) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             isMinifyEnabled = true
             isShrinkResources = true
             manifestPlaceholders["appLabel"] = "@string/app_name"
@@ -85,6 +124,11 @@ configure<ApplicationExtension> {
 
     androidResources {
         ignoreAssetsPattern = "*.md"
+    }
+
+    dependenciesInfo {
+        includeInApk = false
+        includeInBundle = false
     }
 
     (this as ExtensionAware).extensions.configure<CrashlyticsExtension>("firebaseCrashlytics") {

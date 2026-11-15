@@ -9,6 +9,9 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
@@ -27,6 +30,8 @@ import com.jacktor.premium.Premium
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.seconds
 
@@ -36,6 +41,7 @@ class HistoryFragment : Fragment(R.layout.history_fragment), MenuInterface {
     lateinit var historyAdapter: HistoryAdapter
 
     private var isPremium = false
+    private var swipeHelperAttached = false
     private var emptyMascotFloatAnimator: ObjectAnimator? = null
     private var hasAnimatedEmptyState = false
 
@@ -50,7 +56,7 @@ class HistoryFragment : Fragment(R.layout.history_fragment), MenuInterface {
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        isPremium = NativeCore.hasPremiumAccess(requireContext())
+        isPremium = NativeCore.hasPremiumAccess(requireContext(), NativeCore.FEATURE_HISTORY)
         binding = HistoryFragmentBinding.inflate(inflater, container, false)
         pref = PreferenceManager.getDefaultSharedPreferences(requireContext())
         return binding?.root?.rootView
@@ -59,19 +65,41 @@ class HistoryFragment : Fragment(R.layout.history_fragment), MenuInterface {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         instance = this
-        isPremium = NativeCore.hasPremiumAccess(requireContext())
+        swipeHelperAttached = false
+        isPremium = NativeCore.hasPremiumAccess(requireContext(), NativeCore.FEATURE_HISTORY)
 
         updateHistoryUI()
 
-        if (isPremium) swipeToRemoveHistory()
+        if (isPremium && !swipeHelperAttached) {
+            swipeToRemoveHistory()
+            swipeHelperAttached = true
+        }
 
         refreshEmptyHistory()
         refreshHistory()
+
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+                Premium.isPremium().combine(Premium.premiumStatusReady()) { p, r -> p to r }
+                    .collectLatest {
+                        val ctx = context ?: return@collectLatest
+                        val updated = NativeCore.hasPremiumAccess(ctx, NativeCore.FEATURE_HISTORY)
+                        if (updated != isPremium) {
+                            isPremium = updated
+                            if (isPremium && !swipeHelperAttached) {
+                                swipeToRemoveHistory()
+                                swipeHelperAttached = true
+                            }
+                            updateHistoryUI()
+                        }
+                    }
+            }
+        }
     }
 
     override fun onResume() {
         super.onResume()
-        isPremium = NativeCore.hasPremiumAccess(requireContext())
+        isPremium = NativeCore.hasPremiumAccess(requireContext(), NativeCore.FEATURE_HISTORY)
         updateHistoryUI()
     }
 

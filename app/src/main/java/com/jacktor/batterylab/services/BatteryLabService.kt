@@ -32,6 +32,9 @@ import com.jacktor.batterylab.helpers.IdleDrainHelper
 import com.jacktor.batterylab.helpers.ServiceHelper
 import com.jacktor.batterylab.interfaces.BatteryInfoInterface
 import com.jacktor.batterylab.interfaces.BatteryInfoInterface.Companion.capacityAdded
+import com.jacktor.batterylab.interfaces.BatteryInfoInterface.Companion.coulombAddedMah
+import com.jacktor.batterylab.interfaces.BatteryInfoInterface.Companion.lastSessionPluggedType
+import com.jacktor.batterylab.interfaces.BatteryInfoInterface.Companion.lastSessionStatus
 import com.jacktor.batterylab.interfaces.BatteryInfoInterface.Companion.maxChargeCurrent
 import com.jacktor.batterylab.interfaces.BatteryInfoInterface.Companion.percentAdded
 import com.jacktor.batterylab.interfaces.BatteryInfoInterface.Companion.tempBatteryLevelWith
@@ -59,6 +62,9 @@ import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.BATTERY_LEVE
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.BATTERY_LEVEL_WITH
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.BATTERY_NOTIFY_DISCHARGED_VOLTAGE
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CAPACITY_ADDED
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGING_COULOMB_ADDED_MAH
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGING_PLUGGED_TYPE
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGING_START_CAPACITY_MAH
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGING_START_LEVEL
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.DESIGN_CAPACITY
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.FULL_CHARGE_REMINDER_FREQUENCY
@@ -103,7 +109,7 @@ class BatteryLabService : Service(), NotificationInterface, BatteryInfoInterface
     private var wakeLock: PowerManager.WakeLock? = null
     private var isScreenTimeJob = false
     private var isJob = false
-    private var availableCapacity = 0
+    var availableCapacity = 0
     private var isReceiverRegistered = false
 
     var isFull = false
@@ -112,6 +118,7 @@ class BatteryLabService : Service(), NotificationInterface, BatteryInfoInterface
     var isPluggedOrUnplugged = false
     var batteryLevelWith = -1
     var seconds = 0
+    private var lastCoulombTickMs = 0L
     private var screenTimeBase: Long = 0L
     private var screenOnStartTime: Long = -1L
 
@@ -214,28 +221,38 @@ class BatteryLabService : Service(), NotificationInterface, BatteryInfoInterface
             batteryIntent = registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
 
             val plugged = batteryIntent?.getIntExtra(BatteryManager.EXTRA_PLUGGED, -1) ?: -1
-            isPowerConnected = when (plugged) {
-                BatteryManager.BATTERY_PLUGGED_AC,
-                BatteryManager.BATTERY_PLUGGED_USB,
-                BatteryManager.BATTERY_PLUGGED_WIRELESS -> true
-                else -> false
-            }
+            isPowerConnected = isPlugged(plugged)
 
             if (isPowerConnected) {
                 val currentLevel = getBatteryLevel(applicationContext) ?: 0
                 val savedStart = pref.getInt(CHARGING_START_LEVEL, -1)
                 val startLevel = if (savedStart in 0..currentLevel) savedStart else currentLevel
+                val savedStartCap = pref.getFloat(CHARGING_START_CAPACITY_MAH, 0f).toDouble()
+                val restoredStartCap = if (savedStart in 0..currentLevel && savedStartCap > 1.0) {
+                    savedStartCap
+                } else {
+                    getAvailableCapacity(applicationContext)
+                }
                 pref.edit {
                     putInt(CHARGING_START_LEVEL, startLevel)
-                    putInt(BATTERY_LEVEL_WITH, startLevel)
+                    if (isPlugged(plugged)) putInt(CHARGING_PLUGGED_TYPE, plugged)
+                    if (savedStart !in 0..currentLevel || savedStartCap <= 1.0) {
+                        putFloat(CHARGING_START_CAPACITY_MAH, restoredStartCap.toFloat())
+                        putFloat(CHARGING_COULOMB_ADDED_MAH, 0f)
+                    }
                 }
                 batteryLevelWith = startLevel
                 tempBatteryLevelWith = startLevel
-                tempAvailableCapacity = getAvailableCapacity(applicationContext)
+                tempAvailableCapacity = restoredStartCap
+                lastSessionPluggedType = if (isPlugged(plugged)) plugged else 0
+                coulombAddedMah = pref.getFloat(CHARGING_COULOMB_ADDED_MAH, 0f)
+                    .toDouble().coerceAtLeast(0.0)
+                lastCoulombTickMs = SystemClock.elapsedRealtime()
 
                 val status = batteryIntent?.getIntExtra(
                     BatteryManager.EXTRA_STATUS, BatteryManager.BATTERY_STATUS_UNKNOWN
                 ) ?: BatteryManager.BATTERY_STATUS_UNKNOWN
+                lastSessionStatus = status
 
                 if (mainActivityRef?.get()?.fragment != null) {
                     if (mainActivityRef?.get()?.fragment is BatteryInfoFragment)
@@ -301,9 +318,13 @@ class BatteryLabService : Service(), NotificationInterface, BatteryInfoInterface
         }
     }
 
+    fun refreshPremiumStatus() {
+        isPremium = NativeCore.hasPremiumAccess(this, NativeCore.FEATURE_SERVICE)
+    }
+
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         // Premium
-        isPremium = NativeCore.hasPremiumAccess(this)
+        refreshPremiumStatus()
         Premium.revalidate(this) //Revalidate
 
         // PowerConnectionReceiver on/off
@@ -367,13 +388,11 @@ class BatteryLabService : Service(), NotificationInterface, BatteryInfoInterface
                             batteryLevelWith = if (savedStart in 0..lvl) savedStart else lvl
                             pref.edit {
                                 putInt(CHARGING_START_LEVEL, batteryLevelWith)
-                                putInt(BATTERY_LEVEL_WITH, batteryLevelWith)
                             }
                         } else if (lvl < batteryLevelWith) {
                             batteryLevelWith = lvl
                             pref.edit {
                                 putInt(CHARGING_START_LEVEL, lvl)
-                                putInt(BATTERY_LEVEL_WITH, lvl)
                             }
                         }
                     }
@@ -383,6 +402,36 @@ class BatteryLabService : Service(), NotificationInterface, BatteryInfoInterface
                 val status = batteryIntent?.getIntExtra(
                     BatteryManager.EXTRA_STATUS, BatteryManager.BATTERY_STATUS_UNKNOWN
                 )
+                val pluggedNow = batteryIntent?.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0) ?: 0
+                if (isPlugged(pluggedNow)) {
+                    lastSessionPluggedType = pluggedNow
+                    if (pref.getInt(CHARGING_PLUGGED_TYPE, 0) != pluggedNow) {
+                        pref.edit { putInt(CHARGING_PLUGGED_TYPE, pluggedNow) }
+                    }
+                }
+                if (status == BatteryManager.BATTERY_STATUS_CHARGING ||
+                    status == BatteryManager.BATTERY_STATUS_FULL
+                ) {
+                    lastSessionStatus = status
+                }
+                if (isPlugged(pluggedNow) && !isPowerConnected) {
+                    isPowerConnected = true
+                    val lvl = (getBatteryLevel(applicationContext) ?: 0).coerceIn(0, 100)
+                    val savedStart = pref.getInt(CHARGING_START_LEVEL, -1)
+                    val startLvl = if (savedStart in 0..lvl) savedStart else lvl
+                    val savedStartCap = pref.getFloat(CHARGING_START_CAPACITY_MAH, 0f).toDouble()
+                    val startCap = if (savedStart in 0..lvl && savedStartCap > 1.0) savedStartCap
+                    else getAvailableCapacity(applicationContext)
+                    batteryLevelWith = startLvl
+                    tempBatteryLevelWith = startLvl
+                    tempAvailableCapacity = startCap
+                    if (lastCoulombTickMs == 0L) lastCoulombTickMs = SystemClock.elapsedRealtime()
+                    pref.edit {
+                        putInt(CHARGING_START_LEVEL, startLvl)
+                        putInt(CHARGING_PLUGGED_TYPE, pluggedNow)
+                        putFloat(CHARGING_START_CAPACITY_MAH, startCap.toFloat())
+                    }
+                }
 
                 val temperature = getTemperatureInCelsius(applicationContext)
 
@@ -526,10 +575,11 @@ class BatteryLabService : Service(), NotificationInterface, BatteryInfoInterface
         else if (savedStart in 0..batteryLevel) savedStart
         else pref.getInt(BATTERY_LEVEL_WITH, batteryLevel)
 
-        val numberOfCycles = if (batteryLevel > startLevel && startLevel >= 0) {
-            pref.getFloat(NUMBER_OF_CYCLES, 0f) + ((batteryLevel - startLevel) / 100f)
-        } else {
-            pref.getFloat(NUMBER_OF_CYCLES, 0f)
+        val numberOfCycles = when {
+            batteryLevel == startLevel -> pref.getFloat(NUMBER_OF_CYCLES, 0f) + 0.01f
+            batteryLevel > startLevel && startLevel >= 0 ->
+                pref.getFloat(NUMBER_OF_CYCLES, 0f) + (batteryLevel / 100f) - (startLevel / 100f)
+            else -> pref.getFloat(NUMBER_OF_CYCLES, 0f)
         }
 
         notificationManager?.cancelAll()
@@ -546,35 +596,19 @@ class BatteryLabService : Service(), NotificationInterface, BatteryInfoInterface
                 putInt(BATTERY_LEVEL_WITH, startLevel)
                 putInt(BATTERY_LEVEL_TO, batteryLevel)
             }
-            if (capacityAdded > 0) pref.edit { putFloat(CAPACITY_ADDED, capacityAdded.toFloat()) }
+            val finalCap = kotlin.math.max(capacityAdded, coulombAddedMah)
+            if (finalCap > 0) pref.edit { putFloat(CAPACITY_ADDED, finalCap.toFloat()) }
             if (percentAdded > 0) pref.edit { putInt(PERCENT_ADDED, percentAdded) }
+            if (coulombAddedMah > 0) pref.edit {
+                putFloat(CHARGING_COULOMB_ADDED_MAH, coulombAddedMah.toFloat())
+            }
             if (isSaveNumberOfCharges) pref.edit { putFloat(NUMBER_OF_CYCLES, numberOfCycles) }
             percentAdded = 0
             capacityAdded = 0.0
+            coulombAddedMah = 0.0
         }
 
-        if (BatteryInfoInterface.residualCapacity > 0 && isFull) {
-            pref.apply {
-                val isMicroAh = pref.getString(UNIT_OF_MEASUREMENT_OF_available_capacity, "μAh") == "μAh"
-                val factor = if (isMicroAh) 1000.0 else 1.0
-                edit {
-                    putInt(
-                        RESIDUAL_CAPACITY,
-                        (getAvailableCapacity(applicationContext) * factor).toInt()
-                    )
-                    putBoolean(BatteryInfoInterface.RESIDUAL_DUAL_CELL_VERIFIED_PREF, true)
-                }
-            }
-            HistoryHelper.addHistory(
-                applicationContext,
-                DateHelper.getDate(
-                    DateHelper.getCurrentDay(),
-                    DateHelper.getCurrentMonth(),
-                    DateHelper.getCurrentYear()
-                ),
-                pref.getInt(RESIDUAL_CAPACITY, 0)
-            )
-        }
+        lastCoulombTickMs = 0L
 
         BatteryInfoInterface.batteryLevel = 0
         BatteryInfoInterface.tempBatteryLevel = 0
@@ -591,13 +625,22 @@ class BatteryLabService : Service(), NotificationInterface, BatteryInfoInterface
     }
 
     private suspend fun batteryCharging() {
-        getChargeDischargeCurrent(applicationContext)
+        val chargeCurrentMa = getChargeDischargeCurrent(applicationContext)
         updateAutoFastChargeState(applicationContext)
+
+        val nowMs = SystemClock.elapsedRealtime()
+        if (lastCoulombTickMs > 0L && chargeCurrentMa in 50..25_000) {
+            val dtMs = (nowMs - lastCoulombTickMs).coerceIn(0L, 5000L)
+            if (dtMs > 0L) {
+                coulombAddedMah += chargeCurrentMa.toDouble() * (dtMs / 3_600_000.0)
+            }
+        }
+        lastCoulombTickMs = nowMs
 
         val batteryLevel = getBatteryLevel(applicationContext) ?: 0
 
         if (batteryLevel == 100) {
-            if (secondsFullCharge >= 3600) batteryCharged()
+            if (!isFull && secondsFullCharge >= 120) batteryCharged()
             availableCapacity = (getAvailableCapacity(applicationContext) *
                     if (pref.getString(
                             UNIT_OF_MEASUREMENT_OF_available_capacity,
@@ -608,6 +651,15 @@ class BatteryLabService : Service(), NotificationInterface, BatteryInfoInterface
             secondsFullCharge++
         } else {
             if (secondsFullCharge > 0) secondsFullCharge = 0
+        }
+
+        if (seconds % 5 == 0 && (coulombAddedMah > 0.0 || capacityAdded > 0.0 || percentAdded > 0)) {
+            val bestAdded = kotlin.math.max(capacityAdded, coulombAddedMah)
+            pref.edit {
+                if (coulombAddedMah > 0.0) putFloat(CHARGING_COULOMB_ADDED_MAH, coulombAddedMah.toFloat())
+                if (bestAdded > 0.0) putFloat(CAPACITY_ADDED, bestAdded.toFloat())
+                if (percentAdded > 0) putInt(PERCENT_ADDED, percentAdded)
+            }
         }
 
 
@@ -662,6 +714,7 @@ class BatteryLabService : Service(), NotificationInterface, BatteryInfoInterface
                 .toDouble() * factor
 
         val residualCapacity = if (availableCapacity > 0) availableCapacity else designCapacity.toInt()
+        val residualCapacityAverage = getResidualCapacityAverage(applicationContext, residualCapacity)
 
         val currentDate = DateHelper.getDate(
             DateHelper.getCurrentDay(),
@@ -683,11 +736,17 @@ class BatteryLabService : Service(), NotificationInterface, BatteryInfoInterface
         else if (savedStart in 0..batteryLevel) savedStart
         else pref.getInt(BATTERY_LEVEL_WITH, batteryLevel)
 
-        val numberOfCycles = if (batteryLevel > startLevel && startLevel >= 0) {
-            pref.getFloat(NUMBER_OF_CYCLES, 0f) + ((batteryLevel - startLevel) / 100f)
-        } else {
-            pref.getFloat(NUMBER_OF_CYCLES, 0f)
+        val numberOfCycles = when {
+            batteryLevel == startLevel -> pref.getFloat(NUMBER_OF_CYCLES, 0f) + 0.01f
+            batteryLevel > startLevel && startLevel >= 0 ->
+                pref.getFloat(NUMBER_OF_CYCLES, 0f) + (batteryLevel / 100f) - (startLevel / 100f)
+            else -> pref.getFloat(NUMBER_OF_CYCLES, 0f)
         }
+
+        val finalAddedPct = if (percentAdded > 0) percentAdded else (batteryLevel - startLevel).coerceAtLeast(0)
+        val finalAddedCap = kotlin.math.max(capacityAdded, coulombAddedMah)
+        capacityAdded = finalAddedCap
+        percentAdded = finalAddedPct
 
         pref.apply {
             val numberOfCharges = getLong(NUMBER_OF_CHARGES, 0)
@@ -700,24 +759,24 @@ class BatteryLabService : Service(), NotificationInterface, BatteryInfoInterface
 
             edit {
                 putInt(LAST_CHARGE_TIME, seconds)
-                putInt(RESIDUAL_CAPACITY, residualCapacity)
+                putInt(RESIDUAL_CAPACITY, residualCapacityAverage)
                 putBoolean(BatteryInfoInterface.RESIDUAL_DUAL_CELL_VERIFIED_PREF, true)
                 putInt(BATTERY_LEVEL_WITH, startLevel)
                 putInt(BATTERY_LEVEL_TO, batteryLevel)
                 putLong(NUMBER_OF_FULL_CHARGES, getLong(NUMBER_OF_FULL_CHARGES, 0) + 1)
-                putFloat(CAPACITY_ADDED, capacityAdded.toFloat())
-                putInt(PERCENT_ADDED, percentAdded)
+                putFloat(CAPACITY_ADDED, finalAddedCap.toFloat())
+                putInt(PERCENT_ADDED, finalAddedPct)
             }
             if (isSaveNumberOfCharges) edit { putFloat(NUMBER_OF_CYCLES, numberOfCycles) }
         }
 
         withContext(Dispatchers.Main) {
-            if (residualCapacity > 0 && seconds >= 10) {
+            if (residualCapacityAverage > 0 && seconds >= 10) {
                 withContext(Dispatchers.IO) {
                     HistoryHelper.addHistory(
                         applicationContext,
                         currentDate,
-                        residualCapacity
+                        residualCapacityAverage
                     )
                 }
             }

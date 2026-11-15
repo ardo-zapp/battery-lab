@@ -110,6 +110,9 @@ object PreferencesKeys {
     const val BATTERY_LEVEL_WITH = "battery_level_with"
     const val BATTERY_LEVEL_TO = "battery_level_to"
     const val CHARGING_START_LEVEL = "charging_start_level"
+    const val CHARGING_START_CAPACITY_MAH = "charging_start_capacity_mah"
+    const val CHARGING_COULOMB_ADDED_MAH = "charging_coulomb_added_mah"
+    const val CHARGING_PLUGGED_TYPE = "charging_plugged_type"
     const val NUMBER_OF_CYCLES = "number_of_cycles"
     const val NUMBER_OF_FULL_CHARGES = "number_of_full_charges"
 

@@ -2,6 +2,8 @@ package com.jacktor.batterylab.security
 
 import android.content.Context
 import com.jacktor.premium.Premium
+import com.jacktor.premium.data.model.PremiumTrustStatus
+import kotlin.random.Random
 
 /**
  * Open-source JNI bridge to the compiled prebuilt native engine (`libbatterylab_core.so`).
@@ -13,6 +15,19 @@ object NativeCore {
     const val TRUST_OPENSOURCE_DEBUG = 1
     const val TRUST_OWNER_DEBUG = 2
     const val TRUST_OFFICIAL_RELEASE = 3
+
+    const val FEATURE_GENERAL = 0
+    const val FEATURE_HISTORY = 1
+    const val FEATURE_ADS = 2
+    const val FEATURE_SETTINGS = 3
+    const val FEATURE_SERVICE = 4
+    const val FEATURE_NOTIFICATION = 5
+    const val FEATURE_UNPLUGGED = 6
+    const val FEATURE_MENU = 7
+    const val FEATURE_OVERLAY = 8
+
+    const val PERMIT_BASE_MAGIC = 0x5A3C96E12D4B87F3L
+    const val PERMIT_STEP_MAGIC = 0x4F1BBCDCBEA5C395L
 
     init {
         System.loadLibrary("batterylab_core")
@@ -69,31 +84,69 @@ object NativeCore {
         val wearCapacityMah: Double
     )
 
-    fun hasPremiumAccess(context: Context, featureCode: Int = 0): Boolean {
-        val rawPremium = try {
-            Premium.isPremium().value
+    @Suppress("NOTHING_TO_INLINE")
+    inline fun isAppTampered(context: Context): Boolean {
+        val appCtx = context.applicationContext
+        val coreTampered = nativeVerifyIntegrity(appCtx, false) == TRUST_TAMPERED
+        val premTampered = try {
+            Premium.getTrustStatus(appCtx, false) == PremiumTrustStatus.TAMPERED
         } catch (_: Throwable) {
-            false
+            true
         }
-        return nativeIsPremiumAllowed(context.applicationContext, rawPremium, featureCode)
+        return coreTampered || premTampered
     }
 
-    fun resolveHistoryDisplayCount(context: Context, totalCount: Int): Int {
-        val rawPremium = try {
-            Premium.isPremium().value
+    @Suppress("NOTHING_TO_INLINE")
+    inline fun hasPremiumAccess(context: Context, featureCode: Int = FEATURE_GENERAL): Boolean {
+        val appCtx = context.applicationContext
+        val coreTrust = nativeVerifyIntegrity(appCtx, false)
+        if (coreTrust != TRUST_OFFICIAL_RELEASE && coreTrust != TRUST_OWNER_DEBUG) {
+            return false
+        }
+        val premTrust = try {
+            Premium.getTrustStatus(appCtx, false)
+        } catch (_: Throwable) {
+            return false
+        }
+        if (premTrust != PremiumTrustStatus.OFFICIAL_RELEASE &&
+            premTrust != PremiumTrustStatus.OWNER_DEBUG
+        ) {
+            return false
+        }
+        val entitledNow = try {
+            Premium.isPremiumNow(appCtx) && Premium.isPremium().value
         } catch (_: Throwable) {
             false
         }
-        return nativeResolveHistoryLimit(context.applicationContext, rawPremium, totalCount)
+        if (!entitledNow) return false
+        val nonce = Random.nextLong()
+        val permit = nativeComputeFeaturePermit(appCtx, true, featureCode, nonce)
+        val expected = nonce xor (PERMIT_BASE_MAGIC + ((featureCode.toLong() and 0xFFFFFFFFL) * PERMIT_STEP_MAGIC))
+        return permit == expected && nativeIsPremiumAllowed(appCtx, true, featureCode)
     }
 
-    fun shouldSuppressAds(context: Context, premiumReady: Boolean): Boolean {
+    @Suppress("NOTHING_TO_INLINE")
+    inline fun resolveHistoryDisplayCount(context: Context, totalCount: Int): Int {
+        val appCtx = context.applicationContext
         val rawPremium = try {
-            Premium.isPremium().value
+            Premium.isPremiumNow(appCtx) && Premium.isPremium().value
         } catch (_: Throwable) {
             false
         }
-        return nativeShouldSuppressAds(context.applicationContext, rawPremium, premiumReady)
+        val limit = nativeResolveHistoryLimit(appCtx, rawPremium, totalCount)
+        if (!hasPremiumAccess(appCtx, FEATURE_HISTORY)) {
+            return limit.coerceAtMost(10).coerceAtLeast(0)
+        }
+        return limit
+    }
+
+    @Suppress("NOTHING_TO_INLINE")
+    inline fun shouldSuppressAds(context: Context, premiumReady: Boolean): Boolean {
+        if (!premiumReady) return false
+        val appCtx = context.applicationContext
+        if (isAppTampered(appCtx)) return false
+        return hasPremiumAccess(appCtx, FEATURE_ADS) &&
+            nativeShouldSuppressAds(appCtx, true, true)
     }
 
     fun evaluateStressMetrics(
@@ -258,6 +311,7 @@ object NativeCore {
     external fun nativeIsPremiumAllowed(context: Context, requestedPremium: Boolean, featureCode: Int): Boolean
     external fun nativeResolveHistoryLimit(context: Context, requestedPremium: Boolean, totalCount: Int): Int
     external fun nativeShouldSuppressAds(context: Context, requestedPremium: Boolean, premiumReady: Boolean): Boolean
+    external fun nativeComputeFeaturePermit(context: Context, requestedPremium: Boolean, featureCode: Int, nonce: Long): Long
 
     external fun nativeEvaluateStressMetrics(
         context: Context,

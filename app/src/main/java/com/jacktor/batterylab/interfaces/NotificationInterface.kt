@@ -137,7 +137,7 @@ interface NotificationInterface : BatteryInfoInterface {
 
             setContentIntent(openApp)
 
-            if (NativeCore.hasPremiumAccess(context)) {
+            if (NativeCore.hasPremiumAccess(context, NativeCore.FEATURE_NOTIFICATION)) {
                 if (pref.getBoolean(
                         SHOW_STOP_SERVICE, context.resources.getBoolean(
                             R.bool.show_stop_service
@@ -151,6 +151,8 @@ interface NotificationInterface : BatteryInfoInterface {
                         )
                     ) && mActions.isNotEmpty()
                 ) mActions.clear()
+            } else if (mActions.isNotEmpty()) {
+                mActions.clear()
             }
             val remoteViewsServiceContent = RemoteViews(
                 context.packageName,
@@ -292,7 +294,7 @@ interface NotificationInterface : BatteryInfoInterface {
             setOnlyAlertOnce(true)
             setSilent(true)
 
-            if (NativeCore.hasPremiumAccess(context)) {
+            if (NativeCore.hasPremiumAccess(context, NativeCore.FEATURE_NOTIFICATION)) {
                 if (pref.getBoolean(
                         SHOW_STOP_SERVICE, context.resources.getBoolean(
                             R.bool.show_stop_service
@@ -306,6 +308,8 @@ interface NotificationInterface : BatteryInfoInterface {
                         )
                     ) && mActions.isNotEmpty()
                 ) mActions.clear()
+            } else if (mActions.isNotEmpty()) {
+                mActions.clear()
             }
 
             val remoteViewsServiceContent = RemoteViews(
