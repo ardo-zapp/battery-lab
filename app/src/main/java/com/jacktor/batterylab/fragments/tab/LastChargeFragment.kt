@@ -113,7 +113,7 @@ class LastChargeFragment : Fragment(R.layout.last_charge_fragment), BatteryInfoI
         val startLevel = pref.getInt(BATTERY_LEVEL_WITH, -1)
         val endLevel = pref.getInt(BATTERY_LEVEL_LAST_CHARGE, -1)
             .takeIf { it >= 0 } ?: pref.getInt(BATTERY_LEVEL_TO, 0)
-        binding.tvBatteryLevel.text = if (startLevel in 0..endLevel) {
+        binding.tvBatteryLevel.text = if (startLevel in 0..100 && endLevel in 0..100) {
             "$startLevel% → $endLevel%"
         } else {
             "$endLevel%"
@@ -121,11 +121,16 @@ class LastChargeFragment : Fragment(R.layout.last_charge_fragment), BatteryInfoI
 
         binding.tvChargingDuration.text = TimeHelper.getTime(chargingTime.toLong())
 
-        val capAdded = pref.getFloat(CAPACITY_ADDED_LAST_CHARGE, 0f)
-            .takeIf { it > 0f }?.toDouble()
-            ?: pref.getFloat(CAPACITY_ADDED, 0f).toDouble()
-        val pctAdded = pref.getInt(PERCENT_ADDED_LAST_CHARGE, 0)
-            .takeIf { it > 0 } ?: pref.getInt(PERCENT_ADDED, (endLevel - startLevel).coerceAtLeast(0))
+        val capAdded = if (pref.contains(CAPACITY_ADDED_LAST_CHARGE)) {
+            pref.getFloat(CAPACITY_ADDED_LAST_CHARGE, 0f).toDouble()
+        } else {
+            pref.getFloat(CAPACITY_ADDED, 0f).toDouble()
+        }
+        val pctAdded = if (pref.contains(PERCENT_ADDED_LAST_CHARGE)) {
+            pref.getInt(PERCENT_ADDED_LAST_CHARGE, 0)
+        } else {
+            pref.getInt(PERCENT_ADDED, (endLevel - startLevel).coerceAtLeast(0))
+        }
         binding.tvCapacityAdded.text = if (isWh) {
             "+${df.format(getCapacityInWh(ctx, capAdded))} Wh ($pctAdded%)"
         } else {
@@ -161,17 +166,27 @@ class LastChargeFragment : Fragment(R.layout.last_charge_fragment), BatteryInfoI
             else -> "N/A"
         }
 
-        val isFast = pref.getBoolean(IS_FAST_CHARGE_LAST_CHARGE, false)
-        val fastWatts = pref.getFloat(FAST_CHARGE_WATTS_LAST_CHARGE, 0f).toDouble()
+        val maxCurrent = pref.getInt(MAX_CHARGE_LAST_CHARGE, 0).coerceAtLeast(0)
+        val avgCurrent = pref.getInt(AVERAGE_CHARGE_LAST_CHARGE, 0).coerceAtLeast(0)
+        val minCurrent = pref.getInt(MIN_CHARGE_LAST_CHARGE, 0).coerceAtLeast(0)
+
+        val fastMinCurrent = resources.getInteger(R.integer.fast_charge_min)
+        val isFast = pref.getBoolean(IS_FAST_CHARGE_LAST_CHARGE, false) || maxCurrent >= fastMinCurrent
+        val storedWatts = pref.getFloat(FAST_CHARGE_WATTS_LAST_CHARGE, 0f).toDouble()
+        val fastWatts = when {
+            storedWatts > 0.0 -> storedWatts
+            maxCurrent > 0 -> getChargeDischargeCurrentInWatt(maxCurrent, isCharging = true)
+            else -> 0.0
+        }
         binding.tvFastCharge.text = if (isFast) {
-            getString(R.string.fast_charge_yes, df.format(fastWatts))
+            getString(R.string.fast_charge_yes_overlay_only_values, df.format(fastWatts))
         } else {
-            getString(R.string.fast_charge_no)
+            getString(R.string.fast_charge_no_overlay_only_values)
         }
 
-        binding.tvMaxCurrent.text = "${pref.getInt(MAX_CHARGE_LAST_CHARGE, 0)} mA"
-        binding.tvAvgCurrent.text = "${pref.getInt(AVERAGE_CHARGE_LAST_CHARGE, 0)} mA"
-        binding.tvMinCurrent.text = "${pref.getInt(MIN_CHARGE_LAST_CHARGE, 0)} mA"
+        binding.tvMaxCurrent.text = formatCurrentWithPower(df, maxCurrent)
+        binding.tvAvgCurrent.text = formatCurrentWithPower(df, avgCurrent)
+        binding.tvMinCurrent.text = formatCurrentWithPower(df, minCurrent)
 
         binding.tvMaxTemp.text = formatTempPair(
             df,
@@ -191,6 +206,12 @@ class LastChargeFragment : Fragment(R.layout.last_charge_fragment), BatteryInfoI
 
         val voltage = pref.getFloat(VOLTAGE_LAST_CHARGE, 0f).toDouble()
         binding.tvVoltage.text = "${df2.format(voltage)} V"
+    }
+
+    private fun formatCurrentWithPower(df: DecimalFormat, currentMa: Int): String {
+        if (currentMa <= 0) return "0 mA (0 W)"
+        val watts = getChargeDischargeCurrentInWatt(currentMa, isCharging = true)
+        return "$currentMa mA (${df.format(watts)} W)"
     }
 
     private fun formatTempPair(df: DecimalFormat, celsius: Double, fahrenheit: Double): String =

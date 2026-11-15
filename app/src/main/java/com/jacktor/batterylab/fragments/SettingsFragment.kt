@@ -678,6 +678,7 @@ class SettingsFragment() : PreferenceFragmentCompat(),
                     averageDischargeCurrent = 0
                     minChargeCurrent = 0
                     minDischargeCurrent = 0
+                    resetSessionChargeStats(PreferenceManager.getDefaultSharedPreferences(requireContext()))
                 }
 
                 true
@@ -919,6 +920,7 @@ class SettingsFragment() : PreferenceFragmentCompat(),
                     BatteryInfoInterface.liveEstimatedResidualMah = 0.0
                     BatteryInfoInterface.tempAvailableCapacity = 0.0
                     BatteryInfoInterface.tempBatteryLevelWith = 0
+                    BatteryInfoInterface.resetSessionChargeStats(pref)
                     resetToZeroTheNumberOfCharges?.isEnabled = false
                     resetToZeroTheNumberOfCycles?.isEnabled = false
                     resetTheNumberOfFullChargesToZero?.isEnabled = false

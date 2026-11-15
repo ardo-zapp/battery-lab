@@ -34,6 +34,7 @@ import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGING_PLU
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGING_START_CAPACITY_MAH
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGING_START_LEVEL
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.LAST_CHARGE_TIME
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.LAST_CHARGE_TIMESTAMP
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.NUMBER_OF_CHARGES
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.NUMBER_OF_CYCLES
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.PERCENT_ADDED
@@ -77,7 +78,8 @@ class UnpluggedReceiver : BroadcastReceiver() {
             else -> pref.getFloat(NUMBER_OF_CYCLES, 0f)
         }
 
-        if (service.seconds > 1) {
+        val hasExistingLastCharge = pref.getLong(LAST_CHARGE_TIMESTAMP, 0L) > 0L
+        if ((!service.isFull || !hasExistingLastCharge) && service.seconds > 1) {
             val savedStartCap = pref.getFloat(CHARGING_START_CAPACITY_MAH, 0f).toDouble()
             val effectiveStartCap = if (tempAvailableCapacity > 1.0) tempAvailableCapacity else savedStartCap
             val currentCap = service.getAvailableCapacity(context)
@@ -116,11 +118,11 @@ class UnpluggedReceiver : BroadcastReceiver() {
                 putFloat(CAPACITY_ADDED, finalCapAdded.toFloat())
             }
             if (finalPctAdded > 0) pref.edit { putInt(PERCENT_ADDED, finalPctAdded) }
-
-            percentAdded = 0
-            capacityAdded = 0.0
-            coulombAddedMah = 0.0
         }
+
+        percentAdded = 0
+        capacityAdded = 0.0
+        coulombAddedMah = 0.0
 
         pref.edit {
             remove(CHARGING_START_LEVEL)
@@ -149,6 +151,7 @@ class UnpluggedReceiver : BroadcastReceiver() {
         }
 
         BatteryInfoInterface.batteryLevel = 0
+        BatteryInfoInterface.resetSessionChargeStats(pref)
         BatteryInfoInterface.resetChargeStats()
         BatteryInfoInterface.resetDischargeStats()
         BatteryInfoInterface.resetTemperatureStats()

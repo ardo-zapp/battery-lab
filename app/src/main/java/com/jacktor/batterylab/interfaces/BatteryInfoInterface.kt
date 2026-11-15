@@ -12,12 +12,14 @@ import android.os.SystemClock
 import androidx.core.content.edit
 import androidx.preference.PreferenceManager
 import com.jacktor.batterylab.MainApp.Companion.batteryIntent
+import com.jacktor.batterylab.MainApp.Companion.isPowerConnected
 import com.jacktor.batterylab.R
 import com.jacktor.batterylab.databases.HistoryDB
 import com.jacktor.batterylab.helpers.BatteryLevelHelper
 import com.jacktor.batterylab.helpers.HistoryHelper
 import com.jacktor.batterylab.helpers.TimeHelper
 import com.jacktor.batterylab.security.NativeCore
+import com.jacktor.batterylab.services.BatteryLabService
 import com.jacktor.batterylab.utilities.Constants.CHARGING_VOLTAGE_WATT
 import com.jacktor.batterylab.utilities.Constants.NOMINAL_BATTERY_VOLTAGE
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.AVERAGE_CHARGE_LAST_CHARGE
@@ -29,6 +31,14 @@ import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CAPACITY_ADD
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CAPACITY_IN_WH
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGING_COULOMB_ADDED_MAH
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGING_PLUGGED_TYPE
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGING_SESSION_AVG_CURRENT
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGING_SESSION_FAST_CHARGE_WATTS
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGING_SESSION_IS_FAST_CHARGE
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGING_SESSION_MAX_CURRENT
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGING_SESSION_MIN_CURRENT
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGING_SESSION_PEAK_WATT
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGING_SESSION_SAMPLE_COUNT
+import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGING_SESSION_SUM_CURRENT
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGING_START_CAPACITY_MAH
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGING_START_LEVEL
 import com.jacktor.batterylab.utilities.preferences.PreferencesKeys.CHARGING_TIME_LAST_CHARGE
@@ -120,6 +130,88 @@ interface BatteryInfoInterface {
         const val RESIDUAL_DUAL_CELL_VERIFIED_PREF = "residual_dc_v2"
 
         var peakChargeWatt = 0.0
+        var sessionMaxChargeCurrent = 0
+        var sessionAverageChargeCurrent = 0
+        var sessionMinChargeCurrent = 0
+        var sessionChargeSampleCount = 0
+        var sessionChargeSum = 0.0
+        var sessionHasRealChargeSample = false
+        var sessionPeakChargeWatt = 0.0
+        var sessionIsFastChargeDetected = false
+        var sessionFastChargeWatts = 0.0
+
+        @JvmStatic
+        fun persistChargingSessionStats(pref: SharedPreferences) {
+            pref.edit {
+                putInt(CHARGING_SESSION_MAX_CURRENT, sessionMaxChargeCurrent)
+                putInt(CHARGING_SESSION_AVG_CURRENT, sessionAverageChargeCurrent)
+                putInt(CHARGING_SESSION_MIN_CURRENT, sessionMinChargeCurrent)
+                putInt(CHARGING_SESSION_SAMPLE_COUNT, sessionChargeSampleCount)
+                putFloat(CHARGING_SESSION_SUM_CURRENT, sessionChargeSum.toFloat())
+                putBoolean(CHARGING_SESSION_IS_FAST_CHARGE, sessionIsFastChargeDetected)
+                putFloat(CHARGING_SESSION_FAST_CHARGE_WATTS, sessionFastChargeWatts.toFloat())
+                putFloat(CHARGING_SESSION_PEAK_WATT, sessionPeakChargeWatt.toFloat())
+            }
+        }
+
+        @JvmStatic
+        fun restoreChargingSessionStats(pref: SharedPreferences) {
+            val savedMax = pref.getInt(CHARGING_SESSION_MAX_CURRENT, 0).coerceAtLeast(0)
+            val savedAvg = pref.getInt(CHARGING_SESSION_AVG_CURRENT, 0).coerceAtLeast(0)
+            val savedMin = pref.getInt(CHARGING_SESSION_MIN_CURRENT, 0).coerceAtLeast(0)
+            val savedCount = pref.getInt(CHARGING_SESSION_SAMPLE_COUNT, 0).coerceAtLeast(0)
+            val savedSum = pref.getFloat(CHARGING_SESSION_SUM_CURRENT, 0f).toDouble().coerceAtLeast(0.0)
+            val savedFast = pref.getBoolean(CHARGING_SESSION_IS_FAST_CHARGE, false)
+            val savedFastWatts = pref.getFloat(CHARGING_SESSION_FAST_CHARGE_WATTS, 0f).toDouble().coerceAtLeast(0.0)
+            val savedPeakWatt = pref.getFloat(CHARGING_SESSION_PEAK_WATT, 0f).toDouble().coerceAtLeast(0.0)
+
+            if (savedMax > sessionMaxChargeCurrent) sessionMaxChargeCurrent = savedMax
+            if (savedAvg > 0 && sessionAverageChargeCurrent <= 0) sessionAverageChargeCurrent = savedAvg
+            if (savedMin > 0 && (sessionMinChargeCurrent == 0 || savedMin < sessionMinChargeCurrent)) {
+                sessionMinChargeCurrent = savedMin
+            }
+            if (savedCount > sessionChargeSampleCount) sessionChargeSampleCount = savedCount
+            if (savedSum > sessionChargeSum) sessionChargeSum = savedSum
+            if (savedMax >= 50) sessionHasRealChargeSample = true
+            if (savedFast) {
+                sessionIsFastChargeDetected = true
+                isAutoFastChargeDetected = true
+            }
+            if (savedFastWatts > sessionFastChargeWatts) sessionFastChargeWatts = savedFastWatts
+            if (savedPeakWatt > sessionPeakChargeWatt) sessionPeakChargeWatt = savedPeakWatt
+
+            if (maxChargeCurrent == 0 && sessionMaxChargeCurrent > 0) {
+                maxChargeCurrent = sessionMaxChargeCurrent
+                averageChargeCurrent = sessionAverageChargeCurrent
+                minChargeCurrent = sessionMinChargeCurrent
+                chargeSampleCount = sessionChargeSampleCount
+                runningChargeSum = sessionChargeSum
+                peakChargeWatt = sessionPeakChargeWatt
+            }
+        }
+
+        @JvmStatic
+        fun resetSessionChargeStats(pref: SharedPreferences? = null) {
+            sessionMaxChargeCurrent = 0
+            sessionAverageChargeCurrent = 0
+            sessionMinChargeCurrent = 0
+            sessionChargeSampleCount = 0
+            sessionChargeSum = 0.0
+            sessionHasRealChargeSample = false
+            sessionPeakChargeWatt = 0.0
+            sessionIsFastChargeDetected = false
+            sessionFastChargeWatts = 0.0
+            pref?.edit {
+                remove(CHARGING_SESSION_MAX_CURRENT)
+                remove(CHARGING_SESSION_AVG_CURRENT)
+                remove(CHARGING_SESSION_MIN_CURRENT)
+                remove(CHARGING_SESSION_SAMPLE_COUNT)
+                remove(CHARGING_SESSION_SUM_CURRENT)
+                remove(CHARGING_SESSION_IS_FAST_CHARGE)
+                remove(CHARGING_SESSION_FAST_CHARGE_WATTS)
+                remove(CHARGING_SESSION_PEAK_WATT)
+            }
+        }
 
         fun saveLastChargeSnapshot(
             info: BatteryInfoInterface,
@@ -143,6 +235,54 @@ interface BatteryInfoInterface {
                 coulombAddedMah > 0.2 -> coulombAddedMah
                 else -> (resolvedPercent / 100.0) * designMah
             }.toFloat()
+
+            val persistedMax = pref.getInt(CHARGING_SESSION_MAX_CURRENT, 0).coerceAtLeast(0)
+            val persistedAvg = pref.getInt(CHARGING_SESSION_AVG_CURRENT, 0).coerceAtLeast(0)
+            val persistedMin = pref.getInt(CHARGING_SESSION_MIN_CURRENT, 0).coerceAtLeast(0)
+            val persistedFast = pref.getBoolean(CHARGING_SESSION_IS_FAST_CHARGE, false)
+            val persistedFastWatts = pref.getFloat(CHARGING_SESSION_FAST_CHARGE_WATTS, 0f).toDouble().coerceAtLeast(0.0)
+
+            val resolvedMaxCurrent = maxOf(sessionMaxChargeCurrent, maxChargeCurrent, persistedMax)
+            val resolvedAvgCurrent = when {
+                sessionAverageChargeCurrent > 0 -> sessionAverageChargeCurrent
+                averageChargeCurrent > 0 -> averageChargeCurrent
+                persistedAvg > 0 -> persistedAvg
+                else -> resolvedMaxCurrent
+            }
+            val resolvedMinCurrent = when {
+                sessionMinChargeCurrent > 0 -> sessionMinChargeCurrent
+                minChargeCurrent > 0 -> minChargeCurrent
+                persistedMin > 0 -> persistedMin
+                else -> resolvedMaxCurrent
+            }
+
+            val fastMinMa = context.resources.getInteger(R.integer.fast_charge_min)
+            val resolvedIsFast = sessionIsFastChargeDetected ||
+                isAutoFastChargeDetected ||
+                persistedFast ||
+                resolvedMaxCurrent >= fastMinMa ||
+                info.isFastCharge(context)
+            val computedFastWatts = (resolvedMaxCurrent.toDouble() * CHARGING_VOLTAGE_WATT) / 1000.0
+            val resolvedFastWatts = maxOf(
+                sessionFastChargeWatts,
+                persistedFastWatts,
+                sessionPeakChargeWatt,
+                computedFastWatts,
+                if (resolvedIsFast) info.getFastChargeWattValue(context) else 0.0
+            ).toFloat()
+
+            // Avoid overwriting a real completed session when plugging briefly into an already-full battery
+            val hasExistingSnapshot = pref.getLong(LAST_CHARGE_TIMESTAMP, 0L) > 0L
+            val isNoOpAtFull = startLevel >= 100 && endLevel >= 100 &&
+                resolvedPercent <= 0 && resolvedCapAdded < 1f && resolvedMaxCurrent < 50
+            if (hasExistingSnapshot && (isNoOpAtFull || (
+                chargingTimeSec < 5 &&
+                resolvedPercent <= 0 &&
+                resolvedCapAdded < 1f &&
+                resolvedMaxCurrent <= 0
+            ))) {
+                return
+            }
 
             val intent = try {
                 context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
@@ -203,11 +343,11 @@ interface BatteryInfoInterface {
                 putInt(PERCENT_ADDED_LAST_CHARGE, resolvedPercent)
                 putString(STATUS_LAST_CHARGE, statusCode)
                 putString(SOURCE_OF_POWER_LAST_CHARGE, sourceCode)
-                putBoolean(IS_FAST_CHARGE_LAST_CHARGE, info.isFastCharge(context))
-                putFloat(FAST_CHARGE_WATTS_LAST_CHARGE, info.getFastChargeWattValue(context).toFloat())
-                putInt(MAX_CHARGE_LAST_CHARGE, maxChargeCurrent)
-                putInt(AVERAGE_CHARGE_LAST_CHARGE, averageChargeCurrent)
-                putInt(MIN_CHARGE_LAST_CHARGE, minChargeCurrent)
+                putBoolean(IS_FAST_CHARGE_LAST_CHARGE, resolvedIsFast)
+                putFloat(FAST_CHARGE_WATTS_LAST_CHARGE, resolvedFastWatts)
+                putInt(MAX_CHARGE_LAST_CHARGE, resolvedMaxCurrent)
+                putInt(AVERAGE_CHARGE_LAST_CHARGE, resolvedAvgCurrent)
+                putInt(MIN_CHARGE_LAST_CHARGE, resolvedMinCurrent)
                 putFloat(MAX_TEMP_CELSIUS_LAST_CHARGE, maxTempC)
                 putFloat(MAX_TEMP_FAHRENHEIT_LAST_CHARGE, info.getTemperatureInFahrenheit(maxTempC.toDouble()).toFloat())
                 putFloat(AVERAGE_TEMP_CELSIUS_LAST_CHARGE, avgTempC)
@@ -397,17 +537,29 @@ interface BatteryInfoInterface {
                 BatteryManager.BATTERY_STATUS_UNKNOWN
             )
 
-            getMaxAverageMinChargeDischargeCurrent(status, result)
+            val isSessionFull = BatteryLabService.instance?.isFull == true
+            val isAt100 = run {
+                val lvl = batteryIntent?.getIntExtra(BatteryManager.EXTRA_LEVEL, -1) ?: -1
+                val scale = batteryIntent?.getIntExtra(BatteryManager.EXTRA_SCALE, 100) ?: 100
+                lvl == 100 || (scale > 0 && lvl >= scale)
+            }
+            getMaxAverageMinChargeDischargeCurrent(status, result, isSessionFull, isAt100)
 
-            if (status == BatteryManager.BATTERY_STATUS_CHARGING) {
+            if (status == BatteryManager.BATTERY_STATUS_CHARGING && !isSessionFull) {
                 Smooth.emaChargeCurrentMa = currentMa
                 val v = readBatteryVoltageVolts(context)?.also { lastMeasuredVoltageV = it }
                     ?: if (lastMeasuredVoltageV > 0.0) lastMeasuredVoltageV else CHARGING_VOLTAGE_WATT
                 val w = (result.toDouble() * CHARGING_VOLTAGE_WATT) / 1000.0
-                if (w.isFinite() && w > peakChargeWatt) {
-                    peakChargeWatt = w
-                    peakChargeCurrentmA = result
-                    peakVoltageV = v
+                val isPostSaturationTrickle = isAt100 && sessionChargeSampleCount > 0 && result < 100
+                if (w.isFinite() && result > 0 && !isPostSaturationTrickle) {
+                    if (w > peakChargeWatt) {
+                        peakChargeWatt = w
+                        peakChargeCurrentmA = result
+                        peakVoltageV = v
+                    }
+                    if (w > sessionPeakChargeWatt) {
+                        sessionPeakChargeWatt = w
+                    }
                 }
                 updateAutoFastChargeState(context)
             } else if (status == BatteryManager.BATTERY_STATUS_DISCHARGING) {
@@ -468,7 +620,53 @@ interface BatteryInfoInterface {
     }
 
     fun updateAutoFastChargeState(context: Context): Boolean {
-        val fast = maxChargeCurrent >= context.resources.getInteger(R.integer.fast_charge_min)
+        val pref = PreferenceManager.getDefaultSharedPreferences(context)
+        val fastMin = context.resources.getInteger(R.integer.fast_charge_min)
+        val peakCurrentMa = max(maxChargeCurrent, sessionMaxChargeCurrent)
+        val status = batteryIntent?.getIntExtra(
+            BatteryManager.EXTRA_STATUS,
+            BatteryManager.BATTERY_STATUS_UNKNOWN
+        ) ?: BatteryManager.BATTERY_STATUS_UNKNOWN
+        val isSessionFull = BatteryLabService.instance?.isFull == true
+        val plugged = batteryIntent?.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0) ?: 0
+
+        if (status == BatteryManager.BATTERY_STATUS_CHARGING && !isSessionFull && isPlugged(plugged)) {
+            val minTurboCurrent = pref.getInt(
+                DESIGN_CAPACITY, context.resources.getInteger(R.integer.min_design_capacity)
+            ) - 250
+            val voltageV = lastMeasuredVoltageV.takeIf { it > 0.0 } ?: CHARGING_VOLTAGE_WATT
+            val nativeEval = try {
+                NativeCore.evaluateFastCharge(
+                    plugged = plugged,
+                    status = status,
+                    liveCurrentMa = Smooth.emaChargeCurrentMa,
+                    voltageV = voltageV,
+                    maxChargeCurrentMa = peakCurrentMa,
+                    fastChargeMinMa = fastMin,
+                    minTurboCurrentMa = minTurboCurrent.coerceAtLeast(1000),
+                    peakChargeWatt = max(peakChargeWatt, sessionPeakChargeWatt)
+                )
+            } catch (_: Throwable) {
+                null
+            }
+            if (peakCurrentMa >= fastMin || nativeEval?.isFastCharge == true) {
+                isAutoFastChargeDetected = true
+                sessionIsFastChargeDetected = true
+            }
+            val currentFastWatts = maxOf(
+                sessionFastChargeWatts,
+                sessionPeakChargeWatt,
+                (peakCurrentMa.toDouble() * CHARGING_VOLTAGE_WATT) / 1000.0
+            )
+            if (sessionIsFastChargeDetected && currentFastWatts > sessionFastChargeWatts) {
+                sessionFastChargeWatts = currentFastWatts
+            }
+        } else if (peakCurrentMa >= fastMin && (isPowerConnected || isSessionFull || status == BatteryManager.BATTERY_STATUS_FULL)) {
+            isAutoFastChargeDetected = true
+            sessionIsFastChargeDetected = true
+        }
+
+        val fast = isAutoFastChargeDetected || sessionIsFastChargeDetected || peakCurrentMa >= fastMin
         isAutoFastChargeDetected = fast
         return fast
     }
@@ -480,11 +678,18 @@ interface BatteryInfoInterface {
         val minTurboCurrent = pref.getInt(
             DESIGN_CAPACITY, context.resources.getInteger(R.integer.min_design_capacity)
         ) - 250
-        return maxChargeCurrent >= minTurboCurrent.coerceAtLeast(1000)
+        val peakCurrentMa = max(maxChargeCurrent, sessionMaxChargeCurrent)
+        return peakCurrentMa >= minTurboCurrent.coerceAtLeast(1000)
     }
 
-    fun getFastChargeWattValue(context: Context): Double =
-        (maxChargeCurrent.toDouble() * CHARGING_VOLTAGE_WATT) / 1000.0
+    fun getFastChargeWattValue(context: Context): Double {
+        val peakCurrentMa = max(maxChargeCurrent, sessionMaxChargeCurrent)
+        return maxOf(
+            (peakCurrentMa.toDouble() * CHARGING_VOLTAGE_WATT) / 1000.0,
+            sessionFastChargeWatts,
+            sessionPeakChargeWatt
+        )
+    }
 
     private fun getFastChargeWatt(context: Context): String =
         DecimalFormat("#.#").format(getFastChargeWattValue(context))
@@ -512,34 +717,73 @@ interface BatteryInfoInterface {
         }
     }
 
-    fun getMaxAverageMinChargeDischargeCurrent(status: Int?, chargeCurrent: Int) {
+    fun getMaxAverageMinChargeDischargeCurrent(
+        status: Int?,
+        chargeCurrent: Int,
+        isSessionFull: Boolean = BatteryLabService.instance?.isFull == true,
+        isAt100: Boolean = false
+    ) {
         when (status) {
             BatteryManager.BATTERY_STATUS_CHARGING -> {
                 maxDischargeCurrent = 0; averageDischargeCurrent = 0; minDischargeCurrent = 0
                 dischargeSampleCount = 0; runningDischargeSum = 0.0
 
-                if (chargeCurrent > maxChargeCurrent) maxChargeCurrent = chargeCurrent
+                // Do not record trickle/0 mA current after battery reaches Full
+                if (isSessionFull) return
 
-                if (chargeCurrent > 0) {
-                    if (chargeCurrent < minChargeCurrent && chargeCurrent < maxChargeCurrent) {
-                        minChargeCurrent = chargeCurrent
-                    } else if (minChargeCurrent == 0 && chargeCurrent < maxChargeCurrent) {
-                        minChargeCurrent = chargeCurrent
+                val isPostSaturationTrickle = isAt100 && sessionChargeSampleCount > 0 && chargeCurrent < 100
+                if (chargeCurrent > 0 && !isPostSaturationTrickle) {
+                    if (chargeCurrent > maxChargeCurrent) maxChargeCurrent = chargeCurrent
+                    if (chargeCurrent > sessionMaxChargeCurrent) sessionMaxChargeCurrent = chargeCurrent
+
+                    val isActiveCurrent = chargeCurrent >= 50
+                    if (isActiveCurrent) {
+                        if (!sessionHasRealChargeSample || minChargeCurrent == 0 || chargeCurrent < minChargeCurrent) {
+                            minChargeCurrent = chargeCurrent
+                        }
+                        if (!sessionHasRealChargeSample || sessionMinChargeCurrent == 0 || chargeCurrent < sessionMinChargeCurrent) {
+                            sessionMinChargeCurrent = chargeCurrent
+                        }
+                        sessionHasRealChargeSample = true
+                    } else if (!sessionHasRealChargeSample) {
+                        if (minChargeCurrent == 0 || chargeCurrent < minChargeCurrent) {
+                            minChargeCurrent = chargeCurrent
+                        }
+                        if (sessionMinChargeCurrent == 0 || chargeCurrent < sessionMinChargeCurrent) {
+                            sessionMinChargeCurrent = chargeCurrent
+                        }
                     }
-                    chargeSampleCount++
-                    runningChargeSum += chargeCurrent
-                }
 
-                averageChargeCurrent = if (maxChargeCurrent > 0 && minChargeCurrent > 0) {
-                    (maxChargeCurrent + minChargeCurrent) / 2
-                } else if (maxChargeCurrent > 0) {
-                    maxChargeCurrent
-                } else 0
+                    val nowMs = SystemClock.elapsedRealtime()
+                    if (lastChargeStatSampleMs == 0L || nowMs - lastChargeStatSampleMs >= 900L) {
+                        chargeSampleCount++
+                        runningChargeSum += chargeCurrent
+                        sessionChargeSampleCount++
+                        sessionChargeSum += chargeCurrent
+                        lastChargeStatSampleMs = nowMs
+                    }
+
+                    averageChargeCurrent = if (chargeSampleCount > 0) {
+                        (runningChargeSum / chargeSampleCount).toInt()
+                    } else maxChargeCurrent
+
+                    sessionAverageChargeCurrent = if (sessionChargeSampleCount > 0) {
+                        (sessionChargeSum / sessionChargeSampleCount).toInt()
+                    } else sessionMaxChargeCurrent
+                }
+            }
+
+            BatteryManager.BATTERY_STATUS_FULL -> {
+                // Keep session charge stats intact while full so BatteryInfo and Last Charge don't zero out
+                maxDischargeCurrent = 0; averageDischargeCurrent = 0; minDischargeCurrent = 0
+                dischargeSampleCount = 0; runningDischargeSum = 0.0
             }
 
             BatteryManager.BATTERY_STATUS_DISCHARGING -> {
+                // Clear live charge display for BatteryInfo, but keep session* intact until UnpluggedReceiver saves
                 maxChargeCurrent = 0; averageChargeCurrent = 0; minChargeCurrent = 0
                 chargeSampleCount = 0; runningChargeSum = 0.0
+                lastChargeStatSampleMs = 0L
 
                 if (chargeCurrent > maxDischargeCurrent) maxDischargeCurrent = chargeCurrent
 
@@ -560,11 +804,26 @@ interface BatteryInfoInterface {
                 } else 0
             }
 
+            BatteryManager.BATTERY_STATUS_NOT_CHARGING -> {
+                if (isPowerConnected) {
+                    // Charger plugged but paused (thermal/full hold): keep charge stats intact
+                    maxDischargeCurrent = 0; averageDischargeCurrent = 0; minDischargeCurrent = 0
+                    dischargeSampleCount = 0; runningDischargeSum = 0.0
+                } else {
+                    maxChargeCurrent = 0; averageChargeCurrent = 0; minChargeCurrent = 0
+                    maxDischargeCurrent = 0; averageDischargeCurrent = 0; minDischargeCurrent = 0
+                    chargeSampleCount = 0; runningChargeSum = 0.0
+                    dischargeSampleCount = 0; runningDischargeSum = 0.0
+                    lastChargeStatSampleMs = 0L
+                }
+            }
+
             else -> {
                 maxChargeCurrent = 0; averageChargeCurrent = 0; minChargeCurrent = 0
                 maxDischargeCurrent = 0; averageDischargeCurrent = 0; minDischargeCurrent = 0
                 chargeSampleCount = 0; runningChargeSum = 0.0
                 dischargeSampleCount = 0; runningDischargeSum = 0.0
+                lastChargeStatSampleMs = 0L
             }
         }
     }

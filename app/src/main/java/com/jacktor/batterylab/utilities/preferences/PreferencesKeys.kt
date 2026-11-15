@@ -175,6 +175,16 @@ object PreferencesKeys {
     const val NOMINAL_BATTERY_VOLTAGE_PREF = "nominal_battery_voltage"
     const val NUMBER_OF_HISTORY_FOR_BATTERY_WEAR_NEW = "number_of_history_for_battery_wear_new"
 
+    // Transient active charging session stats (survive process restart & unplug race)
+    const val CHARGING_SESSION_MAX_CURRENT = "charging_session_max_current"
+    const val CHARGING_SESSION_AVG_CURRENT = "charging_session_avg_current"
+    const val CHARGING_SESSION_MIN_CURRENT = "charging_session_min_current"
+    const val CHARGING_SESSION_SAMPLE_COUNT = "charging_session_sample_count"
+    const val CHARGING_SESSION_SUM_CURRENT = "charging_session_sum_current"
+    const val CHARGING_SESSION_IS_FAST_CHARGE = "charging_session_is_fast_charge"
+    const val CHARGING_SESSION_FAST_CHARGE_WATTS = "charging_session_fast_charge_watts"
+    const val CHARGING_SESSION_PEAK_WATT = "charging_session_peak_watt"
+
     // Last Charge snapshot
     const val BATTERY_LEVEL_LAST_CHARGE = "battery_level_last_charge"
     const val CHARGING_TIME_LAST_CHARGE = "charging_time_last_charge"

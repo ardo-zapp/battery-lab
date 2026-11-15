@@ -57,6 +57,9 @@ class PluggedReceiver : BroadcastReceiver(), BatteryInfoInterface {
         val pref = PreferenceManager.getDefaultSharedPreferences(context)
         val level = (service.getBatteryLevel(context) ?: 0).coerceIn(0, 100)
         val startCapacityMah = service.getAvailableCapacity(context)
+        service.isFull = false
+        service.secondsFullCharge = 0
+        service.seconds = 0
         service.batteryLevelWith = level
         service.availableCapacity = 0
         tempBatteryLevelWith = level
@@ -67,6 +70,7 @@ class PluggedReceiver : BroadcastReceiver(), BatteryInfoInterface {
         capacityAdded = 0.0
         percentAdded = 0
 
+        BatteryInfoInterface.resetSessionChargeStats(pref)
         pref.edit {
             putInt(CHARGING_START_LEVEL, level)
             putFloat(CHARGING_START_CAPACITY_MAH, startCapacityMah.toFloat())

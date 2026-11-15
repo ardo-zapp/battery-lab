@@ -241,6 +241,12 @@ class BatteryLabService : Service(), NotificationInterface, BatteryInfoInterface
                         putFloat(CHARGING_COULOMB_ADDED_MAH, 0f)
                     }
                 }
+                if (savedStart in 0..currentLevel) {
+                    BatteryInfoInterface.restoreChargingSessionStats(pref)
+                } else {
+                    BatteryInfoInterface.resetSessionChargeStats(pref)
+                    BatteryInfoInterface.resetChargeStats()
+                }
                 batteryLevelWith = startLevel
                 tempBatteryLevelWith = startLevel
                 tempAvailableCapacity = restoredStartCap
@@ -418,10 +424,23 @@ class BatteryLabService : Service(), NotificationInterface, BatteryInfoInterface
                     isPowerConnected = true
                     val lvl = (getBatteryLevel(applicationContext) ?: 0).coerceIn(0, 100)
                     val savedStart = pref.getInt(CHARGING_START_LEVEL, -1)
-                    val startLvl = if (savedStart in 0..lvl) savedStart else lvl
+                    val isResumed = savedStart in 0..lvl
+                    val startLvl = if (isResumed) savedStart else lvl
                     val savedStartCap = pref.getFloat(CHARGING_START_CAPACITY_MAH, 0f).toDouble()
-                    val startCap = if (savedStart in 0..lvl && savedStartCap > 1.0) savedStartCap
+                    val startCap = if (isResumed && savedStartCap > 1.0) savedStartCap
                     else getAvailableCapacity(applicationContext)
+                    if (isResumed) {
+                        BatteryInfoInterface.restoreChargingSessionStats(pref)
+                    } else {
+                        isFull = false
+                        secondsFullCharge = 0
+                        seconds = 0
+                        coulombAddedMah = 0.0
+                        capacityAdded = 0.0
+                        percentAdded = 0
+                        BatteryInfoInterface.resetSessionChargeStats(pref)
+                        BatteryInfoInterface.resetChargeStats()
+                    }
                     batteryLevelWith = startLvl
                     tempBatteryLevelWith = startLvl
                     tempAvailableCapacity = startCap
@@ -626,16 +645,18 @@ class BatteryLabService : Service(), NotificationInterface, BatteryInfoInterface
 
     private suspend fun batteryCharging() {
         val chargeCurrentMa = getChargeDischargeCurrent(applicationContext)
-        updateAutoFastChargeState(applicationContext)
+        if (!isFull) {
+            updateAutoFastChargeState(applicationContext)
 
-        val nowMs = SystemClock.elapsedRealtime()
-        if (lastCoulombTickMs > 0L && chargeCurrentMa in 50..25_000) {
-            val dtMs = (nowMs - lastCoulombTickMs).coerceIn(0L, 5000L)
-            if (dtMs > 0L) {
-                coulombAddedMah += chargeCurrentMa.toDouble() * (dtMs / 3_600_000.0)
+            val nowMs = SystemClock.elapsedRealtime()
+            if (lastCoulombTickMs > 0L && chargeCurrentMa in 50..25_000) {
+                val dtMs = (nowMs - lastCoulombTickMs).coerceIn(0L, 5000L)
+                if (dtMs > 0L) {
+                    coulombAddedMah += chargeCurrentMa.toDouble() * (dtMs / 3_600_000.0)
+                }
             }
+            lastCoulombTickMs = nowMs
         }
-        lastCoulombTickMs = nowMs
 
         val batteryLevel = getBatteryLevel(applicationContext) ?: 0
 
@@ -653,13 +674,14 @@ class BatteryLabService : Service(), NotificationInterface, BatteryInfoInterface
             if (secondsFullCharge > 0) secondsFullCharge = 0
         }
 
-        if (seconds % 5 == 0 && (coulombAddedMah > 0.0 || capacityAdded > 0.0 || percentAdded > 0)) {
+        if (!isFull && seconds % 5 == 0) {
             val bestAdded = kotlin.math.max(capacityAdded, coulombAddedMah)
             pref.edit {
                 if (coulombAddedMah > 0.0) putFloat(CHARGING_COULOMB_ADDED_MAH, coulombAddedMah.toFloat())
                 if (bestAdded > 0.0) putFloat(CAPACITY_ADDED, bestAdded.toFloat())
                 if (percentAdded > 0) putInt(PERCENT_ADDED, percentAdded)
             }
+            BatteryInfoInterface.persistChargingSessionStats(pref)
         }
 
 
