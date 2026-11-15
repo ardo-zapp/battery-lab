@@ -83,7 +83,7 @@ battery-lab/
 
 | Component | Details |
 |---|---|
-| App Version | `2.0.1` (`versionCode 20001`) |
+| App Version | `2.1.0` (`versionCode 20100`) |
 | Language | Kotlin `2.4.21` (JVM Toolchain 21) |
 | Build System | Gradle `9.3.1`, Android Gradle Plugin `9.1.1` |
 | Android SDK | `minSdk 26` (Android 8.0) / `compileSdk 37` / `targetSdk 37` |

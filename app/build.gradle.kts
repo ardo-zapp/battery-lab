@@ -28,8 +28,8 @@ kotlin {
 
 configure<ApplicationExtension> {
     val versionMajor = 2
-    val versionMinor = 0
-    val versionPatch = 1
+    val versionMinor = 1
+    val versionPatch = 0
 
     compileSdk = 37
 
