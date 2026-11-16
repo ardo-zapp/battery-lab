@@ -91,13 +91,12 @@ class HistoryAdapter(private var historyList: MutableList<History>) :
             context.resources.getInteger(R.integer.min_design_capacity)
         )
 
-        var newResidualCapacity = kotlin.math.abs(
-            if (residualCapacity > 50_000) residualCapacity / 1000.0
-            else residualCapacity / if (pref.getString(
-                    PreferencesKeys.UNIT_OF_MEASUREMENT_OF_available_capacity, "μAh"
-                ) == "μAh"
-            ) 1000.0 else 1.0
-        )
+        var newResidualCapacity = residualCapacity / if (pref.getString(
+                PreferencesKeys.UNIT_OF_MEASUREMENT_OF_available_capacity, "μAh"
+            ) == "μAh"
+        ) 1000.0 else 100.0
+
+        if (newResidualCapacity < 0.0) newResidualCapacity /= -1.0
 
         val healthPercent = if (designCapacity > 0 && newResidualCapacity > 0.0) {
             (newResidualCapacity / designCapacity) * 100.0
@@ -131,13 +130,12 @@ class HistoryAdapter(private var historyList: MutableList<History>) :
             context.resources.getBoolean(R.bool.capacity_in_wh)
         )
 
-        var newResidualCapacity = kotlin.math.abs(
-            if (residualCapacity > 50_000) residualCapacity / 1000.0
-            else residualCapacity / if (pref.getString(
-                    PreferencesKeys.UNIT_OF_MEASUREMENT_OF_available_capacity, "μAh"
-                ) == "μAh"
-            ) 1000.0 else 1.0
-        )
+        var newResidualCapacity = residualCapacity / if (pref.getString(
+                PreferencesKeys.UNIT_OF_MEASUREMENT_OF_available_capacity, "μAh"
+            ) == "μAh"
+        ) 1000.0 else 100.0
+
+        if (newResidualCapacity < 0.0) newResidualCapacity /= -1.0
 
         return if (isCapacityInWh) context.getString(
             R.string.battery_wear_wh,

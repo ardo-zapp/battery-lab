@@ -432,6 +432,7 @@ class BatteryInfoFragment : Fragment(R.layout.battery_info_fragment), SettingsIn
             )
         }
 
+        val calculatedHealthRes = getBatteryHealth(requireContext())
         rows += BatteryInfoRow.Stat(
             icon = R.drawable.ic_health_24,
             iconTint = getBatteryHealthTintRes(requireContext()),
@@ -440,12 +441,16 @@ class BatteryInfoFragment : Fragment(R.layout.battery_info_fragment), SettingsIn
                 R.string.battery_health_android,
                 getBatteryHealthAndroid(requireContext())
             ),
-            secondary = listOf(
-                getString(
-                    R.string.battery_health,
-                    getString(getBatteryHealth(requireContext()) ?: R.string.unknown)
+            secondary = if (calculatedHealthRes != null) {
+                listOf(
+                    getString(
+                        R.string.battery_health,
+                        getString(calculatedHealthRes)
+                    )
                 )
-            )
+            } else {
+                emptyList()
+            }
         )
 
         rows += BatteryInfoRow.Section(getString(R.string.section_hardware_power))

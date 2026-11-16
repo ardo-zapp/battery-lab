@@ -71,53 +71,29 @@ class UnpluggedReceiver : BroadcastReceiver() {
         else if (savedStart in 0..batteryLevel) savedStart
         else pref.getInt(BATTERY_LEVEL_WITH, batteryLevel)
 
-        val numberOfCycles = when {
-            batteryLevel == startLevel -> pref.getFloat(NUMBER_OF_CYCLES, 0f) + 0.01f
-            batteryLevel > startLevel && startLevel >= 0 ->
-                pref.getFloat(NUMBER_OF_CYCLES, 0f) + (batteryLevel / 100f) - (startLevel / 100f)
-            else -> pref.getFloat(NUMBER_OF_CYCLES, 0f)
+        val numberOfCycles = if (batteryLevel == startLevel) {
+            pref.getFloat(NUMBER_OF_CYCLES, 0f) + 0.01f
+        } else {
+            pref.getFloat(NUMBER_OF_CYCLES, 0f) + (batteryLevel / 100f) - (startLevel / 100f)
         }
 
-        val hasExistingLastCharge = pref.getLong(LAST_CHARGE_TIMESTAMP, 0L) > 0L
-        if ((!service.isFull || !hasExistingLastCharge) && service.seconds > 1) {
-            val savedStartCap = pref.getFloat(CHARGING_START_CAPACITY_MAH, 0f).toDouble()
-            val effectiveStartCap = if (tempAvailableCapacity > 1.0) tempAvailableCapacity else savedStartCap
-            val currentCap = service.getAvailableCapacity(context)
-            val counterDelta = if (currentCap > 1.0 && effectiveStartCap > 1.0) {
-                (currentCap - effectiveStartCap).coerceAtLeast(0.0)
-            } else 0.0
-            val savedCoulomb = pref.getFloat(CHARGING_COULOMB_ADDED_MAH, 0f).toDouble()
-            val effectiveCoulomb = kotlin.math.max(coulombAddedMah, savedCoulomb)
-            val finalCapAdded = when {
-                capacityAdded > 0.0 -> capacityAdded
-                counterDelta >= 0.5 -> counterDelta
-                effectiveCoulomb >= 0.2 -> kotlin.math.max(counterDelta, effectiveCoulomb)
-                else -> counterDelta
-            }
-            val finalPctAdded = if (percentAdded > 0) percentAdded else (batteryLevel - startLevel).coerceAtLeast(0)
-            capacityAdded = finalCapAdded
-            percentAdded = finalPctAdded
-
+        if (!service.isFull && service.seconds > 1) {
             BatteryInfoInterface.saveLastChargeSnapshot(
-                service, context, pref, service.seconds, startLevel, batteryLevel, service.isFull
+                service, context, pref, service.seconds, startLevel, batteryLevel, false
             )
             val numberOfCharges = pref.getLong(NUMBER_OF_CHARGES, 0)
-            if (!service.isFull) {
-                pref.edit { putLong(NUMBER_OF_CHARGES, numberOfCharges + 1) }
-            }
             pref.edit {
+                putLong(NUMBER_OF_CHARGES, numberOfCharges + 1)
+                if (service.isSaveNumberOfCharges) putFloat(NUMBER_OF_CYCLES, numberOfCycles)
                 putInt(LAST_CHARGE_TIME, service.seconds)
-                    .putInt(BATTERY_LEVEL_WITH, startLevel)
-                    .putInt(BATTERY_LEVEL_TO, batteryLevel)
+                putInt(BATTERY_LEVEL_WITH, startLevel)
+                putInt(BATTERY_LEVEL_TO, batteryLevel)
+                if (capacityAdded > 0) putFloat(CAPACITY_ADDED, capacityAdded.toFloat())
+                if (percentAdded > 0) putInt(PERCENT_ADDED, percentAdded)
             }
-
-            if (service.isSaveNumberOfCharges) {
-                pref.edit { putFloat(NUMBER_OF_CYCLES, numberOfCycles) }
-            }
-            if (finalCapAdded > 0) pref.edit {
-                putFloat(CAPACITY_ADDED, finalCapAdded.toFloat())
-            }
-            if (finalPctAdded > 0) pref.edit { putInt(PERCENT_ADDED, finalPctAdded) }
+            percentAdded = 0
+            capacityAdded = 0.0
+            coulombAddedMah = 0.0
         }
 
         percentAdded = 0

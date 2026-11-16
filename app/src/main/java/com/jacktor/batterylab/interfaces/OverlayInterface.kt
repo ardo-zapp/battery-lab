@@ -939,17 +939,20 @@ interface OverlayInterface : BatteryInfoInterface {
             BATTERY_HEALTH_OVERLAY,
             textView.context.resources.getBoolean(R.bool.battery_health_overlay)
         )
-        if (enabled || textView.isVisible) {
+        val healthRes = getBatteryHealth(textView.context)
+        if (enabled && healthRes != null) {
             textView.apply {
                 applyOverlayTextStyle(this)
-                val healthStr = context.getString(getBatteryHealth(context) ?: R.string.unknown)
+                val healthStr = context.getString(healthRes)
                 text = context.getString(
                     if (!isOnlyValuesOverlay(context)) R.string.battery_health_app
                     else R.string.battery_health_overlay_only_values,
                     healthStr
                 )
-                visibility = if (enabled) View.VISIBLE else View.GONE
+                visibility = View.VISIBLE
             }
+        } else if (textView.isVisible) {
+            textView.visibility = View.GONE
         }
     }
 

@@ -7,10 +7,12 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.SharedPreferences
+import android.hardware.display.DisplayManager
 import android.os.BatteryManager
 import android.os.IBinder
 import android.os.PowerManager
 import android.os.SystemClock
+import android.view.Display
 import android.view.View
 import android.widget.Toast
 import androidx.core.content.ContextCompat
@@ -494,7 +496,8 @@ class BatteryLabService : Service(), NotificationInterface, BatteryInfoInterface
                 }
 
                 when {
-                    status == BatteryManager.BATTERY_STATUS_CHARGING && !isStopService && secondsFullCharge < 3600 -> batteryCharging()
+                    status == BatteryManager.BATTERY_STATUS_CHARGING && !isStopService && secondsFullCharge in 0..<3600 -> batteryCharging()
+                    status == BatteryManager.BATTERY_STATUS_CHARGING && !isStopService && secondsFullCharge >= 3600 -> batteryCharged()
                     status == BatteryManager.BATTERY_STATUS_FULL && isPowerConnected && !isFull && !isStopService -> batteryCharged()
                     !isStopService -> {
                         // Discharged by level
@@ -644,59 +647,77 @@ class BatteryLabService : Service(), NotificationInterface, BatteryInfoInterface
     }
 
     private suspend fun batteryCharging() {
-        val chargeCurrentMa = getChargeDischargeCurrent(applicationContext)
+        val batteryLevel = getBatteryLevel(applicationContext) ?: 0
+        getChargeDischargeCurrent(applicationContext)
         if (!isFull) {
             updateAutoFastChargeState(applicationContext)
 
-            val nowMs = SystemClock.elapsedRealtime()
-            if (lastCoulombTickMs > 0L && chargeCurrentMa in 50..25_000) {
-                val dtMs = (nowMs - lastCoulombTickMs).coerceIn(0L, 5000L)
-                if (dtMs > 0L) {
-                    coulombAddedMah += chargeCurrentMa.toDouble() * (dtMs / 3_600_000.0)
-                }
+            if (tempAvailableCapacity <= 0.0) {
+                val savedStartCap = pref.getFloat(CHARGING_START_CAPACITY_MAH, 0f).toDouble()
+                tempAvailableCapacity = if (savedStartCap > 0.0) savedStartCap else getAvailableCapacity(applicationContext)
             }
-            lastCoulombTickMs = nowMs
+            if (tempBatteryLevelWith <= 0) {
+                val savedStartLevel = pref.getInt(CHARGING_START_LEVEL, -1)
+                tempBatteryLevelWith = if (savedStartLevel >= 0) savedStartLevel else batteryLevel
+            }
+            percentAdded = batteryLevel - tempBatteryLevelWith
+            if (percentAdded < 0) percentAdded = 0
+            capacityAdded = getAvailableCapacity(applicationContext) - tempAvailableCapacity
+            if (capacityAdded < 0) capacityAdded /= -1.0
         }
 
-        val batteryLevel = getBatteryLevel(applicationContext) ?: 0
-
         if (batteryLevel == 100) {
-            if (!isFull && secondsFullCharge >= 120) batteryCharged()
             availableCapacity = (getAvailableCapacity(applicationContext) *
                     if (pref.getString(
                             UNIT_OF_MEASUREMENT_OF_available_capacity,
                             "μAh"
                         ) == "μAh"
-                    ) 1000.0 else 1.0
+                    ) 1000.0 else 100.0
                     ).toInt()
-            secondsFullCharge++
-        } else {
-            if (secondsFullCharge > 0) secondsFullCharge = 0
+            if (secondsFullCharge >= 0) secondsFullCharge++
         }
 
         if (!isFull && seconds % 5 == 0) {
-            val bestAdded = kotlin.math.max(capacityAdded, coulombAddedMah)
             pref.edit {
-                if (coulombAddedMah > 0.0) putFloat(CHARGING_COULOMB_ADDED_MAH, coulombAddedMah.toFloat())
-                if (bestAdded > 0.0) putFloat(CAPACITY_ADDED, bestAdded.toFloat())
+                if (capacityAdded > 0.0) putFloat(CAPACITY_ADDED, capacityAdded.toFloat())
                 if (percentAdded > 0) putInt(PERCENT_ADDED, percentAdded)
             }
             BatteryInfoInterface.persistChargingSessionStats(pref)
         }
 
+        val displayManager = getSystemService(DISPLAY_SERVICE) as? DisplayManager
 
         if (pref.getBoolean(
                 NOTIFY_BATTERY_IS_CHARGED,
                 resources.getBoolean(R.bool.notify_battery_is_charged)
             ) &&
-            (getBatteryLevel(applicationContext) ?: 0) == pref.getInt(
+            !isBatteryCharged &&
+            (getBatteryLevel(applicationContext) ?: 0) >= pref.getInt(
                 BATTERY_LEVEL_NOTIFY_CHARGED,
                 80
             )
         ) withContext(Dispatchers.Main) { onNotifyBatteryCharged(applicationContext) }
 
-        delay(0.95.seconds)
-        seconds++
+        if (displayManager != null) {
+            for (display in displayManager.displays) {
+                if (display.state == Display.STATE_ON) {
+                    delay(
+                        if (getAvailableCapacity(applicationContext) > 0.0) 0.95.seconds
+                        else 0.956.seconds
+                    )
+                    seconds++
+                } else {
+                    delay(
+                        if (getAvailableCapacity(applicationContext) > 0.0) 1.936.seconds
+                        else 1.933.seconds
+                    )
+                    seconds += 2
+                }
+            }
+        } else {
+            delay(0.95.seconds)
+            seconds++
+        }
 
         withContext(Dispatchers.Main) {
             try {
@@ -708,6 +729,7 @@ class BatteryLabService : Service(), NotificationInterface, BatteryInfoInterface
     }
 
     private suspend fun batteryCharged() {
+        secondsFullCharge = -1
         withContext(Dispatchers.Main) {
             val freq = pref.getString(
                 FULL_CHARGE_REMINDER_FREQUENCY,
@@ -724,18 +746,17 @@ class BatteryLabService : Service(), NotificationInterface, BatteryInfoInterface
 
         isFull = true
 
-        val isMicroAh = pref.getString(UNIT_OF_MEASUREMENT_OF_available_capacity, "μAh") == "μAh"
-        val factor = if (isMicroAh) 1000.0 else 1.0
-
         if (availableCapacity == 0) {
-            availableCapacity = (getAvailableCapacity(applicationContext) * factor).toInt()
+            availableCapacity = (getAvailableCapacity(applicationContext) *
+                    if (pref.getString(
+                            UNIT_OF_MEASUREMENT_OF_available_capacity,
+                            "μAh"
+                        ) == "μAh"
+                    ) 1000.0 else 100.0
+                    ).toInt()
         }
 
-        val designCapacity =
-            pref.getInt(DESIGN_CAPACITY, resources.getInteger(R.integer.min_design_capacity))
-                .toDouble() * factor
-
-        val residualCapacity = if (availableCapacity > 0) availableCapacity else designCapacity.toInt()
+        val residualCapacity = availableCapacity
         val residualCapacityAverage = getResidualCapacityAverage(applicationContext, residualCapacity)
 
         val currentDate = DateHelper.getDate(
@@ -758,17 +779,11 @@ class BatteryLabService : Service(), NotificationInterface, BatteryInfoInterface
         else if (savedStart in 0..batteryLevel) savedStart
         else pref.getInt(BATTERY_LEVEL_WITH, batteryLevel)
 
-        val numberOfCycles = when {
-            batteryLevel == startLevel -> pref.getFloat(NUMBER_OF_CYCLES, 0f) + 0.01f
-            batteryLevel > startLevel && startLevel >= 0 ->
-                pref.getFloat(NUMBER_OF_CYCLES, 0f) + (batteryLevel / 100f) - (startLevel / 100f)
-            else -> pref.getFloat(NUMBER_OF_CYCLES, 0f)
+        val numberOfCycles = if (batteryLevel == startLevel) {
+            pref.getFloat(NUMBER_OF_CYCLES, 0f) + 0.01f
+        } else {
+            pref.getFloat(NUMBER_OF_CYCLES, 0f) + (batteryLevel / 100f) - (startLevel / 100f)
         }
-
-        val finalAddedPct = if (percentAdded > 0) percentAdded else (batteryLevel - startLevel).coerceAtLeast(0)
-        val finalAddedCap = kotlin.math.max(capacityAdded, coulombAddedMah)
-        capacityAdded = finalAddedCap
-        percentAdded = finalAddedPct
 
         pref.apply {
             val numberOfCharges = getLong(NUMBER_OF_CHARGES, 0)
@@ -783,18 +798,19 @@ class BatteryLabService : Service(), NotificationInterface, BatteryInfoInterface
                 putInt(LAST_CHARGE_TIME, seconds)
                 putInt(RESIDUAL_CAPACITY, residualCapacityAverage)
                 putBoolean(BatteryInfoInterface.RESIDUAL_DUAL_CELL_VERIFIED_PREF, true)
+                putBoolean(BatteryInfoInterface.RESIDUAL_UPSTREAM_CALIBRATED_PREF, true)
                 putInt(BATTERY_LEVEL_WITH, startLevel)
                 putInt(BATTERY_LEVEL_TO, batteryLevel)
                 putLong(NUMBER_OF_FULL_CHARGES, getLong(NUMBER_OF_FULL_CHARGES, 0) + 1)
-                putFloat(CAPACITY_ADDED, finalAddedCap.toFloat())
-                putInt(PERCENT_ADDED, finalAddedPct)
+                putFloat(CAPACITY_ADDED, capacityAdded.toFloat())
+                putInt(PERCENT_ADDED, percentAdded)
             }
             if (isSaveNumberOfCharges) edit { putFloat(NUMBER_OF_CYCLES, numberOfCycles) }
         }
 
         withContext(Dispatchers.Main) {
-            if (residualCapacityAverage > 0 && seconds >= 10) {
-                withContext(Dispatchers.IO) {
+            withContext(Dispatchers.IO) {
+                if (residualCapacityAverage > 0) {
                     HistoryHelper.addHistory(
                         applicationContext,
                         currentDate,
