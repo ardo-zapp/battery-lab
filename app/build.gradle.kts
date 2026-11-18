@@ -1,11 +1,22 @@
 import com.android.build.api.dsl.ApplicationExtension
+import com.android.build.api.variant.ApplicationAndroidComponentsExtension
 import com.google.firebase.crashlytics.buildtools.gradle.CrashlyticsExtension
+import org.gradle.api.DefaultTask
+import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.FileSystemOperations
+import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.OutputDirectory
+import org.gradle.api.tasks.PathSensitive
+import org.gradle.api.tasks.PathSensitivity
+import org.gradle.api.tasks.TaskAction
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.io.FileInputStream
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 import java.util.Properties
+import javax.inject.Inject
 
 plugins {
     id("com.android.application")
@@ -61,6 +72,11 @@ configure<ApplicationExtension> {
             FileInputStream(localFile).use { load(it) }
         }
     }
+    val sdkDir = localProps.getProperty("sdk.dir") ?: System.getenv("ANDROID_HOME")
+    val installedNdk = sdkDir?.let { File(it, "ndk").listFiles()?.map { f -> f.name }?.maxOrNull() }
+    if (installedNdk != null) {
+        ndkVersion = installedNdk
+    }
     val releaseStorePath = localProps.getProperty("signing.storeFile")
         ?: System.getenv("ANDROID_KEYSTORE_PATH")
     val releaseStorePass = localProps.getProperty("signing.storePassword")
@@ -96,6 +112,9 @@ configure<ApplicationExtension> {
             }
             isMinifyEnabled = true
             isShrinkResources = true
+            ndk {
+                debugSymbolLevel = "FULL"
+            }
             manifestPlaceholders["appLabel"] = "@string/app_name"
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
@@ -201,5 +220,57 @@ if (coreModule != null) {
 
     tasks.named("preBuild") {
         dependsOn(syncCoreNativeLibs)
+    }
+}
+
+abstract class SyncUnstrippedJniLibsTask : DefaultTask() {
+    @get:InputFiles
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    abstract val sourceDirs: ConfigurableFileCollection
+
+    @get:OutputDirectory
+    abstract val outputDir: DirectoryProperty
+
+    @get:Inject
+    abstract val fileSystemOperations: FileSystemOperations
+
+    @TaskAction
+    fun syncLibs() {
+        fileSystemOperations.sync {
+            from(sourceDirs)
+            into(outputDir)
+            include("**/*.so")
+        }
+    }
+}
+
+if (premiumModule != null || coreModule != null) {
+    val syncLocalUnstrippedNativeLibs = tasks.register<SyncUnstrippedJniLibsTask>("syncLocalUnstrippedNativeLibs") {
+        if (coreModule != null) {
+            dependsOn(":core:mergeReleaseNativeLibs")
+            sourceDirs.from(coreModule.layout.buildDirectory.dir("intermediates/merged_native_libs/release/mergeReleaseNativeLibs/out/lib"))
+        }
+        if (premiumModule != null) {
+            dependsOn(":premium:mergeReleaseNativeLibs")
+            sourceDirs.from(premiumModule.layout.buildDirectory.dir("intermediates/merged_native_libs/release/mergeReleaseNativeLibs/out/lib"))
+        }
+    }
+
+    configure<ApplicationExtension> {
+        packaging {
+            jniLibs {
+                if (coreModule != null) pickFirsts += "**/libbatterylab_core.so"
+                if (premiumModule != null) pickFirsts += "**/libpremium_guard.so"
+            }
+        }
+    }
+
+    extensions.configure<ApplicationAndroidComponentsExtension> {
+        onVariants(selector().withBuildType("release")) { variant ->
+            variant.sources.jniLibs?.addGeneratedSourceDirectory(
+                syncLocalUnstrippedNativeLibs,
+                SyncUnstrippedJniLibsTask::outputDir
+            )
+        }
     }
 }
