@@ -9,6 +9,7 @@ import android.content.res.Configuration
 import android.os.BatteryManager
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.activity.OnBackPressedCallback
 import androidx.activity.enableEdgeToEdge
@@ -28,8 +29,11 @@ import com.google.android.gms.ads.AdError
 import com.google.android.gms.ads.AdRequest
 import com.google.android.gms.ads.FullScreenContentCallback
 import com.google.android.gms.ads.LoadAdError
+import com.google.android.gms.ads.MobileAds
 import com.google.android.gms.ads.interstitial.InterstitialAd
 import com.google.android.gms.ads.interstitial.InterstitialAdLoadCallback
+import com.google.android.ump.ConsentRequestParameters
+import com.google.android.ump.UserMessagingPlatform
 import com.google.android.material.appbar.MaterialToolbar
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -90,11 +94,14 @@ import com.jacktor.premium.utilities.Constants.BILLING_RESULT_SUCCESS
 import com.jacktor.premium.utilities.PremiumFlag
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import java.lang.ref.WeakReference
+import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.time.Duration.Companion.seconds
 
 class MainActivity : AppCompatActivity(),
@@ -130,9 +137,10 @@ class MainActivity : AppCompatActivity(),
     var fragment: Fragment? = null
 
     private var interstitialAd: InterstitialAd? = null
-    private var adsCounter = 0
-    private var appLaunchTimestamp: Long = 0L
-    private var lastInterstitialAdShownTime: Long = 0L
+    private var isAdLoading = false
+    private var adRetryAttempt = 0
+    private var adRetryJob: Job? = null
+    private var isConsentRequested = false
 
     var isBatteryOptDialogVisible = false
     var hasBatteryOptJustGranted = false
@@ -144,9 +152,19 @@ class MainActivity : AppCompatActivity(),
     ) { _ -> }
 
     companion object {
-        private const val AD_COOLDOWN_MS = 60_000L
-        private const val AD_LAUNCH_GRACE_PERIOD_MS = 45_000L
-        private const val AD_COUNTER_THRESHOLD = 4
+        private const val AD_COOLDOWN_MS = 45_000L
+        private const val AD_LAUNCH_GRACE_PERIOD_MS = 10_000L
+        private const val AD_COUNTER_THRESHOLD = 3
+        private const val AD_BILLING_FALLBACK_MS = 15_000L
+        private const val AD_MAX_RETRY_ATTEMPTS = 3
+        private var adsCounter = 0
+        private var appLaunchTimestamp: Long = 0L
+        private var lastInterstitialAdShownTime: Long = 0L
+        private val isMobileAdsInitStarted = AtomicBoolean(false)
+
+        @Volatile
+        private var isMobileAdsInitialized = false
+        private val adsInitScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
         var tempFragment: Fragment? = null
         var isLoadChargeDischarge = false
         var isLoadTools = false
@@ -161,7 +179,6 @@ class MainActivity : AppCompatActivity(),
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        appLaunchTimestamp = android.os.SystemClock.elapsedRealtime()
 
         val prefs = PreferenceManager.getDefaultSharedPreferences(this)
         val isFirstLaunch = prefs.getBoolean("is_first_launch", true)
@@ -193,6 +210,10 @@ class MainActivity : AppCompatActivity(),
             )
             finish()
             return
+        }
+
+        if (appLaunchTimestamp == 0L) {
+            appLaunchTimestamp = android.os.SystemClock.elapsedRealtime()
         }
 
         enableEdgeToEdge()
@@ -291,17 +312,87 @@ class MainActivity : AppCompatActivity(),
         MainApp.currentTheme = ThemeHelper.currentTheme(resources.configuration)
     }
 
+    private fun isVerifiedPremiumForAds(): Boolean =
+        Premium.premiumStatusReady().value &&
+                NativeCore.hasPremiumAccess(this, NativeCore.FEATURE_ADS)
+
     private fun loadAdsIfNeeded() {
         lifecycleScope.launch {
             Premium.isPremium().combine(Premium.premiumStatusReady()) { premium, ready ->
                 Pair(premium, ready)
-            }.collectLatest { (premium, ready) ->
+            }.collectLatest { (_, ready) ->
                 BatteryLabService.instance?.refreshPremiumStatus()
                 invalidateOptionsMenu()
                 if (!ready || !NativeCore.hasPremiumAccess(this@MainActivity, NativeCore.FEATURE_ADS)) {
-                    loadInterstitialAd()
+                    requestConsentAndInitializeAds()
                 } else {
+                    adRetryJob?.cancel()
+                    adRetryJob = null
                     interstitialAd = null
+                    isAdLoading = false
+                }
+            }
+        }
+    }
+
+    private fun requestConsentAndInitializeAds() {
+        if (isFinishing || isDestroyed || isVerifiedPremiumForAds()) return
+
+        val consentInformation = UserMessagingPlatform.getConsentInformation(this)
+        if (consentInformation.canRequestAds()) {
+            initializeMobileAdsSdk()
+        }
+
+        if (isConsentRequested) return
+        isConsentRequested = true
+
+        val params = ConsentRequestParameters.Builder().build()
+        consentInformation.requestConsentInfoUpdate(
+            this,
+            params,
+            {
+                if (isFinishing || isDestroyed) return@requestConsentInfoUpdate
+                UserMessagingPlatform.loadAndShowConsentFormIfRequired(this) { formError ->
+                    if (formError != null) {
+                        Log.w(
+                            TAG,
+                            "UMP consent form error (${formError.errorCode}): ${formError.message}"
+                        )
+                    }
+                    if (consentInformation.canRequestAds()) {
+                        initializeMobileAdsSdk()
+                    }
+                }
+            },
+            { formError ->
+                Log.w(
+                    TAG,
+                    "UMP consent info update failed (${formError.errorCode}): ${formError.message}"
+                )
+                isConsentRequested = false
+                if (consentInformation.canRequestAds()) {
+                    initializeMobileAdsSdk()
+                }
+            }
+        )
+    }
+
+    private fun initializeMobileAdsSdk() {
+        if (isMobileAdsInitialized) {
+            loadInterstitialAdIfNeeded()
+            return
+        }
+        if (isMobileAdsInitStarted.compareAndSet(false, true)) {
+            adsInitScope.launch {
+                MobileAds.initialize(applicationContext) {
+                    isMobileAdsInitialized = true
+                    mainActivityRef?.get()?.let { act ->
+                        act.runOnUiThread {
+                            if (!act.isFinishing && !act.isDestroyed) {
+                                act.loadInterstitialAdIfNeeded()
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -519,7 +610,18 @@ class MainActivity : AppCompatActivity(),
         startOverlayIfEnabled()
         checkForUpdatesIfNeeded()
         maybeRequestRateTheApp()
+        ensureAdsReadyOnResume()
         isShowRequestIgnoringBatteryOptimizationsDialog = true
+    }
+
+    private fun ensureAdsReadyOnResume() {
+        if (isVerifiedPremiumForAds()) return
+        if (!isMobileAdsInitialized) {
+            requestConsentAndInitializeAds()
+        } else if (interstitialAd == null && !isAdLoading) {
+            adRetryAttempt = 0
+            loadInterstitialAdIfNeeded()
+        }
     }
 
     private fun logScreenView() {
@@ -680,6 +782,8 @@ class MainActivity : AppCompatActivity(),
     }
 
     override fun onDestroy() {
+        adRetryJob?.cancel()
+        adRetryJob = null
         clearMainActivityRef()
         cleanupDialogs()
         resetStateIfNotRecreate()
@@ -769,7 +873,14 @@ class MainActivity : AppCompatActivity(),
         }
     }
 
-    private fun loadInterstitialAd() {
+    private fun loadInterstitialAdIfNeeded() {
+        if (isFinishing || isDestroyed || interstitialAd != null || isAdLoading || !isMobileAdsInitialized) {
+            return
+        }
+        if (isVerifiedPremiumForAds()) return
+        if (!UserMessagingPlatform.getConsentInformation(this).canRequestAds()) return
+
+        isAdLoading = true
         val adRequest = AdRequest.Builder().build()
         InterstitialAd.load(this, AdMob.AD_UNIT_ID, adRequest, adLoadCallback())
     }
@@ -777,51 +888,83 @@ class MainActivity : AppCompatActivity(),
     private fun adLoadCallback(): InterstitialAdLoadCallback {
         return object : InterstitialAdLoadCallback() {
             override fun onAdLoaded(ad: InterstitialAd) {
-                interstitialAd = ad
+                isAdLoading = false
+                adRetryAttempt = 0
+                adRetryJob?.cancel()
+                adRetryJob = null
+                interstitialAd = if (isVerifiedPremiumForAds()) null else ad
             }
 
             override fun onAdFailedToLoad(adError: LoadAdError) {
+                isAdLoading = false
                 interstitialAd = null
+                Log.w(TAG, "Interstitial ad failed to load (${adError.code}): ${adError.message}")
+                if (adRetryAttempt < AD_MAX_RETRY_ATTEMPTS && !isFinishing && !isDestroyed) {
+                    adRetryAttempt++
+                    val delayMs = (5_000L shl (adRetryAttempt - 1)).coerceAtMost(30_000L)
+                    adRetryJob?.cancel()
+                    adRetryJob = lifecycleScope.launch {
+                        delay(delayMs)
+                        loadInterstitialAdIfNeeded()
+                    }
+                }
             }
         }
     }
 
     fun showInterstitialAd(force: Boolean = false) {
+        if (isFinishing || isDestroyed) return
         val premiumReady = Premium.premiumStatusReady().value
         val suppressAds = NativeCore.shouldSuppressAds(this, premiumReady)
         if (suppressAds) return
 
         adsCounter++
         val now = android.os.SystemClock.elapsedRealtime()
-        val isGracePassed = (now - appLaunchTimestamp) >= AD_LAUNCH_GRACE_PERIOD_MS
-        val isCooldownPassed = (now - lastInterstitialAdShownTime) >= AD_COOLDOWN_MS
+        val elapsedSinceLaunch = if (appLaunchTimestamp > 0L) now - appLaunchTimestamp else 0L
+        val isGracePassed = elapsedSinceLaunch >= AD_LAUNCH_GRACE_PERIOD_MS
+        val isCooldownPassed =
+            lastInterstitialAdShownTime == 0L || (now - lastInterstitialAdShownTime) >= AD_COOLDOWN_MS
+        val isBillingClear =
+            premiumReady || (!Premium.isPremium().value && elapsedSinceLaunch >= AD_BILLING_FALLBACK_MS)
+
+        if (interstitialAd == null) {
+            if (!isMobileAdsInitialized) {
+                requestConsentAndInitializeAds()
+            } else if (!isAdLoading) {
+                adRetryAttempt = 0
+                loadInterstitialAdIfNeeded()
+            }
+            return
+        }
 
         if ((adsCounter >= AD_COUNTER_THRESHOLD || force) &&
             (isGracePassed || force) &&
             (isCooldownPassed || force) &&
             !suppressAds &&
-            premiumReady &&
-            interstitialAd != null
+            isBillingClear
         ) {
-            interstitialAd?.fullScreenContentCallback = adContentCallback()
-            interstitialAd?.show(this)
-            lastInterstitialAdShownTime = now
+            val adToShow = interstitialAd ?: return
+            interstitialAd = null
             adsCounter = 0
+            adToShow.fullScreenContentCallback = adContentCallback()
+            adToShow.show(this)
         }
     }
 
     private fun adContentCallback(): FullScreenContentCallback {
         return object : FullScreenContentCallback() {
             override fun onAdDismissedFullScreenContent() {
-                loadInterstitialAd()
+                loadInterstitialAdIfNeeded()
             }
 
             override fun onAdFailedToShowFullScreenContent(adError: AdError) {
+                Log.w(TAG, "Interstitial ad failed to show (${adError.code}): ${adError.message}")
                 interstitialAd = null
-                loadInterstitialAd()
+                loadInterstitialAdIfNeeded()
             }
 
             override fun onAdShowedFullScreenContent() {
+                lastInterstitialAdShownTime = android.os.SystemClock.elapsedRealtime()
                 adsCounter = 0
                 interstitialAd = null
             }

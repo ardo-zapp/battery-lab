@@ -199,6 +199,10 @@ interface NavigationInterface : BatteryInfoInterface {
                 commit()
         }
 
+        if (isAddToBackStack && hasExistingFragment) {
+            this.showInterstitialAd()
+        }
+
         when {
 
             fragment !is BatteryStatusInformationFragment && fragment !is PowerConnectionSettingsFragment && fragment !is OverlayFragment

@@ -8,6 +8,7 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import androidx.preference.PreferenceManager
 import androidx.viewpager2.widget.ViewPager2
+import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import com.jacktor.batterylab.MainActivity
 import com.jacktor.batterylab.R
@@ -33,6 +34,7 @@ class ToolsFragment : Fragment(R.layout.tools_fragment), MenuInterface {
     }
 
     private var pendingTabIndex: Int = -1
+    private var suppressNextTabAd = false
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
@@ -74,6 +76,22 @@ class ToolsFragment : Fragment(R.layout.tools_fragment), MenuInterface {
             }
         }.attach()
 
+        binding.tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
+            override fun onTabSelected(tab: TabLayout.Tab) {
+                if (suppressNextTabAd) {
+                    suppressNextTabAd = false
+                    return
+                }
+                if (isResumed) {
+                    (activity as? MainActivity)?.showInterstitialAd()
+                }
+            }
+
+            override fun onTabUnselected(tab: TabLayout.Tab) {}
+
+            override fun onTabReselected(tab: TabLayout.Tab) {}
+        })
+
         binding.viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
                 super.onPageSelected(position)
@@ -89,7 +107,12 @@ class ToolsFragment : Fragment(R.layout.tools_fragment), MenuInterface {
         pendingTabIndex = -1
         if (initialTab in 0 until viewPagerAdapter.itemCount) {
             binding.viewPager.post {
-                if (isAdded) binding.viewPager.setCurrentItem(initialTab, false)
+                if (isAdded) {
+                    if (binding.viewPager.currentItem != initialTab) {
+                        suppressNextTabAd = true
+                    }
+                    binding.viewPager.setCurrentItem(initialTab, false)
+                }
             }
         }
     }
@@ -102,7 +125,12 @@ class ToolsFragment : Fragment(R.layout.tools_fragment), MenuInterface {
         val count = binding.viewPager.adapter?.itemCount ?: return
         if (index in 0 until count) {
             binding.viewPager.post {
-                if (isAdded) binding.viewPager.setCurrentItem(index, false)
+                if (isAdded) {
+                    if (binding.viewPager.currentItem != index) {
+                        suppressNextTabAd = true
+                    }
+                    binding.viewPager.setCurrentItem(index, false)
+                }
             }
         }
     }
